@@ -1,0 +1,15 @@
+runs/
+evidence/
+.env
+.env.*
+.private/
+*.zip
+.venv/
+.test-runs/
+__pycache__/
+*.py[cod]
+*.egg-info/
+node_modules/
+.next/
+web/out/
+web/*.tsbuildinfo

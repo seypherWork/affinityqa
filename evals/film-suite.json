@@ -1,0 +1,626 @@
+{
+  "schema_version": 2,
+  "suite_id": "film-personalization-v1",
+  "status": "DRAFT_UNVALIDATED",
+  "selection_notice": "Convenience catalog selected before Qloo responses or agent outputs. Public explicit interests, not people or population samples. Confirm resolution and coverage before freezing. A discarded case remains in the ledger.",
+  "task": "Rank the entire eligible movie catalog for a personalized discovery feed. Display its first five movies.",
+  "top_k": 5,
+  "repeats": 3,
+  "practical_tolerance": 0,
+  "calibration_notice": "Maximum observed within-profile reference distance plus predeclared tolerance. Three repeats are a pilot, not statistical certification. Recalibration is forbidden after observing reserved agent results.",
+  "catalog": [
+    {
+      "name": "Amélie",
+      "query": "Amélie",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Amélie"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2001
+    },
+    {
+      "name": "Parasite",
+      "query": "Parasite",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Parasite"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2019
+    },
+    {
+      "name": "Spirited Away",
+      "query": "Spirited Away",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Spirited Away"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2001
+    },
+    {
+      "name": "Moonlight",
+      "query": "Moonlight",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Moonlight"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2016
+    },
+    {
+      "name": "Whiplash",
+      "query": "Whiplash",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Whiplash"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2014
+    },
+    {
+      "name": "The Grand Budapest Hotel",
+      "query": "The Grand Budapest Hotel",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "The Grand Budapest Hotel"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2014
+    },
+    {
+      "name": "Mad Max: Fury Road",
+      "query": "Mad Max: Fury Road",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Mad Max: Fury Road"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2015
+    },
+    {
+      "name": "Blade Runner 2049",
+      "query": "Blade Runner 2049",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Blade Runner 2049"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2017
+    },
+    {
+      "name": "Arrival",
+      "query": "Arrival",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Arrival"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2016
+    },
+    {
+      "name": "Get Out",
+      "query": "Get Out",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Get Out"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2017
+    },
+    {
+      "name": "The Big Lebowski",
+      "query": "The Big Lebowski",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "The Big Lebowski"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 1998
+    },
+    {
+      "name": "Pan's Labyrinth",
+      "query": "Pan's Labyrinth",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Pan's Labyrinth"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2006
+    },
+    {
+      "name": "Everything Everywhere All at Once",
+      "query": "Everything Everywhere All at Once",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Everything Everywhere All at Once"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2022
+    },
+    {
+      "name": "Portrait of a Lady on Fire",
+      "query": "Portrait of a Lady on Fire",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Portrait of a Lady on Fire"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2019
+    },
+    {
+      "name": "Seven Samurai",
+      "query": "Seven Samurai",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Seven Samurai"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 1954
+    },
+    {
+      "name": "Do the Right Thing",
+      "query": "Do the Right Thing",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Do the Right Thing"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 1989
+    },
+    {
+      "name": "The Florida Project",
+      "query": "The Florida Project",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "The Florida Project"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2017
+    },
+    {
+      "name": "Uncut Gems",
+      "query": "Uncut Gems",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Uncut Gems"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2019
+    },
+    {
+      "name": "Her",
+      "query": "Her",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "Her"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2013
+    },
+    {
+      "name": "In the Mood for Love",
+      "query": "In the Mood for Love",
+      "search_type": "urn:entity:movie",
+      "accepted_names": [
+        "In the Mood for Love"
+      ],
+      "accepted_types": [
+        "urn:entity:movie"
+      ],
+      "expected_release_year": 2000
+    }
+  ],
+  "pairs": [
+    {
+      "id": "mutation-01",
+      "split": "development",
+      "A": [
+        {
+          "name": "Brian Eno",
+          "query": "Brian Eno",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Brian Eno"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Bad Bunny",
+          "query": "Bad Bunny",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Bad Bunny"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-02",
+      "split": "development",
+      "A": [
+        {
+          "name": "Miles Davis",
+          "query": "Miles Davis",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Miles Davis"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Metallica",
+          "query": "Metallica",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Metallica"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-03",
+      "split": "development",
+      "A": [
+        {
+          "name": "Björk",
+          "query": "Björk",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Björk"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Taylor Swift",
+          "query": "Taylor Swift",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Taylor Swift"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-04",
+      "split": "development",
+      "A": [
+        {
+          "name": "Radiohead",
+          "query": "Radiohead",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Radiohead"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Beyoncé",
+          "query": "Beyoncé",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Beyoncé"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-05",
+      "split": "development",
+      "A": [
+        {
+          "name": "Nina Simone",
+          "query": "Nina Simone",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Nina Simone"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Daft Punk",
+          "query": "Daft Punk",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Daft Punk"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-06",
+      "split": "development",
+      "A": [
+        {
+          "name": "David Bowie",
+          "query": "David Bowie",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "David Bowie"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Kendrick Lamar",
+          "query": "Kendrick Lamar",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Kendrick Lamar"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-07",
+      "split": "reserved",
+      "A": [
+        {
+          "name": "Aphex Twin",
+          "query": "Aphex Twin",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Aphex Twin"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Dua Lipa",
+          "query": "Dua Lipa",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Dua Lipa"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-08",
+      "split": "reserved",
+      "A": [
+        {
+          "name": "John Coltrane",
+          "query": "John Coltrane",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "John Coltrane"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Rosalía",
+          "query": "Rosalía",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Rosalía"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-09",
+      "split": "reserved",
+      "A": [
+        {
+          "name": "Kate Bush",
+          "query": "Kate Bush",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Kate Bush"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Drake",
+          "query": "Drake",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Drake"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-10",
+      "split": "reserved",
+      "A": [
+        {
+          "name": "Leonard Cohen",
+          "query": "Leonard Cohen",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Leonard Cohen"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Billie Eilish",
+          "query": "Billie Eilish",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Billie Eilish"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-11",
+      "split": "reserved",
+      "A": [
+        {
+          "name": "Joni Mitchell",
+          "query": "Joni Mitchell",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Joni Mitchell"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "The Weeknd",
+          "query": "The Weeknd",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "The Weeknd"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mutation-12",
+      "split": "reserved",
+      "A": [
+        {
+          "name": "Sade",
+          "query": "Sade",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Sade"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ],
+      "B": [
+        {
+          "name": "Nine Inch Nails",
+          "query": "Nine Inch Nails",
+          "search_type": "urn:entity:artist",
+          "accepted_names": [
+            "Nine Inch Nails"
+          ],
+          "accepted_types": [
+            "urn:entity:artist"
+          ]
+        }
+      ]
+    }
+  ],
+  "invariance_controls": [
+    "signal-order",
+    "json-key-order",
+    "equivalent-whitespace",
+    "request-id-change",
+    "irrelevant-comment",
+    "fresh-session"
+  ],
+  "pilot_pair_id": "mutation-01",
+  "reserved_policy": "Reserved rankings must not enter diagnostic feedback or repair proposal inputs.",
+  "resolution_revision": "Title/year disambiguation after ambiguous lookup; no affinity response or agent output observed. Original manifest preserved in run 20261003T170359Z-0cc7f6bd."
+}

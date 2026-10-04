@@ -1,0 +1,12 @@
+import {useState} from 'react';
+import type {ReviewCase} from '../lib/review';
+import {score,signed} from '../lib/review';
+import {Arrow} from './primitives';
+
+export function DecisionPreview({item,openCase}:{item:ReviewCase;openCase:(id:string,stage?:number)=>void}){
+  const [version,setVersion]=useState<'before'|'after'>('after');
+  const p=item.views[0].profiles.B;
+  const films=p[version],value=version==='after'?p.after_agreement:p.before_agreement;
+  const delta=p.after_agreement-p.before_agreement;
+  return <section className="product-preview"><div className="preview-intro"><span className="eyebrow">LOOK INSIDE THE REVIEW</span><h2>The decision.<br/><em>Under a closer lens.</em></h2><p>A working view of a recorded case. Switch between the original response and the repaired agent to see what actually changed.</p><button className="text-link" onClick={()=>openCase(item.id,3)}>Inspect this case <Arrow diagonal/></button><div className="preview-disclosure"><span className="status-dot"/> Recorded decisions · no new inference</div></div><div className="preview-window"><div className="preview-window-bar"><span className="window-mark" aria-hidden="true">◈</span><strong>AffinityQA / Decision review</strong><span className="preview-record-label">RECORDED</span></div><div className="preview-window-context"><div><span>ARTIST INTEREST</span><h3>{p.artist}</h3></div><div className="preview-version" role="group" aria-label="Preview agent version"><button aria-pressed={version==='before'} onClick={()=>setVersion('before')}>Before</button><button aria-pressed={version==='after'} onClick={()=>setVersion('after')}>After repair</button></div></div><div className="preview-response"><div className="preview-rank-label"><span>THE AGENT’S TOP FIVE</span><span>{version==='before'?'Reused from '+item.artists.A:'Recomputed for this profile'}</span></div><ol>{films.map((film,i)=><li key={film.id}><span>{String(i+1).padStart(2,'0')}</span><strong>{film.title}</strong><small>{film.year}</small></li>)}</ol></div><div className="preview-score"><div><span>Qloo agreement</span><strong>{score(value)}</strong></div><p>{version==='after'?<><span className={delta<0?'preview-loss':'preview-gain'}>{signed(delta)}</span><br/>{delta<0?'Lower agreement after repair.':'Higher agreement after repair.'}</>:<>The original response<br/>used another profile’s cache.</>}</p></div><div className="preview-window-footer"><span>MUTATION {item.id.replace('mutation-','')} / REPEAT 1</span><strong>Release not validated</strong></div></div></section>;
+}

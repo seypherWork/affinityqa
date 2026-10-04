@@ -1,0 +1,45 @@
+{
+  "services": [
+    {
+      "type": "web",
+      "name": "affinityqa-review",
+      "runtime": "python",
+      "plan": "starter",
+      "region": "frankfurt",
+      "autoDeployTrigger": "off",
+      "buildCommand": "python deployment/build_render.py",
+      "startCommand": "python deployment/start_render.py",
+      "healthCheckPath": "/healthz",
+      "maintenanceMode": {
+        "enabled": true
+      },
+      "disk": {
+        "name": "affinityqa-evidence",
+        "mountPath": "/var/data",
+        "sizeGB": 1
+      },
+      "envVars": [
+        {
+          "key": "PYTHON_VERSION",
+          "value": "3.12.14"
+        },
+        {
+          "key": "NODE_VERSION",
+          "value": "24.19.0"
+        },
+        {
+          "key": "PYTHONDONTWRITEBYTECODE",
+          "value": "1"
+        },
+        {
+          "key": "AFFINITYQA_RUN_ID",
+          "sync": false
+        },
+        {
+          "key": "AFFINITYQA_RECEIPT_SHA256",
+          "sync": false
+        }
+      ]
+    }
+  ]
+}

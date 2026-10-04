@@ -1,0 +1,45 @@
+# Render preparation — deployment has not been verified
+
+This repository is source only. PUBLIC-SOURCE-MANIFEST.json binds the current source, diagrams and hosting
+adapters. It identifies the earlier source archive as provenance, not as an
+identical tree. DEPLOYMENT-MANIFEST.json also binds that current manifest. Neither manifest is a deployment approval.
+
+Use a Python native web service: Python 3.12.14, Node 24.19.0 and pnpm 11.25.0.
+The build invokes the exact pnpm package through npx, installs locked dependencies
+with install scripts disabled, checks types and builds the static reviewer web.
+Build command: `python deployment/build_render.py`.
+Final start command: `python deployment/start_render.py`.
+
+The proposed service is Starter (0.5 CPU/512 MB), Frankfurt, one instance, with
+a 1 GB disk at /var/data. Turn off automatic deploys and keep maintenance enabled.
+Base price is USD 7.25/month before taxes, traffic/build overages or extras; this
+is not a spending cap. Review the dashboard amount and obtain owner approval
+before creating the paid service. Never change the paid plan automatically.
+
+The final start refuses missing bindings, evidence or compiled frontend. Set
+AFFINITYQA_RUN_ID and AFFINITYQA_RECEIPT_SHA256 to the owner-reviewed capture;
+these are provenance values, not secrets. Origin comes from RENDER_EXTERNAL_URL,
+port from PORT. Evidence belongs only in /var/data/affinityqa-evidence, outside
+the public repo and build. Do not install a Qloo key or a local model.
+
+The disk is unavailable during build/predeploy and SSH requires a running
+instance. After service-creation approval, explicitly use the temporary command
+`python deployment/provision_only.py`, with maintenance enabled, to prepare the
+disk. It serves only liveness /healthz (204); all other GET paths return 503.
+It is not a functioning demo. Do not use liveness as evidence approval.
+
+Upload only the separately reviewed minimal capture after Qloo rights and the
+exact SSH destination are approved. Verify every remote hash and all 54 replays,
+then switch to the strict final start and redeploy manually. Before removing
+maintenance, verify external HTTPS, Host/Origin boundaries, limits, restart,
+memory, latency, keyboard/mobile behavior and browser console. Keep previous
+failed cultural-quality studies visible. Causal PASS is not cultural validation.
+
+Linux, native Render build/runtime, 512 MB capacity and external TLS remain
+unverified. These scripts do not provide a firewall or make the disk immutable.
+No live provider inference, public data transfer or release approval is implied.
+
+Official references: [native runtimes](https://render.com/docs/native-runtimes),
+[Node selection](https://render.com/docs/node-version),
+[disks](https://render.com/docs/disks), [SSH](https://render.com/docs/ssh),
+[pricing](https://render.com/pricing).

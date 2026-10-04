@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "top_k": 10,
+  "discovery_take": 20,
+  "repeats": 3,
+  "thresholds": {
+    "reference_margin": 0.025,
+    "max_reference_jitter": 0.015,
+    "insensitivity_ceiling": 0.005,
+    "max_fidelity_drop": 0.05
+  },
+  "personas": {
+    "A": [
+      {"name": "Brian Eno", "query": "Brian Eno", "search_type": "urn:entity:artist", "accepted_names": ["Brian Eno"], "accepted_types": ["urn:entity:artist"]},
+      {"name": "Jil Sander", "query": "Jil Sander", "search_type": "urn:entity:brand", "accepted_names": ["Jil Sander"], "accepted_types": ["urn:entity:brand"]},
+      {"name": "Wes Anderson", "query": "Wes Anderson", "search_type": "urn:entity:director", "accepted_names": ["Wes Anderson"], "accepted_types": ["urn:entity:director", "urn:entity:person"]}
+    ],
+    "B": [
+      {"name": "Bad Bunny", "query": "Bad Bunny", "search_type": "urn:entity:artist", "accepted_names": ["Bad Bunny"], "accepted_types": ["urn:entity:artist"]},
+      {"name": "Supreme", "query": "Supreme", "search_type": "urn:entity:brand", "accepted_names": ["Supreme"], "accepted_types": ["urn:entity:brand"]},
+      {"name": "Fast & Furious (2001 film)", "query": "The Fast and the Furious", "search_type": "urn:entity:movie", "accepted_names": ["The Fast and the Furious"], "accepted_types": ["urn:entity:movie"]}
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "film-feed",
+      "task": "Rank ten films for a personalized discovery feed.",
+      "required": true,
+      "filter_type": "urn:entity:movie",
+      "filters": {}
+    },
+    {
+      "id": "brand-shortlist",
+      "task": "Rank ten brands for a culturally personalized creative brief.",
+      "required": true,
+      "filter_type": "urn:entity:brand",
+      "filters": {}
+    },
+    {
+      "id": "book-year-constraint",
+      "task": "Rank ten books first published in or after 1950.",
+      "required": false,
+      "filter_type": "urn:entity:book",
+      "filters": {"filter.publication_year.min": 1950}
+    }
+  ]
+}
+

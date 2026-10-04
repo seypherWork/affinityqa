@@ -1,0 +1,10 @@
+/* Editorial titles and short subtitles; descriptive copy keeps its own case. */
+.app :is(h1, h2, h3, h4, h5, h6),
+.app :is(.eyebrow, .hero-kicker, .journey-list strong, .step-nav strong, .step-nav small),
+.app nav[aria-label$="investigation stages"] button {
+  text-transform: uppercase;
+}
+
+.app :is(h1, h2, h3, h4, h5, h6) {
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "source": "synthetic",
+  "notice": "ENGINEERING FIXTURE ONLY. No Qloo request produced these IDs, entities, affinities or rankings. This fixture can never validate the live feasibility gate.",
+  "candidate_count": 24,
+  "seed_ids": {
+    "Brian Eno": "fixture:seed-brian-eno",
+    "Jil Sander": "fixture:seed-jil-sander",
+    "Wes Anderson": "fixture:seed-wes-anderson",
+    "Bad Bunny": "fixture:seed-bad-bunny",
+    "Supreme": "fixture:seed-supreme",
+    "The Fast and the Furious": "fixture:seed-fast-furious"
+  },
+  "persona_a_ids": ["fixture:seed-brian-eno", "fixture:seed-jil-sander", "fixture:seed-wes-anderson"],
+  "seed_types": {
+    "Brian Eno": ["urn:entity:artist"],
+    "Jil Sander": ["urn:entity:brand"],
+    "Wes Anderson": ["urn:entity:person", "urn:entity:director"],
+    "Bad Bunny": ["urn:entity:artist"],
+    "Supreme": ["urn:entity:brand"],
+    "The Fast and the Furious": ["urn:entity:movie"]
+  }
+}
+

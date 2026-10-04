@@ -1,0 +1,22 @@
+import {useState} from 'react';
+import type {MetadataStudy} from '../lib/review';
+import {Pill,Arrow} from './primitives';
+
+const signed=(v:number)=>(v>=0?'+':'')+v.toFixed(6);
+const checkNames:Record<string,string>={reference_informative:'Informative reference',no_profile_loss:'No profile loss',benefit_beyond_baseline:'Gain over original ranking',benefit_beyond_neutral:'Gain over pooled context',beats_swapped_context:'Gain over swapped context',stable:'Stable top five across repeats'};
+
+export function MetadataDevelopment({study}:{study:MetadataStudy}){
+  const [pair,setPair]=useState(study.cases.find(c=>!Object.values(c.checks).every(Boolean))?.pair_id??study.cases[0]?.pair_id??'');
+  const c=study.cases.find(c=>c.pair_id===pair);const complete=study.status==='COMPLETE_GRAPH_CAPTURE';
+  return <section className="context-archive" aria-label="Original profile metadata study"><div className="archive-section-title"><div><span className="eyebrow">LATEST / ORIGINAL PROFILE METADATA</span><h2>Keep the original taste.<br/><em>Give the agent the context.</em></h2></div><p>Verified artist descriptions and genres, plus film synopses and genres. One fixed local-model policy; no reference rankings or affinity scores enter its input.</p></div>
+    <div className="context-totals"><span><strong>{study.passes??'—'} / {study.denominator}</strong> Known pairs pass all controls</span><span><strong>{study.verified_outputs}</strong> Verified model decisions</span><span><strong>{study.new_qloo_requests}</strong> New Qloo calls</span><span><strong>{study.new_validation_pairs}</strong> New validation pairs</span></div>
+    <Pill tone={study.passes===14?'plum':'coral'}>{!complete?'Incomplete · no quality verdict':study.passes===14?'Development controls passed · independent validation pending':'Development rejected · no repair deployed'}</Pill>
+    <p>All fourteen pairs were already known. Correct, pooled and swapped artist context use the same prompt and catalog, with three actual model executions per condition. The original artist name stays in every condition. This measures the complete policy, including its new prompt and larger context capacity.</p>
+    {!complete&&<div className="repair-reasons"><p>{study.error}</p></div>}
+    {complete&&c&&<details className="integrity-details"><summary><span className="eyebrow">ALL FOURTEEN PAIRS</span><strong>Inspect the textual-context controls.</strong></summary><div className="study-selector"><label><span className="eyebrow">PAIR</span><select aria-label="Metadata pair" value={pair} onChange={e=>setPair(e.target.value)}>{study.cases.map(row=><option key={row.pair_id} value={row.pair_id}>{row.artists.A} / {row.artists.B}</option>)}</select></label></div><div className="candidate-checks"><strong>{c.artists.A} / {c.artists.B}</strong>{Object.entries(c.checks).map(([k,passed])=><div key={k}><span>{checkNames[k]??k}</span><span className={passed?'check-pass':'check-fail'}>{passed?'Met':'Not met'}</span></div>)}</div>
+      {(['baseline','neutral_graph','swapped_graph'] as const).map(control=><div className="repair-reasons" key={control}><span className="eyebrow">{control==='baseline'?'ORIGINAL RANKING':control==='neutral_graph'?'POOLED CONTEXT':'SWAPPED CONTEXT'}</span>{(['A','B'] as const).map(p=><p key={p}>{c.artists[p]}: <strong>{signed(c.comparisons[control][p].min)}</strong> minimum profile difference.</p>)}<p>Minimum pair gain: <strong>{signed(c.minimum_pair_mean_delta[control])}</strong>; required {control==='swapped_graph'?'+0.010000':'+0.020000'}.</p></div>)}
+      <p className="metric-note">A profile may not lose against its original or pooled ranking. Every pair must also pass both gain thresholds, the swapped-context comparison and repeat stability. Failed cases are retained in the denominator.</p></details>}
+    <p className="metric-note">The first attempt timed out after one request and produced no valid output. It remains incomplete. A documented technical amendment raised the deadline from 45 to 180 seconds and moved the shared catalog before the profile without changing input content. Total requests including the stopped attempt: {study.cumulative_model_calls_including_stopped_attempt}. No automatic retry inside either run.</p>
+    <a className="button outline" href="/api/metadata-development" target="_blank" rel="noreferrer">Open verified metadata experiment <Arrow diagonal/></a>
+  </section>;
+}
