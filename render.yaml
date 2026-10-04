@@ -7,7 +7,7 @@
       "plan": "starter",
       "region": "frankfurt",
       "autoDeployTrigger": "off",
-      "buildCommand": "python deployment/build_render.py",
+      "buildCommand": "AFFINITYQA_NODE_EXECUTABLE=\"$(node -p process.execPath | tail -n 1)\" && test -x \"$AFFINITYQA_NODE_EXECUTABLE\" && PATH=\"$(dirname \"$AFFINITYQA_NODE_EXECUTABLE\"):$PATH\" python deployment/build_render.py",
       "startCommand": "python deployment/start_render.py",
       "healthCheckPath": "/healthz",
       "maintenanceMode": {

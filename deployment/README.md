@@ -1,4 +1,4 @@
-# Render preparation — deployment has not been verified
+# Render preparation â€” build compatibility verified; demo acceptance pending
 
 This repository is source only. PUBLIC-SOURCE-MANIFEST.json binds the current source, diagrams and hosting
 adapters. It identifies the earlier source archive as provenance, not as an
@@ -7,7 +7,15 @@ identical tree. DEPLOYMENT-MANIFEST.json also binds that current manifest. Neith
 Use a Python native web service: Python 3.12.14, Node 24.19.0 and pnpm 11.25.0.
 The build invokes the exact pnpm package through npx, installs locked dependencies
 with install scripts disabled, checks types and builds the static reviewer web.
-Build command: `python deployment/build_render.py`.
+Build command for both the manual service form and `render.yaml`:
+
+```sh
+AFFINITYQA_NODE_EXECUTABLE="$(node -p process.execPath | tail -n 1)" && test -x "$AFFINITYQA_NODE_EXECUTABLE" && PATH="$(dirname "$AFFINITYQA_NODE_EXECUTABLE"):$PATH" python deployment/build_render.py
+```
+
+The observed Render console selected Node 24.19.0, while Python subprocess lookup in this service found `/usr/bin/node` version 24.21.0. Resolving the selected executable and prepending its directory to PATH allowed the complete build to pass. The underlying shell mechanism was not established. Keep `deployment/build_render.py`, its strict version checks and every dependency pin unchanged.
+
+This exact command reached BUILD SUCCESS on 4 October 2026 in deployment `dep-db193s60tbcc73a43i1g`, source commit `f929df5763cb8d37c3958c9c6fa9a4b37e469007`. This is build evidence only; a provisioning service is not the judged demo.
 Final start command: `python deployment/start_render.py`.
 
 The proposed service is Starter (0.5 CPU/512 MB), Frankfurt, one instance, with
@@ -35,8 +43,7 @@ maintenance, verify external HTTPS, Host/Origin boundaries, limits, restart,
 memory, latency, keyboard/mobile behavior and browser console. Keep previous
 failed cultural-quality studies visible. Causal PASS is not cultural validation.
 
-Linux, native Render build/runtime, 512 MB capacity and external TLS remain
-unverified. These scripts do not provide a firewall or make the disk immutable.
+The native Render build is verified for the source commit above. The final evidence-backed runtime, 512 MB capacity under replay load and external demo acceptance remain unverified. These scripts do not provide a firewall or make the disk immutable.
 No live provider inference, public data transfer or release approval is implied.
 
 Official references: [native runtimes](https://render.com/docs/native-runtimes),
