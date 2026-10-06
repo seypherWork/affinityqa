@@ -1,4 +1,4 @@
-# Render preparation â€” build compatibility verified; demo acceptance pending
+# Render preparation — build compatibility verified; demo acceptance pending
 
 This repository is source only. PUBLIC-SOURCE-MANIFEST.json binds the current source, diagrams and hosting
 adapters. It identifies the earlier source archive as provenance, not as an

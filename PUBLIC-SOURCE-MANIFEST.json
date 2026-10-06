@@ -2,7 +2,7 @@
   "schema_version": 1,
   "mode": "source-only",
   "source_file_count": 145,
-  "source_bytes": 1251507,
+  "source_bytes": 1256208,
   "provider_captures_included": false,
   "license_granted": true,
   "mit_original_code": true,
@@ -11,8 +11,8 @@
     ".gitignore": "1f9a02bfab374205c58d6b175207631c6e38e40b8847a1abf4c352f1cad2b6d0",
     "LICENSE": "633ac9eb7460d9d3303b2cc41426eb7063088e147d15136f28a2a50d50629a50",
     "LICENSING-NOTES.md": "f84be7af9292a8f6dabfbb1754449bbca58085d50df4d65b16108d273d4cce84",
-    "README.md": "e90765f71bb83b30b84575a7c9533372fe59687e2e5b444adb29d31c9e32e796",
-    "deployment/README.md": "73bff190d07b8b38373e4660784b3421b79dc7eb725d80d6c7e4168ab84ff738",
+    "README.md": "62eba34eeb171e2df4153ba7004ef89b195a3b69803f297c525f2fd14f8c90c3",
+    "deployment/README.md": "f035f0487516fd09e751f07c61c4434805137966983f6783fafe38e838c17a4d",
     "deployment/build_render.py": "ebda0559d023b60351e48edf08b15630459293c51b0df36bb533618d2aa1f174",
     "deployment/provision_only.py": "68ac154471d60616c642ee15230807661e2a8838ebd40d951109199ba0bbcad4",
     "deployment/start_render.py": "90ab0b2eb2f88aa7b5004de24ad30841dd26615d49d4ab58bd610e3d85789e44",
@@ -95,7 +95,7 @@
     "src/affinityqa/ordering_review.py": "94dab5c5101cc16404076d28d450ecf2b878b16864a4caad7b860422b481d282",
     "src/affinityqa/ordinal_calibration.py": "cc2516271cbdf85dcd1a2eb364cc3741f7f343e2b63837e59b0ba1422b177c92",
     "src/affinityqa/pairwise_rank_calibrator.py": "b84f216f9a99a27be5da286d687ae83d1be3dc9e031a9c4ee83888f72308e70c",
-    "src/affinityqa/public_demo.py": "48937570ba6b0c7b16e69c4dfad44dbdd5ef02b0a70e77ba279a9ebe21ac3189",
+    "src/affinityqa/public_demo.py": "8565753fbec8112809335e72f7c49d91b05345d04167e629fd0cbcfb69d3b144",
     "src/affinityqa/qloo.py": "c12ccce8db50996c0d0619faf6bb8fbc0dfbd332addf40004561b4f7813e9145",
     "src/affinityqa/regression_pack.py": "77c496b51d70de9301348cdadee432eebed34b52425fcb06380933f1663d6597",
     "src/affinityqa/repair_gate.py": "1bc3eeb94bfff8aa70e427d1863a41ff397028ed33de4295a74c3ede031f4b59",
@@ -117,7 +117,7 @@
     "tests/test_keyword_calibrator.py": "b808299f3206c1da58d0d0472556911976a037ecd7a667aea68dc70f34dd433b",
     "tests/test_keyword_words.py": "c95940491030280e1cc52e7cba0bc0b52382fd39192e2a03aeef93dd1dea7910",
     "tests/test_pairwise_rank_calibrator.py": "d157cf2bbfd6541b1eb899d55297fc56f5ac42bba23eff010ea7ebd7e2a27c0f",
-    "tests/test_public_demo.py": "3b770c591214701885656249c3468e496923e1afc5ab411e0289f00c084ab534",
+    "tests/test_public_demo.py": "35c850e0bf3f1fe7700f84afe8caaad0e5e334a241acc5aa163184414e16e8ce",
     "tests/test_public_demo_verifier.py": "653de851b646c44e22ea5f0beea51941b869b519f2947d7fa1562b128ce390d6",
     "tests/test_public_source_package.py": "239588adf31f34a22a5f0f1433ae08b2def66177df9bb649460872240d4f689e",
     "tests/test_taste_tags.py": "fcde418aacaae0d7fa1867ca4d1625841ad5823400eed3c84d80c1f72b3f1c5c",
@@ -128,7 +128,7 @@
     "web/app/page.tsx": "8a4d815f6f2e1a86b96b58a53c6ecc8db5ed98641b99a375834f93dd24c334c6",
     "web/app/style.css": "e4c567180a6c3daddd19c7261e4c8b4f8b75ecbf707f3fbc12275a44fa42c4d3",
     "web/app/typography.css": "f4c85b1b065f7516efcf5790a0b882ee9767a154ab91449e0222e56c8211e85f",
-    "web/components/causal-screening.module.css": "017d4745d3cb9f153c1577fa9f674ed6b4e5b517ce0c719fd07d966e429ca2a5",
+    "web/components/causal-screening.module.css": "5b346823568430b27886f9db10df8b309dee708a367fcf19b899680f0cc5778a",
     "web/components/causal-screening.tsx": "6e2cb652b99cac76bb39865fb715bab4ebb3c12b2ab9711a39bdb7f621552e90",
     "web/components/context-extensions.module.css": "9865551fbed2fedd7ba574e1fb0851e0326d2d4e16e35e2912961dd28141bc68",
     "web/components/context-extensions.tsx": "b0eecd5c807da258e6724206579cbefc52ea99321b67271af10a6a63ba624af4",
@@ -159,7 +159,10 @@
     "changed": [
       "README.md",
       "deployment/README.md",
-      "render.yaml"
+      "render.yaml",
+      "src/affinityqa/public_demo.py",
+      "tests/test_public_demo.py",
+      "web/components/causal-screening.module.css"
     ],
     "removed": []
   },
@@ -169,5 +172,20 @@
     "A credential-pattern scan is not a comprehensive secret audit.",
     "This is a derived repository revision with original diagrams and hosting adapters.",
     "Neither manifest certifies a hosted deployment or grants publication permission."
-  ]
+  ],
+  "derivation": {
+    "baseline_commit": "c87fcab42d9287690ae7798823fd2b5594bd928e",
+    "local_delta": [
+      "README.md",
+      "deployment/README.md",
+      "src/affinityqa/public_demo.py",
+      "tests/test_public_demo.py",
+      "web/components/causal-screening.module.css"
+    ],
+    "original_source_v4_archive_sha256": "dce785fb10adb0c3cd13ce55a08e6318fc0faf8b1c79dbb0daa7370bc0f11e7e",
+    "original_source_v4_role": "Historical source archive reference; this derived tree is not claimed identical.",
+    "publication_authorized": false,
+    "parent_source_v5_archive_sha256": "bab04c39b2055b3dd64473d49c79205c313199d74064b5bb82396db04b5f971f",
+    "parent_source_v5_role": "Historical reviewed source reference; this candidate is a distinct artifact."
+  }
 }

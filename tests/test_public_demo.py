@@ -177,6 +177,71 @@ class PublicDemoTests(unittest.TestCase):
                 self.assertEqual(client.get('/_next/static/%2e%2e/%2e%2e/%2e%2e/.env').status_code,404)
 
 
+    def test_exported_icon_link_resolves_without_opening_other_svg_files(self):
+        temporary = ROOT / '.test-runs'
+        temporary.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=temporary) as directory:
+            root = Path(directory)
+            static = root / 'web/out'
+            static.mkdir(parents=True)
+            icon = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M0 0h64v64H0z"/></svg>'
+            (static / 'demo.html').write_text('<html><head><link rel="icon" href="/icon.svg?a37278455bd553ab"></head></html>', 'utf8')
+            (static / 'icon.svg').write_bytes(icon)
+            (static / 'private.svg').write_text('DO_NOT_DISCLOSE', 'utf8')
+            (root / '.env').write_text('DO_NOT_DISCLOSE', 'utf8')
+            with self.client(root=root) as client:
+                page = client.get('/demo')
+                self.assertEqual(page.status_code, 200)
+                self.assertIn('href="/icon.svg?a37278455bd553ab"', page.text)
+                for uri in ('/icon.svg', '/icon.svg?a37278455bd553ab', '/icon.svg?file=../.env'):
+                    response = client.get(uri)
+                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response.content, icon)
+                    self.assertEqual(response.headers['content-type'], 'image/svg+xml')
+                    self.assertEqual(response.headers['x-content-type-options'], 'nosniff')
+                    self.assertEqual(response.headers['content-security-policy'], "default-src 'none'; frame-ancestors 'none'")
+                for uri in ('/private.svg', '/.env', '/icon.svg/', '/_next/static/private.svg'):
+                    response = client.get(uri)
+                    self.assertEqual(response.status_code, 404)
+                    self.assertNotIn('DO_NOT_DISCLOSE', response.text)
+
+    def test_missing_exported_icon_is_not_replaced_by_another_asset(self):
+        temporary = ROOT / '.test-runs'
+        temporary.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=temporary) as directory:
+            root = Path(directory)
+            static = root / 'web/out'
+            static.mkdir(parents=True)
+            (static / 'demo.html').write_text('<html></html>', 'utf8')
+            (root / 'icon.svg').write_text('DO_NOT_DISCLOSE', 'utf8')
+            with self.client(root=root) as client:
+                response = client.get('/icon.svg')
+                self.assertEqual(response.status_code, 404)
+                self.assertNotIn('DO_NOT_DISCLOSE', response.text)
+
+    def test_linked_exported_icon_does_not_disclose_an_outside_file(self):
+        temporary = ROOT / '.test-runs'
+        temporary.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=temporary) as directory:
+            root = Path(directory)
+            static = root / 'web/out'
+            static.mkdir(parents=True)
+            (static / 'demo.html').write_text('<html></html>', 'utf8')
+            outside = root / 'private.svg'
+            outside.write_text('DO_NOT_DISCLOSE', 'utf8')
+            try:
+                (static / 'icon.svg').symlink_to(outside)
+            except OSError as error:
+                if getattr(error, 'winerror', None) == 1314:
+                    self.skipTest('This Windows host lacks the privilege to create a symlink.')
+                raise
+            with self.client(root=root) as client:
+                response = client.get('/icon.svg')
+                self.assertEqual(response.status_code, 404)
+                self.assertNotIn('DO_NOT_DISCLOSE', response.text)
+
+
+
 class BodyAdmissionTests(unittest.IsolatedAsyncioTestCase):
     def scope(self):
         return {'type':'http','method':'POST','path':'/api/demo/replay',

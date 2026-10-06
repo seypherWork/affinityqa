@@ -282,6 +282,15 @@ def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
         def page():
             return FileResponse(demo,headers={'Content-Security-Policy':csp,'Cache-Control':'no-store'})
 
+        @app.get('/icon.svg')
+        def icon():
+            try: path = review._file(static, 'icon.svg')
+            except SchemaError: return JSONResponse({'error':'Not found.'},status_code=404)
+            if not path.is_file(): return JSONResponse({'error':'Not found.'},status_code=404)
+            return FileResponse(path, media_type='image/svg+xml',
+                                headers={'Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'",
+                                         'Cache-Control':'no-store'})
+
         @app.get('/_next/static/{asset:path}')
         def assets(asset: str):
             if Path(asset).suffix not in ('.js','.css','.woff','.woff2','.ttf'):
