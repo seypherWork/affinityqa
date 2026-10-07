@@ -151,13 +151,29 @@ from this public source distribution.
 | Historical 4 October source / full suites | **81 / 380 tests** | Earlier revisions, retained as history; not current suite totals |
 | Independent cultural recommendation quality | **NOT_VALIDATED**; earlier 13/14 and 4/6 trials failed | No threshold or historical failure has been changed |
 
-**Current acceptance:** the new public source workflow is prepared for Windows
-and Ubuntu 24.04; neither job has been observed running for this unpublished
-candidate. Current Linux runtime, genuine cloud inference, hosted judge access,
-useful capacity and third-party data permission remain pending. The recorded
-Windows result does not establish those requirements. The application remains
-**NO-GO for the complete jury journey**; the tested agent's release remains
-**BLOCKED**. See [the acceptance record](docs/JUDGE-ACCEPTANCE.md).
+**Engineering acceptance, 7 October 2026:** published source revision
+`20d6abfe489eff5ae361d8c45a92bf14d4133de9` passed **285 synthetic tests on each
+platform**, zero skips, source checks, frontend type checking and build in
+[GitHub Actions](https://github.com/seypherWork/affinityqa/actions/runs/37670425795). Windows used Python 3.13.16;
+Ubuntu 24.04 used Python 3.12.14. These are engineering checks, not live-provider
+or independent cultural evaluation. The earlier failed Windows preparation
+run remains available in the repository history.
+
+**Hosted recorded replay, 7 October 2026:** [open the demo](https://affinityqa-review.onrender.com).
+It runs the separately verified source revision
+`e08ddf2a7b7751b07b9c0b4635ad838247c44c00`; automatic deployments remain off.
+All 54 HTTPS selections passed 324 strict checks, and recorded evidence survived
+a tested service-process restart. Desktop stages, keyboard interaction and a
+390-pixel mobile viewport were checked. Two overlapping requests produced an
+accepted request and a busy response, followed by successful recovery; this is
+not a many-user capacity benchmark. The replay makes no new model or Qloo calls
+and needs no Docker, local model or reviewer API key.
+
+**Full-product acceptance remains pending:** genuine new hosted/cloud cases,
+independent permitted cultural labels and evaluation, useful new-case capacity
+and applicable provider/data permission. The application remains **NO-GO for
+the complete jury journey**; the tested agent's release remains **BLOCKED**.
+See [the acceptance record](docs/JUDGE-ACCEPTANCE.md).
 
 ## Render build configuration
 
