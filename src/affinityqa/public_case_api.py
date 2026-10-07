@@ -84,11 +84,20 @@ def routes(manager, *, origin):
             current = service()
             if request.headers.get('origin') != origin:
                 raise _Denial(403, 'This action requires the demo origin.')
-            previous = cookie(request)
             with current.lock:
-                if previous is None and len(current.session_keys) >= current.policy['maximum_sessions']:
-                    raise _Denial(429, 'Public session capacity reached.')
-                token, info = current.session(previous)
+                try:
+                    previous = cookie(request)
+                    if previous is None and len(current.session_keys) >= current.policy['maximum_sessions']:
+                        raise _Denial(429, 'Public session capacity reached.')
+                    token, info = current.session(previous)
+                except FileNotFoundError:
+                    # Discard only an unusable browser credential after explicit
+                    # same-origin access. Retain server records and every budget;
+                    # a new session needs a separate deliberate request.
+                    rejected = response({'error': 'Your previous review session is unavailable. Its browser cookie has been cleared. Open a new session to continue; saved cases are retained and no execution has been repeated.'}, 404)
+                    rejected.delete_cookie(name, path='/', secure=urlsplit(origin).scheme == 'https',
+                                           httponly=True, samesite='strict')
+                    return rejected
                 answer = response(info)
                 if previous is None:
                     expiry = datetime.fromisoformat(info['expires_utc'])
