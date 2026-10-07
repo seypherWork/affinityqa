@@ -4,7 +4,7 @@ This guide describes the restricted interactive demo of a verified recorded capt
 
 ## Choose the right installation
 
-The hosted reviewer demo is the intended primary entry point. Its public address is pending approval and external verification. For a private rehearsal, use the restricted surface prepared in [the deployment guide](PUBLIC-DEMO-DEPLOYMENT.md). A verified matching evidence package must be separately authorized and supplied.
+The hosted recorded reviewer demo is available at [https://affinityqa-review.onrender.com](https://affinityqa-review.onrender.com). On 7 October 2026 its source revision `e08ddf2a7b7751b07b9c0b4635ad838247c44c00` passed all 54 external HTTPS replay selections and 324 strict checks, plus a tested process restart retaining the evidence. It requires no reviewer API key, Docker installation or local model. This acceptance is limited to recorded replay; genuine new cloud cases remain pending. For a private rehearsal, follow [the deployment guide](PUBLIC-DEMO-DEPLOYMENT.md) with a separately authorized matching evidence package.
 
 The source-only package contains code and synthetic engineering tests. Without that evidence it shows UNAVAILABLE, rather than inventing a demonstration. The local judge archive is a different package: it contains compiled interface assets and private recorded evidence and starts the complete local studio. The local studio retains historical studies; it must not be exposed through a public tunnel.
 
@@ -17,7 +17,7 @@ The source-only package contains code and synthetic engineering tests. Without t
 | 0:45–1:05 | In **Detect**, compare the named **Before repair** and **After repair** profile chains. Then choose **Diagnose**. | The trace shows which profile was requested, which Qloo context was bound, and which profile reached the agent. The supported diagnosis is WRONG_TOOL_PROFILE. |
 | 1:05–1:25 | Choose **Repair** and inspect the before, after and healthy movie columns. | The workflow applies bind-request-tool and executes the repaired path. Four recorded decisions are dispatched here; no fresh inference or provider request occurs. The repaired top five must match the corresponding healthy execution. |
 | 1:25–1:45 | Choose **Verify** and inspect all six checks. | Recovery requires a supported diagnosis, an applied repair, restored profile integrity, a dispatched decision, a healthy match and legitimate cache reuse. The broader capture passed all 18 controlled cases across six artist pairs and three incident types. |
-| 1:45–2:00 | Open **Protocol & provenance** and show the retained historical quality results. | The original capture used 234 real local model executions and 24 total Qloo requests, with 54 observed recoveries over three repeats per case. These are controlled repeats, not independent users. Cultural quality remains unvalidated, and earlier failed quality experiments stay visible. |
+| 1:45–2:00 | Open **Protocol & provenance** and show the retained historical quality results. | The original capture used 234 real local model executions and 24 Qloo observations, including 19 new calls and five reused searches, with 54 observed recoveries over three repeats per case. These are controlled repeats, not independent users. Cultural quality remains unvalidated, and earlier failed quality experiments stay visible. |
 
 The fault is deliberately injected in a controlled adapter. Describe it as an integration incident; do not claim discovery of an undisclosed production incident or a general-purpose code repair.
 
@@ -47,14 +47,14 @@ Only one replay can run at a time in the restricted server. If another request i
 
 ## Submission operator checks
 
-Before the separately approved publication and submission, bind the materials to the actual public application URL and repository revision. Test the external address, six pairs, three incident types, all repeats, named provenance, keyboard, narrow-screen layout and error handling. Keep raw local exports and private local model-job routes inaccessible. The owned public new-case routes are a separate interface: they stay disabled until account, transfer, capacity and genuine hosted acceptance are approved. Their existence does not authorize exposing the local API. Confirm the applicable Qloo display permission and continued free judge access through the judging period. [Official rules](https://qloo.devpost.com/rules)
+The October 7 source publication is bound to the independently checked 183-file tree; its [Windows/Linux engineering run](https://github.com/seypherWork/affinityqa/actions/runs/37670425795) passed 285 synthetic tests per platform, type checking and build. Hosted replay remains on the separate e08 revision named above. Its external 54-selection journey, named provenance, keyboard, narrow-screen layout and bounded busy/error handling were checked. Before separately approved submission, recheck availability and ensure the materials distinguish these two revisions and recorded replay from new-case execution. Keep raw local exports and private local model-job routes inaccessible. The owned public new-case routes are a separate interface: they stay disabled until account, transfer, capacity and genuine hosted acceptance are approved. Their existence does not authorize exposing the local API. Confirm the applicable Qloo display permission and continued free judge access through the judging period. [Official rules](https://qloo.devpost.com/rules)
 
 ## Separate new-case journey — acceptance pending
 
 This section is an operator acceptance path, not a verified live demonstration.
 Use it after the approved remote provider and hosted service are operational.
 
-1. Open the actual external URL in a fresh browser. Check that it identifies real remote execution and retains the separate cultural/release gates. The provisioning-only Render address does not satisfy this step.
+1. Open the actual external URL in a fresh browser. Check that it identifies real remote execution and retains the separate cultural/release gates. The current recorded-replay deployment does not satisfy this new-case step.
 2. Open the visitor session explicitly, select the two artist interests and review the complete proposed catalog, fixed protocol and execution budget. Opening the page alone must not start a provider call.
 3. Start the reviewed plan once. Follow the saved status; a lost start response must recover from status without another admission. The owner's account supplies credentials; judges must not supply their own API keys.
 4. Wait for the full capture. Verify saved real Qloo samples, model responses and all three faults with three repeats. Demonstrate diagnosis, the bounded repair and independently checked recovery. Preserve failed or partial results.
