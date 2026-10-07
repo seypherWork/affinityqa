@@ -1,8 +1,12 @@
 # Render preparation — build compatibility verified; demo acceptance pending
 
-This repository is source only. PUBLIC-SOURCE-MANIFEST.json binds the current source, diagrams and hosting
-adapters. It identifies the earlier source archive as provenance, not as an
-identical tree. DEPLOYMENT-MANIFEST.json also binds that current manifest. Neither manifest is a deployment approval.
+This repository is source only. The source-archive builder generates
+PUBLIC-SOURCE-MANIFEST.json for its exact included source, diagrams and hosting
+adapters. Verify those file hashes against the extracted archive. The ZIP has
+a separate SHA-256 receipt; the manifest cannot bind its own bytes. Historical
+deployment manifests from earlier preparations are retained separately and
+are not shipped in this source archive. A source manifest or a successful build
+does not approve deployment or prove the hosted judge journey.
 
 Use a Python native web service: Python 3.12.14, Node 24.19.0 and pnpm 11.25.0.
 The build invokes the exact pnpm package through npx, installs locked dependencies
@@ -24,11 +28,18 @@ Base price is USD 7.25/month before taxes, traffic/build overages or extras; thi
 is not a spending cap. Review the dashboard amount and obtain owner approval
 before creating the paid service. Never change the paid plan automatically.
 
-The final start refuses missing bindings, evidence or compiled frontend. Set
+The final start refuses missing mode configuration or compiled frontend. For replay, set
 AFFINITYQA_RUN_ID and AFFINITYQA_RECEIPT_SHA256 to the owner-reviewed capture;
 these are provenance values, not secrets. Origin comes from RENDER_EXTERNAL_URL,
 port from PORT. Evidence belongs only in /var/data/affinityqa-evidence, outside
-the public repo and build. Do not install a Qloo key or a local model.
+the public repo and build. Replay needs no Qloo key or local model.
+
+Public new cases use the explicit configuration, retained private storage and
+lazy private credential paths in [PUBLIC-NEW-CASES.md](../docs/PUBLIC-NEW-CASES.md).
+`AFFINITYQA_ENABLE_NEW_CASES=0` is the default and allows plan inspection only.
+Case-only mode needs no replay bundle. Enabling real execution is a separate
+owner-approved step after provider, transfer, quota and capacity checks. No
+credentials or owner configuration are included in the source archive.
 
 The disk is unavailable during build/predeploy and SSH requires a running
 instance. After service-creation approval, explicitly use the temporary command
