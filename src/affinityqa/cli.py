@@ -121,6 +121,15 @@ def parser() -> argparse.ArgumentParser:
     server.add_argument("--store", type=Path, default=PROJECT_ROOT / "runs/backend")
     server.add_argument("--live-local-enabled", action="store_true", help="Enable only the fixed Sade/NIN local incident and profile-cache repair.")
     server.add_argument("--ollama-url", help="Numeric address of this computer's installed Ollama server.")
+    server.add_argument('--individual-template', type=Path, help='Explicit request template with 20 movie identities and reviewed operator; no historical defaults.')
+    server.add_argument('--individual-provider', choices=('local', 'groq'), default='local', help='Server-owned operator; separate local v1 or remote v2 template.')
+    server.add_argument('--individual-output', type=Path, default=PROJECT_ROOT/'runs/individual-panel', help='Owner-selected new or inspected private job storage.')
+    server.add_argument('--individual-local-enabled', action='store_true', help='Allow explicitly reviewed new individual plans to execute on this PC.')
+    server.add_argument('--individual-remote-enabled', action='store_true', help='Allow explicitly reviewed new individual plans to call the remote provider.')
+    server.add_argument('--remote-model-minimum-interval', type=float,
+                        help='Owner-reviewed remote dispatch interval (0-65 seconds); required to enable real remote execution.')
+    server.add_argument('--groq-env-file', type=Path, help='Private remote provider file, read only at deliberate execution; no key in command arguments.')
+    server.add_argument('--env-file', type=Path, help='Local Qloo credential file, read only at deliberate execution.')
     return cli
 
 
@@ -374,12 +383,45 @@ def main(argv: list[str] | None = None) -> int:
             except ImportError:
                 raise SchemaError("Install the optional backend dependencies in an isolated environment: pip install -e .[backend].") from None
             live_manager=None
+            individual_manager=None
+            if args.individual_local_enabled and not args.individual_template:
+                raise SchemaError('New local execution needs an explicit individual template.')
+            if args.individual_remote_enabled and (not args.individual_template or args.individual_provider!='groq'
+                    or not args.groq_env_file or not args.env_file or args.remote_model_minimum_interval is None):
+                raise SchemaError('Remote execution needs its v2 template, Groq operator, reviewed interval and two explicit private credential file paths.')
+            if args.remote_model_minimum_interval is not None and (args.individual_provider!='groq' or not args.individual_template):
+                raise SchemaError('Remote pacing needs the explicit Groq operator and its template.')
+            if args.individual_provider=='groq' and (args.individual_local_enabled or args.live_local_enabled or args.ollama_url):
+                raise SchemaError('The remote operator cannot be mixed with local inference configuration.')
+            if args.individual_template:
+                if args.live_local_enabled:
+                    raise SchemaError('Use one local execution manager at a time.')
+                if args.individual_provider=='local' and not args.ollama_url:
+                    raise SchemaError('An explicit loopback Ollama address is required.')
+                from .individual_jobs import IndividualJobManager
+                if args.individual_provider=='groq':
+                    from .individual_remote_capture import read_request, load_private_credential
+                    individual_manager=IndividualJobManager(args.individual_output, read_request(args.individual_template), operator='groq',
+                        execution_enabled=args.individual_remote_enabled,
+                        remote_minimum_interval_seconds=args.remote_model_minimum_interval,
+                        settings_loader=lambda:Settings.from_environment(args.env_file, use_process_environment=False),
+                        remote_key_loader=lambda:load_private_credential(args.groq_env_file))
+                else:
+                    from .individual_capture import read_request
+                    individual_manager=IndividualJobManager(args.individual_output, read_request(args.individual_template), args.ollama_url,
+                        execution_enabled=args.individual_local_enabled,
+                        settings_loader=lambda:Settings.from_environment(args.env_file, use_process_environment=False))
             if args.live_local_enabled:
                 if not args.ollama_url:raise SchemaError('An explicit local Ollama address is required for live execution.')
                 from .live_jobs import LiveJobManager
                 live_manager=LiveJobManager(PROJECT_ROOT,args.ollama_url)
-            uvicorn.run(create_app(PROJECT_ROOT, store_root=args.store, live_manager=live_manager), host="127.0.0.1", port=args.port,
-                        access_log=False, proxy_headers=False, server_header=False)
+            try:
+                uvicorn.run(create_app(PROJECT_ROOT, store_root=args.store, live_manager=live_manager,
+                            individual_manager=individual_manager), host="127.0.0.1", port=args.port,
+                            access_log=False, proxy_headers=False, server_header=False)
+            finally:
+                if individual_manager:
+                    individual_manager.close()
             return 0
     except AffinityQAError as exc:
         emit({"status": "ERROR", "message": str(exc)})

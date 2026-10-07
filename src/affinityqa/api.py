@@ -104,12 +104,14 @@ class LocalRequestGuard:
         return await self.app(scope, receive, send)
 
 
-def create_app(project_root: Path, *, store_root: Path | None = None, live_manager=None) -> FastAPI:
+def create_app(project_root: Path, *, store_root: Path | None = None, live_manager=None, individual_manager=None) -> FastAPI:
     store = RunStore(store_root or project_root / "runs/backend", project_root / "evals/qloo.json", project_root / "fixtures/synthetic.json")
-    app = FastAPI(title="AffinityQA local backend", version="0.2.0", description="Local engineering preview. No live Qloo calls or external agent execution through HTTP.")
+    app = FastAPI(title="AffinityQA local backend", version="0.2.0", description="Loopback engineering preview. New individual Qloo/model execution requires an explicit server option and unchanged reviewed plan.")
     app.state.store = store
     app.add_middleware(LocalRequestGuard)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "[::1]"])
+    from .individual_api import routes
+    app.include_router(routes(individual_manager))
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError):
@@ -131,7 +133,10 @@ def create_app(project_root: Path, *, store_root: Path | None = None, live_manag
     @app.get("/api/status")
     def status():
         return {"project": "AffinityQA", "backend": "ready", "preview_mode": "local", **public_access_state(project_root / "runs"),
-                "live_qloo_enabled": False, "http_agent_execution": "synthetic-controls-only",
+                "live_qloo_enabled": bool(individual_manager and individual_manager.enabled),
+                "http_agent_execution": ("explicit-individual-remote" if individual_manager.operator=='groq'
+                    else "explicit-individual-local") if individual_manager and individual_manager.enabled else "synthetic-controls-only",
+                "individual_simulation_only": bool(individual_manager and individual_manager.adapters is not None),
                 "agent_contract": CONTRACT_VERSION, "metric_version": METRIC_VERSION, "metrics_status": "PROVISIONAL"}
 
     @app.get("/api/review")

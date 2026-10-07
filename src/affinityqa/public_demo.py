@@ -9,12 +9,14 @@ import re
 import threading
 import time
 from collections import deque
+from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 from .api import CausalReplayBody
 from . import causal_review as review
@@ -152,7 +154,8 @@ class _Capture:
 
 
 class _Boundary:
-    def __init__(self, app, *, origin: str, max_bytes=4096, replay_limit=60, clock=time.monotonic, read_timeout=5.0):
+    def __init__(self, app, *, origin: str, max_bytes=4096, replay_limit=60, clock=time.monotonic,
+                 read_timeout=5.0, case_session_limit=12, case_write_limit=30, case_read_limit=240):
         self.app, self.origin, self.host = app, origin, urlsplit(origin).netloc
         self.max_bytes, self.replay_limit, self.clock = max_bytes, replay_limit, clock
         self.replay_times = deque()
@@ -160,6 +163,17 @@ class _Boundary:
         self.lock = threading.Lock()
         self.read_timeout = read_timeout
         self.readers = threading.BoundedSemaphore(4)
+        self.case_queues = {name: deque() for name in ('session', 'write', 'read')}
+        self.case_limits = {'session': case_session_limit, 'write': case_write_limit, 'read': case_read_limit}
+
+    def admit_case(self, kind):
+        now = self.clock()
+        with self.lock:
+            queue = self.case_queues[kind]
+            while queue and queue[0] <= now - 60: queue.popleft()
+            if len(queue) >= self.case_limits[kind]: return False
+            queue.append(now)
+            return True
 
     def admit(self, replay):
         now = self.clock()
@@ -172,21 +186,43 @@ class _Boundary:
 
     async def __call__(self, scope, receive, send):
         if scope['type'] != 'http': return await self.app(scope, receive, send)
-        headers = {k.decode('latin1').lower(): v.decode('latin1') for k, v in scope['headers']}
         async def reject(status, message):
             await JSONResponse({'error': message}, status_code=status, headers={'Cache-Control':'no-store'})(scope, receive, send)
+        raw_headers = scope['headers']
+        if len(raw_headers) > 64 or sum(len(k) + len(v) for k, v in raw_headers) > 8192:
+            return await reject(431, 'Request headers too large.')
+        critical = {'host', 'origin', 'cookie', 'x-affinityqa-csrf', 'content-type',
+                    'content-length', 'transfer-encoding'}
+        headers = {}
+        for key, value in raw_headers:
+            key, value = key.decode('latin1').lower(), value.decode('latin1')
+            if key in critical and key in headers:
+                return await reject(400, 'Ambiguous request headers.')
+            headers[key] = value
+        if 'transfer-encoding' in headers and ('content-length' in headers or headers['transfer-encoding'].lower() != 'chunked'):
+            return await reject(400, 'Ambiguous request framing.')
         if headers.get('host') != self.host: return await reject(400, 'Invalid demo host.')
         origin = headers.get('origin')
         if origin is not None and origin != self.origin: return await reject(403, 'This demo requires its own origin.')
         replay = scope['path'] == '/api/demo/replay' and scope['method'] == 'POST'
-        if replay:
-            if origin != self.origin: return await reject(403, 'Replay requires this demo origin.')
+        case = scope['path'].startswith('/api/demo/cases/')
+        case_write = case and scope['method'] == 'POST'
+        if case and scope.get('query_string'):
+            return await reject(400, 'Case routes do not accept URL parameters.')
+        if replay or case_write:
+            if origin != self.origin: return await reject(403, 'This action requires this demo origin.')
             if headers.get('content-type', '').split(';')[0].strip().lower() != 'application/json':
                 return await reject(415, 'Use application/json.')
+            declared = headers.get('content-length')
+            if declared is not None and not re.fullmatch(r'[0-9]{1,10}', declared):
+                return await reject(400, 'Invalid request length.')
+            if declared is not None and int(declared) > self.max_bytes:
+                return await reject(413, 'Request too large.')
             if not self.readers.acquire(blocking=False): return await reject(429, 'Demo request readers are busy.')
             chunks, size = [], 0
             try:
-                if not self.admit(True): return await reject(429, 'Demo request limit reached. Try again shortly.')
+                accepted = self.admit(True) if replay else self.admit_case('session' if scope['path'] == '/api/demo/cases/session' else 'write')
+                if not accepted: return await reject(429, 'Demo request limit reached. Try again shortly.')
                 deadline = time.monotonic() + self.read_timeout
                 while True:
                     remaining = deadline - time.monotonic()
@@ -198,6 +234,12 @@ class _Boundary:
                     if size > self.max_bytes: return await reject(413, 'Request too large.')
                     chunks.append(chunk)
                     if not message.get('more_body'): break
+                if declared is not None and int(declared) != size:
+                    return await reject(400, 'Request length differs.')
+                from .individual_capture import strict_json
+                try: strict_json(b''.join(chunks))
+                except (AffinityQAError, ValueError, UnicodeError):
+                    return await reject(422, 'Invalid JSON body.')
             finally:
                 self.readers.release()
             delivered = False
@@ -211,6 +253,8 @@ class _Boundary:
             receive = bounded_receive
         if scope['path'] == '/api/demo/summary' and scope['method'] == 'GET' and not self.admit(False):
             return await reject(429, 'Demo request limit reached. Try again shortly.')
+        if case and scope['method'] == 'GET' and not self.admit_case('read'):
+            return await reject(429, 'Demo request limit reached. Try again shortly.')
         async def secured(message):
             if message['type'] == 'http.response.start':
                 message['headers'] = list(message.get('headers', [])) + [
@@ -222,18 +266,39 @@ class _Boundary:
 
 def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
                       receipt_sha256: str | None = None, replay_limit: int = 60,
-                      web_root: Path | None = None) -> FastAPI:
+                      web_root: Path | None = None, case_manager=None,
+                      case_session_limit: int = 12, case_write_limit: int = 30,
+                      case_read_limit: int = 240) -> FastAPI:
     origin = canonical_origin(origin)
     if type(replay_limit) is not int or not 1 <= replay_limit <= 120:
         raise ValueError('Replay limit must be 1..120 per minute.')
     if (run_id is None) != (receipt_sha256 is None): raise ValueError('Both evidence bindings are required.')
+    if any(type(value) is not int or not 1 <= value <= 600 for value in
+           (case_session_limit, case_write_limit, case_read_limit)):
+        raise ValueError('Public case request limits must be 1..600 per minute.')
+    if case_manager is not None:
+        from .public_cases import PublicCaseManager
+        if not isinstance(case_manager, PublicCaseManager) or case_manager.origin != origin:
+            raise ValueError('One explicit case manager must use the exact demo origin.')
     capture = _Capture(root, run_id, receipt_sha256) if run_id is not None else None
+    @asynccontextmanager
+    async def lifespan(app):
+        try:
+            yield
+        finally:
+            if case_manager is not None:
+                await run_in_threadpool(case_manager.close)
     # Keep the explicit route allowlist behind TLS ingress; backend HTTP must not
     # generate scheme-downgrading redirects for unregistered slash variants.
     app = FastAPI(title='AffinityQA recorded reviewer demo', docs_url=None, redoc_url=None,
-                  openapi_url=None, redirect_slashes=False)
-    app.add_middleware(_Boundary, origin=origin, replay_limit=replay_limit)
+                  openapi_url=None, redirect_slashes=False, lifespan=lifespan)
+    app.add_middleware(_Boundary, origin=origin, replay_limit=replay_limit,
+                       case_session_limit=case_session_limit, case_write_limit=case_write_limit,
+                       case_read_limit=case_read_limit)
     app.state.capture = capture
+    app.state.case_manager = case_manager
+    from .public_case_api import routes
+    app.include_router(routes(case_manager, origin=origin))
 
     @app.exception_handler(RequestValidationError)
     async def invalid(request: Request, error):
@@ -248,6 +313,15 @@ def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
     @app.get('/healthz')
     def health():
         # Cheap liveness only. Integrity and approval belong to summary/replay, never this route.
+        if case_manager is not None:
+            worker = case_manager.manager.worker
+            return JSONResponse({'status': 'alive', 'capture_configured': capture is not None,
+                'execution': 'recorded-replay-and-remote-cases' if capture is not None else 'remote-cases',
+                'new_cases_configured': True,
+                'remote_execution_configured': case_manager.manager.enabled,
+                'admissions_blocked': case_manager._mutations_blocked or case_manager.manager.closed,
+                'capture_active': bool(worker and worker.is_alive()),
+                'provider_readiness': 'NOT_CHECKED_BY_LIVENESS'}, headers={'Cache-Control': 'no-store'})
         return JSONResponse({'status':'alive','capture_configured':capture is not None,
                              'execution':'recorded-replay','live_inference':False},headers={'Cache-Control':'no-store'})
 
