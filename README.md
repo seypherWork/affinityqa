@@ -8,6 +8,16 @@ AffinityQA detects when a personalized AI agent loses the requested profile, dia
 
 [Quickstart](#quickstart) · [Architecture](#architecture) · [Local evidence](#local-evidence) · [Reviewer guide](docs/DEMO-GUIDE.md) · [MIT license](LICENSE)
 
+**Candidate update · 6 October 2026.** The source also includes new-case capture
+and independent verification for an explicitly configured local model or the
+separately versioned Groq operator. The public panel now provides explicit
+session, plan, start, progress, saved-case and selected-verification controls,
+with disabled-by-default CLI and Render configuration. A complete browser
+journey and provider failure have been exercised with labelled synthetic
+fixtures. Windows path preflight prevents overlong capture paths before
+provider dispatch. Real Groq acceptance and hosted new-case access
+remain pending. No cloud key, provider capture or model weights are shipped.
+
 ## What it does
 
 - **Find the broken profile link.** Compare requested, transmitted, tool and output identities.
@@ -31,7 +41,12 @@ The reviewer replay uses previously recorded local-model decisions. It executes 
 
 ![Architecture diagram: public source and separate private evidence feed the restricted replay pipeline.](docs/images/architecture.svg)
 
-Both images are original vector diagrams, not product screenshots or provider outputs. The restricted service exposes a summary and one selected replay; raw evidence exports and live inference are excluded. `/healthz` checks process liveness, not evidence readiness.
+Both images are original vector diagrams, not product screenshots or provider
+outputs. Replay exposes a summary and one selected incident. Explicitly
+configured public new cases use an isolated browser session and shared retained
+admission limits; see [the public flow and startup contract](docs/PUBLIC-NEW-CASES.md).
+Raw evidence exports and the general local API remain outside this surface.
+`/healthz` reports liveness and configuration, not provider readiness.
 
 ## Quickstart
 
@@ -96,20 +111,53 @@ python scripts/verify_public_demo.py --evidence-root "<ABSOLUTE_AUTHORIZED_DIREC
 
 These `python` examples mean the virtual-environment interpreter, not an arbitrary system executable. See the [full setup guide](docs/PUBLIC-CODE-QUICKSTART.md) and [reviewer click path](docs/DEMO-GUIDE.md).
 
+### 5. Prepare a new case with explicit inputs
+
+The recorded replay and new-case capture are separate entry points. A new case
+needs an owner-supplied private request with two musical interests and twenty
+resolved movie identities. It does not inherit the historical private catalog.
+
+| Operator | Preparation command | Execution and verification guide |
+| --- | --- | --- |
+| Local model | `python scripts/capture_individual_pair.py --request private/request.json --output private/new-local-capture` | [Capture](docs/INDIVIDUAL-CAPTURE.md) · [Verify](docs/INDIVIDUAL-VERIFICATION.md) |
+| Groq candidate | `python scripts/capture_individual_remote.py --request private/request.json --output private/new-remote-capture` | [Remote contract and commands](docs/INDIVIDUAL-REMOTE.md) |
+
+Replace `python` with your virtual-environment interpreter. Preparation reads
+the request and source hashes, creates no capture and makes no provider calls.
+Execution requires the exact reviewed plan hash, explicit private credentials
+and the provider/data permissions described in the guides. The local panel
+remains bound to loopback. Its preparation limits are not a public judging
+capacity policy. A causal recovery does not validate personal movie preferences.
+
+For public session/case controls, follow [PUBLIC-NEW-CASES.md](docs/PUBLIC-NEW-CASES.md).
+It documents the exact closed owner configuration, preview commands, lazy
+private credential paths and separate execution flag. Choose short storage
+paths on Windows; both local and remote plans reject incompatible paths before
+reading keys or calling providers. Loopback browser proof is not hosted acceptance.
+
 ## Local evidence
 
-Recorded local checks as of **4 October 2026**. These are dated observations, **not a passing CI badge** or an independently verified hosted deployment. Private capture material is not shipped here.
+Dated observations below refer to their named artifacts. They are **not a
+passing CI badge** or a verified external demo. Private captures are excluded
+from this public source distribution.
 
-| Check | Recorded result | What it establishes |
+| Artifact and check | Observed result | Scope |
 | --- | --- | --- |
-| Source-only engineering suite | **81 tests passed** | Packaged source behavior with synthetic test fixtures |
-| Full project engineering suite | **380 tests passed** | Broader local regression coverage; requires the full project environment |
-| Restricted recorded replay | **54 selections passed** | Six pairs × three fault classes × three repeats |
-| Initial validation capture | **234 model calls · 24 Qloo requests** | Recorded acquisition cost; replay does not repeat these calls |
-| Causal incident validation | **18/18 cases passed** | Profile-integrity recovery under the captured protocol |
-| Cultural recommendation quality | **NOT_VALIDATED** | Causal repair is not proof of better personal taste matching |
+| Previous public source candidate, 6 October 2026 | **285 synthetic tests passed**, zero skips, from its ZIP extraction | Earlier source-only candidate; not a result for an unexecuted workflow |
+| Private Windows v9, 6 October 2026 | **309 technical fixture tests**, zero skips; 17 locked packages installed | Fresh native Windows installation of the separate private judge package |
+| Private Windows v9 recorded journey | **54 selections**, 19 read-only API views, 41 static hashes and four browser panels checked | Recorded decisions; no new inference or Qloo calls |
+| Original real causal capture | **18/18 controlled cases; 54 observed recoveries** | Six pairs, three fault types, three repeats; not independent users |
+| Original capture acquisition | **234 local model decisions; 24 Qloo observations** | 19 new Qloo requests and five reused searches with provenance |
+| Historical 4 October source / full suites | **81 / 380 tests** | Earlier revisions, retained as history; not current suite totals |
+| Independent cultural recommendation quality | **NOT_VALIDATED**; earlier 13/14 and 4/6 trials failed | No threshold or historical failure has been changed |
 
-**Deployment status:** the native Render build succeeded with the Node PATH selection below. A provisioning server is not the judged demo; public evidence-backed demo acceptance remains pending. Source, local replay and a future external service have separate acceptance checks. Dependency versions and advisories must be reviewed again for the deployment revision; no current security certification is implied by these test counts.
+**Current acceptance:** the new public source workflow is prepared for Windows
+and Ubuntu 24.04; neither job has been observed running for this unpublished
+candidate. Current Linux runtime, genuine cloud inference, hosted judge access,
+useful capacity and third-party data permission remain pending. The recorded
+Windows result does not establish those requirements. The application remains
+**NO-GO for the complete jury journey**; the tested agent's release remains
+**BLOCKED**. See [the acceptance record](docs/JUDGE-ACCEPTANCE.md).
 
 ## Render build configuration
 
@@ -143,6 +191,8 @@ The corrected command reached **BUILD SUCCESS** on 4 October 2026 for source com
 | [Source setup and commands](docs/PUBLIC-CODE-QUICKSTART.md) | [Reviewer demonstration guide](docs/DEMO-GUIDE.md) |
 | [Restricted deployment contract](docs/PUBLIC-DEMO-DEPLOYMENT.md) | [Deployment preparation](deployment/README.md) |
 | [Asset provenance](docs/ASSET-PROVENANCE.md) | [Licensing scope](docs/LICENSING.md) |
+| [New-case local panel](docs/INDIVIDUAL-PANEL.md) | [Groq candidate and transfer boundary](docs/INDIVIDUAL-REMOTE.md) |
+| [Current acceptance and remaining evidence](docs/JUDGE-ACCEPTANCE.md) | [English submission draft — internal](docs/SUBMISSION-DRAFT.md) |
 
 ## License and data
 

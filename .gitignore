@@ -3,6 +3,7 @@ evidence/
 .env
 .env.*
 .private/
+private/
 *.zip
 .venv/
 .test-runs/
