@@ -1,6 +1,6 @@
-# Individual local capture — preparation candidate
+# Individual local capture
 
-This new command prepares and executes one explicit pair through the existing causal operator. It has no dependency on historical private run files. The historical development/validation drivers, their budgets, receipts and operators remain unchanged. This candidate is not published, part of the hosted demo, independently verified, or approved for submission.
+The public source includes a command that prepares and executes one explicit pair through the existing causal operator. It has no dependency on historical private run files. Historical development/validation drivers, budgets, receipts and operators remain unchanged. Source publication does not enable this command in the hosted recorded demo or establish a verified new provider run or submission approval.
 
 ## Explicit inputs
 
@@ -27,7 +27,7 @@ Use the virtual-environment Python interpreter from the main setup guide. Choose
 .\.venv\Scripts\python.exe -B scripts/capture_individual_pair.py --request "C:\PRIVATE\request.json" --output "C:\PRIVATE\captures\new-pair"
 ```
 
-On Linux, substitute `.venv/bin/python` and native absolute paths. Linux behavior has not been verified for this new command.
+On Linux, substitute `.venv/bin/python` and native absolute paths. The published source passed 285 synthetic tests on Ubuntu 24.04 in [the October 7 engineering run](https://github.com/seypherWork/affinityqa/actions/runs/37668343600). This includes simulated capture behavior; a new real Qloo/Ollama capture on Linux remains unverified.
 
 Planning validates the request, hashes the implementation, driver and dependency lock, and prints `plan_sha256`. It creates no output, reads no credential file and contacts neither Ollama nor Qloo. The default model URL is the local loopback `http://127.0.0.1:11434`; other loopback ports can be supplied explicitly.
 
@@ -55,4 +55,4 @@ Evidence is saved under a unique run directory inside the new output. Interrupte
 
 The report's model-attempt counter covers ranking decisions; loading is recorded separately. Reports explicitly label test-adapter runs `test-double-only`. Offline tests do not establish external-provider behavior.
 
-An independent verifier for this new individual format, user-interface integration, actual provider execution and Linux acceptance remain pending. Existing reviewer services do not automatically admit these new artifacts or expose a new execution endpoint. Existing package manifests describe only the unchanged baseline; the candidate requires a new reviewed manifest before distribution.
+The public source includes the [recorded-file verifier](INDIVIDUAL-VERIFICATION.md) and [local panel integration](INDIVIDUAL-PANEL.md). Its source tree contains 183 files; the source manifest records hashes for 182 files and excludes itself. These additions do not automatically admit artifacts to an existing reviewer service or enable execution in the hosted recorded demo. A new real-provider capture and its observable acceptance remain pending. Synthetic tests, source publication and recorded-file verification do not establish cultural quality or submission readiness.

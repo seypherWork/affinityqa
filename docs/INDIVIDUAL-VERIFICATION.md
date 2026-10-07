@@ -1,6 +1,6 @@
 # Verify individual captures
 
-This preparation candidate adds read-only verification to the individual capture command. It does not change the frozen historical experiments or admit new records to the existing panel. The earlier `INDIVIDUAL-CAPTURE.md` describes the preceding preparation stage; its pending-verifier item is addressed by this candidate only.
+The public source includes read-only verification for individual captures. It does not change frozen historical experiments or automatically admit new records to an existing panel. See [Individual capture](INDIVIDUAL-CAPTURE.md) for the corresponding command and [Local panel](INDIVIDUAL-PANEL.md) for explicit admission.
 
 Use the virtual-environment interpreter from the main installation guide. Supply the actual run directory containing `individual-plan.json` and `individual-report.json`:
 
@@ -8,7 +8,7 @@ Use the virtual-environment interpreter from the main installation guide. Supply
 .\.venv\Scripts\python.exe -B scripts/verify_individual_capture.py "C:\PRIVATE\captures\new-pair\<RUN_ID>"
 ```
 
-Verification reads recorded files and installed source. It uses no credential, makes no provider or model request, loads no model and creates no file by default. Windows simulation tests cover this command; Linux acceptance and actual provider captures remain pending. The original output path in a plan is provenance, not an instruction to read or write that location. A copied run can be verified at its current location with the exact matching source and dependency lock.
+Verification reads recorded files and installed source. It uses no credential, makes no provider or model request, loads no model and creates no file by default. Windows simulation tests cover this command. The published source also passed 285 synthetic tests on Ubuntu 24.04 in [the October 7 engineering run](https://github.com/seypherWork/affinityqa/actions/runs/37668343600). Actual new provider captures remain unverified. The original output path in a plan is provenance, not an instruction to read or write that location. A copied run can be verified at its current location with the exact matching source and dependency lock.
 
 To preserve a new private receipt outside the captured artifact directory, explicitly select an existing parent and a new filename:
 
@@ -26,4 +26,4 @@ Exit zero means the recorded evidence is internally consistent, including a vali
 
 Individual calibration uses this pair's healthy repetitions and is not a reserved population evaluation. Model metadata request counts describe planned budgets; the existing adapter does not record those requests individually. Cultural quality stays `NOT_VALIDATED`, release stays `BLOCKED`, and the original report's `independent_verification` stays unchanged. The separate receipt records this audit.
 
-UI admission, a bounded local job manager, real Qloo/Ollama acceptance, Linux acceptance and a new reviewed distribution manifest are still required. The existing release manifests describe the 147-file public baseline. Neither the preceding individual-capture additions nor these verifier additions are included in those manifests or published.
+UI admission and a bounded local job manager are included in the 183-file public source tree. The source manifest hashes 182 files and excludes itself. A new real Qloo/Ollama capture and its end-to-end acceptance remain pending. The hosted restricted recorded demo exposes no local execution routes. Passing synthetic engineering checks or publishing source does not close the cultural or full submission gates.

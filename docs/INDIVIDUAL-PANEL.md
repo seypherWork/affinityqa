@@ -1,6 +1,6 @@
 # New individual cases in the local panel
 
-This candidate adds a separate **NEW INDIVIDUAL CASE** screen. It works without historical review files. The existing recorded screen and frozen captures remain separate.
+The public source includes a separate **NEW INDIVIDUAL CASE** screen. It works without historical review files. The existing recorded screen and frozen captures remain separate.
 
 ## Configure, review, execute
 
@@ -34,6 +34,6 @@ Inspect the budget and fingerprints, then select **START THIS REVIEWED LOCAL PLA
 
 Verification is recorded-file consistency, sequential replay and independent score arithmetic. It is not cryptographic provider attestation, population reliability or cultural validation. Cultural quality remains **NOT VALIDATED** and release **BLOCKED**. The existing hosted restricted recorded demo exposes none of these new local-execution routes.
 
-## Candidate boundary
+## Publication and execution boundary
 
-The source package manifests still describe the earlier 147-file public baseline. This is an isolated local development candidate, not a published release or a fully tested new real-provider run. Build the frontend in a separate work directory; retain original manifests and evidence until the final candidate is reviewed and packaged. The enabled real Qloo/Ollama journey and hosted acceptance require their own observable validation.
+The published source tree contains 183 files, including the local capture command, verifier, job manager and interface. The source manifest hashes 182 files and excludes itself. The Ubuntu 24.04 engineering job passed 285 synthetic tests, source packaging checks, frontend type checking and build in [the October 7 run](https://github.com/seypherWork/affinityqa/actions/runs/37668343600); that run failed Windows setup before testing because its Python artifact was unavailable. The hosted recorded demo has separate acceptance evidence and exposes no local execution routes. Source publication and synthetic tests do not prove a new real Qloo/Ollama journey. Retain historical manifests and evidence; independently verify any new provider capture before making an acceptance claim.
