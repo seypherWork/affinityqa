@@ -9,13 +9,29 @@ import zipfile
 ROOT=Path(__file__).resolve().parents[1]
 TESTS=('test_causal_agent.py','test_causal_runner.py','test_causal_evaluator.py',
        'test_keyword_calibrator.py','test_keyword_words.py','test_pairwise_rank_calibrator.py',
-       'test_broad_movie_context.py','test_taste_tags.py','test_public_source_package.py')
+       'test_broad_movie_context.py','test_taste_tags.py','test_public_source_package.py',
+       'test_public_demo.py','test_public_demo_verifier.py','test_groq_agent.py',
+       'test_individual_capture.py','test_individual_verify.py','test_individual_jobs.py',
+       'test_individual_remote.py','test_individual_remote_jobs.py','test_remote_pacing.py','test_public_cases.py',
+       'test_public_case_api.py','test_public_case_config.py','test_capture_paths.py')
 DRIVERS=('affinityqa.py','run_causal_repair.py','continue_causal_validation.py',
-         'resume_causal_identity.py','verify_causal_repair.py','build_public_source.py')
+         'resume_causal_identity.py','verify_causal_repair.py','build_public_source.py',
+         'serve_public_demo.py','verify_public_demo.py','capture_individual_pair.py',
+         'verify_individual_capture.py','capture_individual_remote.py','verify_individual_remote.py')
 EXACT=('pyproject.toml','requirements-backend.lock.txt','fixtures/synthetic.json',
+       'src/affinityqa/remote_pacing.py',
+       'src/affinityqa/public_cases.py','src/affinityqa/public_case_api.py',
+       'src/affinityqa/public_case_config.py','docs/PUBLIC-NEW-CASES.md',
        'evals/qloo.json','evals/film-suite.json','docs/PUBLIC-CODE-QUICKSTART.md',
        '.github/workflows/public-source-tests.yml','web/package.json','web/pnpm-lock.yaml',
-       'web/next.config.mjs','web/tsconfig.json','web/next-env.d.ts')
+       'web/next.config.mjs','web/tsconfig.json','web/next-env.d.ts',
+       'docs/INDIVIDUAL-CAPTURE.md','docs/INDIVIDUAL-VERIFICATION.md',
+       'docs/INDIVIDUAL-PANEL.md','docs/INDIVIDUAL-REMOTE.md','docs/REMOTE-MODEL-CANDIDATE.md',
+       'docs/images/hero.svg','docs/images/architecture.svg','docs/ASSET-PROVENANCE.md',
+       'docs/DEMO-GUIDE.md','docs/PUBLIC-DEMO-DEPLOYMENT.md',
+       'docs/JUDGE-ACCEPTANCE.md','docs/SUBMISSION-DRAFT.md',
+       'render.yaml','deployment/README.md','deployment/build_render.py',
+       'deployment/start_render.py','deployment/provision_only.py')
 BLOCKED={'.git','.env','.private','runs','evidence','node_modules','.next','out',
          '__pycache__','.test-runs','.venv','venv','coverage'}
 README='''# AffinityQA
@@ -68,6 +84,7 @@ evidence/
 .env
 .env.*
 .private/
+private/
 *.zip
 .venv/
 .test-runs/
@@ -117,7 +134,7 @@ def read_safe(relative):
     data=path.read_bytes()
     if any((b'-----BEGIN '+kind+b'-----') in data for kind in (b'PRIVATE KEY',b'RSA PRIVATE KEY')):raise ValueError('Private key marker in source: '+str(relative))
     # High-specificity guard, not a certification that every possible secret is absent.
-    if re.search(rb'\bsk-[A-Za-z0-9_-]{24,}\b',data):raise ValueError('Credential-shaped token in source: '+str(relative))
+    if re.search(rb'\b(?:sk-[A-Za-z0-9_-]{24,}|gsk_[A-Za-z0-9_-]{32,})\b',data):raise ValueError('Credential-shaped token in source: '+str(relative))
     return data
 
 
@@ -130,12 +147,9 @@ def inventory():
             if any(p in BLOCKED for p in path.relative_to(ROOT).parts):continue
             if path.is_symlink() or (hasattr(path,'is_junction') and path.is_junction()):raise ValueError('Linked source directory or file is forbidden.')
             if path.is_file() and path.suffix in suffixes:names.add(path.relative_to(ROOT).as_posix())
-    # Exact extension points owned by the public-demo implementation, never a wildcard test import.
-    for optional in ('scripts/serve_public_demo.py','tests/test_public_demo.py',
-                     'scripts/verify_public_demo.py','docs/PUBLIC-DEMO-DEPLOYMENT.md',
-                     'LICENSE','docs/THIRD-PARTY-LICENSES.txt','docs/LICENSING.md',
-                     'tests/test_public_demo_verifier.py','docs/ASSET-PROVENANCE.md',
-                     'docs/DEMO-GUIDE.md'):
+    # Retain the reviewed repository README when present. Historical manifests
+    # are not input files: this build generates its own current hash inventory.
+    for optional in ('README.md','LICENSE','docs/THIRD-PARTY-LICENSES.txt','docs/LICENSING.md'):
         if (ROOT/optional).exists():names.add(optional)
     return {name:digest(read_safe(name)) for name in sorted(names)}
 
@@ -156,7 +170,9 @@ def main():
                     'Third-party data, models and dependencies retain their own terms. '
                     'Local packaging does not authorize the agent to publish or submit.' if approved_mit else
                     'LICENSE-PROPOSAL.md is only a proposal. No license is granted; publication remains a separate owner decision.')
-    generated={'README.md':README.format(licensing=licensing_text).encode(),'.gitignore':IGNORE.encode()}
+    generated={'.gitignore':IGNORE.encode()}
+    if 'README.md' not in blobs:
+        generated['README.md']=README.format(licensing=licensing_text).encode()
     generated['LICENSING-NOTES.md' if approved_mit else 'LICENSE-PROPOSAL.md']=(LICENSING_NOTES if approved_mit else LICENSE_PROPOSAL).encode()
     if set(generated)&set(blobs):raise ValueError('Generated/source path collision.')
     blobs.update(generated);manifest={**summary,'schema_version':1,'files':{n:digest(b) for n,b in sorted(blobs.items())},'boundaries':['Synthetic tests are not real-service evidence.','Historical capture drivers require separately authorized inputs.','A credential-pattern scan is not a comprehensive secret audit.']}
