@@ -74,6 +74,14 @@ class PublicCaseHTTPTests(unittest.TestCase):
         self.assertFalse(self.manager.manager.worker.is_alive())
         return client.get(PREFIX+'/jobs/'+job['job_id'])
 
+    def assert_cookie_cleared(self,response,origin=ORIGIN):
+        cookie=response.headers.get('set-cookie','')
+        for attribute in (cookie_name(origin)+'=', 'Max-Age=0', 'HttpOnly', 'SameSite=strict', 'Path=/'):
+            self.assertIn(attribute,cookie)
+        self.assertEqual('Secure' in cookie,origin.startswith('https:'))
+        self.assertNotIn('Domain=',cookie)
+        self.assertEqual(response.headers['cache-control'],'no-store')
+
     def test_cookie_is_secure_private_and_session_does_not_renew_or_return_bearer(self):
         client=self.client()
         csrf=self.session(client)
@@ -179,14 +187,79 @@ class PublicCaseHTTPTests(unittest.TestCase):
         self.fixture.now+=timedelta(hours=24)
         response=client.post(PREFIX+'/session',json={},headers={'Origin':ORIGIN})
         self.assertEqual(response.status_code,404)
-        self.assertNotIn('set-cookie',response.headers)
+        self.assert_cookie_cleared(response)
         self.assertEqual(len(self.manager.session_keys),1)
         other=self.client();other.cookies.set(cookie_name(ORIGIN),'x'*43)
         response=other.post(PREFIX+'/session',json={},headers={'Origin':ORIGIN})
         self.assertEqual(response.status_code,404)
-        self.assertNotIn('set-cookie',response.headers)
+        self.assert_cookie_cleared(response)
         self.assertEqual(len(self.manager.session_keys),1)
 
+    def test_unknown_cookie_is_cleared_before_a_deliberate_new_session(self):
+        client=self.client()
+        name=cookie_name(ORIGIN)
+        client.cookies.set(name,'x'*43,domain='judge.example',path='/')
+        before={path:path.read_bytes() for path in self.manager.root.rglob('*.json')}
+        response=client.post(PREFIX+'/session',json={},headers={'Origin':ORIGIN})
+        self.assertEqual(response.status_code,404)
+        self.assert_cookie_cleared(response)
+        self.assertIsNone(client.cookies.get(name))
+        self.assertEqual(len(self.manager.session_keys),0)
+        self.assertEqual(before,{path:path.read_bytes() for path in self.manager.root.rglob('*.json')})
+        self.assertEqual(self.fixture.reads,[0,0]);self.assertEqual(self.fixture.engines,[])
+        csrf=self.session(client)
+        self.assertEqual(len(self.manager.session_keys),1)
+        self.assertEqual(client.get(PREFIX+'/capabilities').json()['jobs'],[])
+        self.assertEqual(self.plan(client,csrf)['status'],'PLANNED')
+        self.assertEqual(self.fixture.reads,[0,0]);self.assertEqual(self.fixture.engines,[])
+
+    def test_clearing_expired_cookie_does_not_reset_capacity_or_transfer_case(self):
+        self.manager.close()
+        self.manager=self.fixture.service(root=self.fixture.parent/'capacity',policy=self.fixture.policy(maximum_sessions=1))
+        self.app=public.create_public_app(ROOT,origin=ORIGIN,case_manager=self.manager)
+        client=self.client();csrf=self.session(client);job=self.plan(client,csrf)
+        before={path:path.read_bytes() for path in self.manager.root.rglob('*.json')}
+        self.fixture.now+=timedelta(hours=25)
+        denied=client.post(PREFIX+'/session',json={},headers={'Origin':ORIGIN})
+        self.assertEqual(denied.status_code,404);self.assert_cookie_cleared(denied)
+        self.assertEqual(before,{path:path.read_bytes() for path in self.manager.root.rglob('*.json')})
+        self.assertIsNone(client.cookies.get(cookie_name(ORIGIN)))
+        explicit=client.post(PREFIX+'/session',json={},headers={'Origin':ORIGIN})
+        self.assertEqual(explicit.status_code,429)
+        self.assertNotIn('set-cookie',explicit.headers)
+        self.assertEqual(len(self.manager.session_keys),1)
+        self.assertEqual(len(self.manager.job_owners),1)
+        self.assertEqual(client.get(PREFIX+'/jobs/'+job['job_id']).status_code,404)
+        self.assertEqual(self.fixture.reads,[0,0]);self.assertEqual(self.fixture.engines,[])
+
+    def test_cookie_is_not_cleared_for_wrong_origin_or_ambiguous_requests(self):
+        client=self.client();name=cookie_name(ORIGIN)
+        client.cookies.set(name,'x'*43,domain='judge.example',path='/')
+        for origin in (None,'https://attacker.example','null','http://judge.example'):
+            headers={} if origin is None else {'Origin':origin}
+            answer=client.post(PREFIX+'/session',json={},headers=headers)
+            self.assertEqual(answer.status_code,403);self.assertNotIn('set-cookie',answer.headers)
+            self.assertEqual(client.cookies.get(name),'x'*43)
+        answer=client.post(PREFIX+'/session',json={},headers={'Origin':ORIGIN,'Cookie':name+'='+'x'*43+'; '+name+'='+'x'*43})
+        self.assertEqual(answer.status_code,400);self.assertNotIn('set-cookie',answer.headers)
+        self.assertEqual(client.cookies.get(name),'x'*43)
+        self.assertEqual(len(self.manager.session_keys),0)
+        self.assertEqual(self.fixture.reads,[0,0]);self.assertEqual(self.fixture.engines,[])
+
+    def test_loopback_cookie_recovery_keeps_its_separate_security_attributes(self):
+        from affinityqa.public_cases import PublicCaseManager
+        origin='http://127.0.0.1:8798'
+        service=PublicCaseManager(self.fixture.parent/'recover-loopback',self.fixture.request,origin=origin,
+            policy=self.fixture.policy(),minimum_model_interval_seconds=0,execution_enabled=False)
+        self.addCleanup(service.close)
+        client=self.client(public.create_public_app(ROOT,origin=origin,case_manager=service),base=origin)
+        name=cookie_name(origin);client.cookies.set(name,'x'*43,domain='127.0.0.1',path='/')
+        answer=client.post(PREFIX+'/session',json={},headers={'Origin':origin})
+        self.assertEqual(answer.status_code,404);self.assert_cookie_cleared(answer,origin)
+        self.assertIsNone(client.cookies.get(name));self.assertEqual(len(service.session_keys),0)
+        self.assertEqual(client.post(PREFIX+'/session',json={},headers={'Origin':origin}).status_code,200)
+        self.assertEqual(len(service.session_keys),1)
+        self.assertEqual(self.fixture.reads,[0,0]);self.assertEqual(self.fixture.engines,[])
     def test_cookie_ambiguity_and_critical_header_duplicates_are_rejected(self):
         client=self.client();csrf=self.session(client)
         token=client.cookies.get(cookie_name(ORIGIN));name=cookie_name(ORIGIN)
