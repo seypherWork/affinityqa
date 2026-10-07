@@ -61,8 +61,13 @@ The bearer travels only in `__Host-affinityqa-case`, with HttpOnly, Secure,
 SameSite=Strict, Path=/ and no Domain. Explicit HTTP loopback preview uses a
 different `affinityqa-loopback-case` cookie without Secure. URLs with case query
 parameters are rejected. Neither expired nor invalid cookies are automatically
-replaced. Resuming a valid session returns its mutation token without extending
-either server or browser expiry. Bearers are never returned in JSON. See
+replaced. An explicit same-origin session POST with an unavailable cookie returns
+404 and expires only that browser cookie. It creates no session and changes no
+saved case, ownership record or cumulative admission. A separate explicit open
+request can then create a session if capacity remains. GET requests, rejected
+Origins, ambiguous cookies and unavailable-service responses do not clear it.
+Resuming a valid session returns its mutation token without extending either
+server or browser expiry. Bearers are never returned in JSON. See
 [OWASP sessions](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 and [OWASP CSRF](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html).
 
@@ -162,8 +167,17 @@ mandatory. Do not activate either mode before owner approval.
 
 Opening the page makes no session mutation. The visitor explicitly opens or
 restores the browser session, reviews the exact plan and starts it once. Closing
-the browser does not cancel an admitted job. Reopening the session retrieves only
-its saved cases. Session restoration does not extend expiry. A lost mutation
+the browser does not cancel an admitted job. Reopening a still-valid session
+retrieves only its saved cases. Session restoration does not extend expiry.
+When the session's capabilities return 404, the page offers explicit opening
+again and retains the previous case as a last-known snapshot. The snapshot has
+no start or download permission in a new session and does not prevent preparing
+a new plan. A missing case alone does not invalidate an otherwise valid session.
+If an unavailable cookie is still present, the first explicit open rejects and
+clears it; the next explicit open requests a new session. No page reload or
+automatic retry is required. Exhausted capacity still returns 429 and needs owner
+review; this recovery does not reset budgets or restore expired ownership.
+A lost mutation
 response pauses further mutations until the visitor reads current saved status;
 the frontend never automatically retries an execution.
 
