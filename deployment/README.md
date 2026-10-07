@@ -1,4 +1,6 @@
-# Render preparation — build compatibility verified; demo acceptance pending
+# Render recorded replay — hosted acceptance checked
+
+On 7 October 2026 the existing [hosted recorded demo](https://affinityqa-review.onrender.com) passed 54 HTTPS replay selections and 324 strict checks, followed by a tested service-process restart retaining the reviewed evidence. The deployed revision is `e08ddf2a7b7751b07b9c0b4635ad838247c44c00`; the separately published source engineering revision is `20d6abfe489eff5ae361d8c45a92bf14d4133de9`. Automatic deployments remain off. New cloud-case execution and independent cultural acceptance remain pending.
 
 This repository is source only. The source-archive builder generates
 PUBLIC-SOURCE-MANIFEST.json for its exact included source, diagrams and hosting
@@ -22,11 +24,12 @@ The observed Render console selected Node 24.19.0, while Python subprocess looku
 This exact command reached BUILD SUCCESS on 4 October 2026 in deployment `dep-db193s60tbcc73a43i1g`, source commit `f929df5763cb8d37c3958c9c6fa9a4b37e469007`. This is build evidence only; a provisioning service is not the judged demo.
 Final start command: `python deployment/start_render.py`.
 
-The proposed service is Starter (0.5 CPU/512 MB), Frankfurt, one instance, with
-a 1 GB disk at /var/data. Turn off automatic deploys and keep maintenance enabled.
-Base price is USD 7.25/month before taxes, traffic/build overages or extras; this
-is not a spending cap. Review the dashboard amount and obtain owner approval
-before creating the paid service. Never change the paid plan automatically.
+The existing owner-approved service is Starter (0.5 CPU/512 MB), Frankfurt,
+one instance, with a 1 GB disk at /var/data. Its recorded demo is live with
+maintenance disabled and automatic deployments off. These checks created no
+additional paid resource or plan upgrade. For a new deployment, inspect the
+actual dashboard price and obtain owner approval before creating a paid service
+or changing its plan; no documented price is a spending cap.
 
 The final start refuses missing mode configuration or compiled frontend. For replay, set
 AFFINITYQA_RUN_ID and AFFINITYQA_RECEIPT_SHA256 to the owner-reviewed capture;
@@ -42,7 +45,7 @@ owner-approved step after provider, transfer, quota and capacity checks. No
 credentials or owner configuration are included in the source archive.
 
 The disk is unavailable during build/predeploy and SSH requires a running
-instance. After service-creation approval, explicitly use the temporary command
+instance. For a new service, after service-creation approval, explicitly use the temporary command
 `python deployment/provision_only.py`, with maintenance enabled, to prepare the
 disk. It serves only liveness /healthz (204); all other GET paths return 503.
 It is not a functioning demo. Do not use liveness as evidence approval.
@@ -54,7 +57,14 @@ maintenance, verify external HTTPS, Host/Origin boundaries, limits, restart,
 memory, latency, keyboard/mobile behavior and browser console. Keep previous
 failed cultural-quality studies visible. Causal PASS is not cultural validation.
 
-The native Render build is verified for the source commit above. The final evidence-backed runtime, 512 MB capacity under replay load and external demo acceptance remain unverified. These scripts do not provide a firewall or make the disk immutable.
+The existing native-Linux recorded runtime and external HTTPS flow passed
+the October 7 acceptance described above. All 382 evidence hashes, file modes
+and receipt bindings survived a tested process restart. Point-in-time memory
+observations remained below the 512 MB limit with no observed OOM event; they
+do not establish peak usage or a service guarantee. Two concurrent replay
+requests produced 200 and 429, then recovery to 200; useful many-user or new-case
+capacity remains unverified. Temporary transfer SSH access was revoked. The
+scripts do not provide a firewall or make the disk immutable.
 No live provider inference, public data transfer or release approval is implied.
 
 Official references: [native runtimes](https://render.com/docs/native-runtimes),
