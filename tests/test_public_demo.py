@@ -1,6 +1,7 @@
 """Synthetic boundary fixtures only. Real captures are verified separately."""
 import asyncio
 import copy
+from contextlib import ExitStack
 from pathlib import Path
 import sys
 import tempfile
@@ -229,16 +230,24 @@ class PublicDemoTests(unittest.TestCase):
             (static / 'demo.html').write_text('<html></html>', 'utf8')
             outside = root / 'private.svg'
             outside.write_text('DO_NOT_DISCLOSE', 'utf8')
-            try:
-                (static / 'icon.svg').symlink_to(outside)
-            except OSError as error:
-                if getattr(error, 'winerror', None) == 1314:
-                    self.skipTest('This Windows host lacks the privilege to create a symlink.')
-                raise
-            with self.client(root=root) as client:
-                response = client.get('/icon.svg')
-                self.assertEqual(response.status_code, 404)
-                self.assertNotIn('DO_NOT_DISCLOSE', response.text)
+            link = static / 'icon.svg'
+            with ExitStack() as controls:
+                try:
+                    link.symlink_to(outside)
+                except OSError as error:
+                    if getattr(error, 'winerror', None) != 1314:
+                        raise
+                    # Exercise the real HTTP route and filesystem guard even on
+                    # Windows without link privilege. Only link metadata is fake;
+                    # admitting this existing file would return its forbidden bytes.
+                    link.write_text('DO_NOT_DISCLOSE', 'utf8')
+                    real_is_symlink = Path.is_symlink
+                    controls.enter_context(patch.object(Path,'is_symlink',
+                        lambda path: path == link or real_is_symlink(path)))
+                with self.client(root=root) as client:
+                    response = client.get('/icon.svg')
+                    self.assertEqual(response.status_code, 404)
+                    self.assertNotIn('DO_NOT_DISCLOSE', response.text)
 
 
 
