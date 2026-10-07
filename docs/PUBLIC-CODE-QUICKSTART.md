@@ -4,7 +4,7 @@ This distribution contains code and synthetic engineering tests. It excludes Qlo
 
 ## Install and test
 
-Use an existing Python 3.11+ installation in a new virtual environment. The recorded dependency set was exercised on Python 3.12; verify your platform rather than assuming compatibility. Installation accesses the package index unless you supply an authorized local wheelhouse. The Windows example below accepts an exact interpreter path and does not require the optional `py` launcher; replace the placeholder with your installed executable. If `py -3` is available, it can be used for the first command instead.
+Use Python 3.12.14 in a new virtual environment to match the declared reference toolchain. Current private v9 installation evidence is Windows-only; current Linux and hosted execution remain unverified. Other Python versions require their own acceptance. Installation accesses the package index unless you supply an authorized local wheelhouse. The Windows example below accepts an exact interpreter path and does not require the optional `py` launcher; replace the placeholder with your installed executable. If `py -3` is available, it can be used for the first command instead.
 
 ```powershell
 & "C:\path\to\python.exe" -m venv .venv
@@ -13,6 +13,16 @@ Use an existing Python 3.11+ installation in a new virtual environment. The reco
 ```
 
 The packaged test allowlist is synthetic and does not require private captures. Its fake engines and fabricated tool envelopes are test inputs, not attestations of live requests. Run private evidence integration tests separately in an authorized environment; do not count missing or skipped private tests as passing validation.
+
+The required allowlist includes the local and Groq new-case drivers, independent
+verifiers and their complete fixture dependencies. Missing required files stop
+packaging. The repository workflow runs the complete packaged test directory;
+it does not silently skip a missing suite. Running it here is a local check,
+not an observation of a new GitHub Actions run. The unpublished workflow
+prepares separate Windows and Ubuntu 24.04 jobs with explicit PowerShell
+Core commands, locked dependencies and failure propagation. No CI job
+for this candidate has been executed or observed. CI source checks
+cannot establish provider acceptance or external demo availability.
 
 ## Build the interface
 
@@ -34,7 +44,11 @@ Open `http://127.0.0.1:8767/demo/`. For an authorized private evidence bundle, u
 .\.venv\Scripts\python.exe scripts/serve_public_demo.py --origin http://127.0.0.1:8767 --port 8767 --evidence-root "<ABSOLUTE_AUTHORIZED_BUNDLE_DIRECTORY>" --run-id "<OWNER_PROVIDED_RUN_ID>" --receipt-sha256 "<OWNER_PROVIDED_RECEIPT_SHA256>"
 ```
 
-Keep the default loopback binding for local review. This restricted surface exposes three functional endpoints (`/healthz`, `/api/demo/summary`, `/api/demo/replay`) plus the built frontend assets. It does not expose raw evidence exports, general backend routes or live inference. Starting a local preview does not publish a site. See `PUBLIC-DEMO-DEPLOYMENT.md`, when included, for the separately reviewed deployment boundary.
+Keep the default loopback binding for local review. With no case configuration,
+this surface exposes `/healthz`, `/api/demo/summary`, `/api/demo/replay` and the
+built frontend. An explicit owner case configuration adds the owned routes in
+[PUBLIC-NEW-CASES.md](PUBLIC-NEW-CASES.md). It does not expose raw evidence exports
+or the general local API. Starting a local preview does not publish a site.
 
 ## Separately authorized evidence
 
@@ -43,6 +57,32 @@ The audit drivers `run_causal_repair.py`, `continue_causal_validation.py`, `resu
 To review a private capture, obtain explicit authorization for that dataset and use a separate private working directory. Obtain the matching evidence package and original source versions from its owner. Verify receipt hashes and source bindings with the supplied verification procedure before replay. Do not edit a receipt to fit different source. Keep captures in ignored `runs/` and receipts in ignored `evidence/`; never add them to a public source commit. No private evidence is downloaded automatically by this package.
 
 The generated `.gitignore` also excludes credential files, archives, dependency directories and generated web output. Use the allowlist and inspect the exact archive contents; ignore rules alone do not prove absence of secrets or licensed data. `PUBLIC-SOURCE-MANIFEST.json` binds each included file to its SHA-256 hash. The built-in credential-pattern check is deliberately narrow and does not replace a final secret and attribution review.
+
+## New-case entry points
+
+Use the [local capture guide](INDIVIDUAL-CAPTURE.md), [local verifier](INDIVIDUAL-VERIFICATION.md)
+and [panel contract](INDIVIDUAL-PANEL.md) for an explicitly configured local model.
+Use [the separate remote guide](INDIVIDUAL-REMOTE.md) for the Groq candidate.
+The latter has its own v2 request, plan, source bindings and verifier; a local v1
+receipt does not certify a remote run. Plans do not read private keys, load a
+model or call providers. Real execution requires deliberate configuration and
+the exact reviewed plan fingerprint. The restricted public server accepts the
+explicit remote case configuration described in PUBLIC-NEW-CASES.md; its
+execution flag defaults to disabled. Loopback preparation is not hosted acceptance.
+
+The source archive preserves the reviewed README and the two original SVG
+diagrams it references. It generates a new public-source manifest and excludes
+historical deployment/source manifests, raw evidence and private files. Existing
+Render preparation accepts recorded replay, explicit public cases, or both.
+Building or starting a local preview does not deploy or authorize either mode.
+
+## Acceptance and submission materials
+
+Read [JUDGE-ACCEPTANCE.md](JUDGE-ACCEPTANCE.md) for the exact separation
+between original real capture, private Windows recorded verification and
+pending current Linux/cloud/hosted cases. [SUBMISSION-DRAFT.md](SUBMISSION-DRAFT.md)
+is an internal English draft, not a submitted entry. The private Windows
+309-test result is not a test count for this source package or its CI.
 
 ## Licensing scope
 

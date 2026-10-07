@@ -47,4 +47,27 @@ Only one replay can run at a time in the restricted server. If another request i
 
 ## Submission operator checks
 
-Before the separately approved publication and submission, bind the materials to the actual public application URL and repository revision. Test the external address, six pairs, three incident types, all repeats, named provenance, keyboard, narrow-screen layout and error handling. Check that raw local run exports and live model jobs remain inaccessible from the restricted application. Confirm the applicable Qloo display permission and continued free judge access through the judging period. [Official rules](https://qloo.devpost.com/rules)
+Before the separately approved publication and submission, bind the materials to the actual public application URL and repository revision. Test the external address, six pairs, three incident types, all repeats, named provenance, keyboard, narrow-screen layout and error handling. Keep raw local exports and private local model-job routes inaccessible. The owned public new-case routes are a separate interface: they stay disabled until account, transfer, capacity and genuine hosted acceptance are approved. Their existence does not authorize exposing the local API. Confirm the applicable Qloo display permission and continued free judge access through the judging period. [Official rules](https://qloo.devpost.com/rules)
+
+## Separate new-case journey — acceptance pending
+
+This section is an operator acceptance path, not a verified live demonstration.
+Use it after the approved remote provider and hosted service are operational.
+
+1. Open the actual external URL in a fresh browser. Check that it identifies real remote execution and retains the separate cultural/release gates. The provisioning-only Render address does not satisfy this step.
+2. Open the visitor session explicitly, select the two artist interests and review the complete proposed catalog, fixed protocol and execution budget. Opening the page alone must not start a provider call.
+3. Start the reviewed plan once. Follow the saved status; a lost start response must recover from status without another admission. The owner's account supplies credentials; judges must not supply their own API keys.
+4. Wait for the full capture. Verify saved real Qloo samples, model responses and all three faults with three repeats. Demonstrate diagnosis, the bounded repair and independently checked recovery. Preserve failed or partial results.
+5. Open each stage and the selected receipt. Show the profile requested, the profile transmitted, the tool context actually consumed and the result. Distinguish causal recovery from the unresolved independent cultural quality gate.
+6. Reopen the owned browser session and check the retained case. Test another session's isolation and availability using the approved testing plan, without resetting cumulative admission budgets.
+
+Do not promise a two-minute fresh cloud capture. With the documented example of
+39 model attempts and a 65-second minimum interval, spacing alone has a lower
+bound of 38 × 65 = 2,470 seconds (41 minutes 10 seconds); actual completion also
+depends on inference and other work. The interval is an example, not proof of an
+account quota or production latency. A short video may use the recorded journey
+or an explicitly labelled time lapse, while the real application must remain
+testable end to end. Final duration and useful judge capacity require measurement.
+
+See [the acceptance record](JUDGE-ACCEPTANCE.md) and
+[the owner configuration](PUBLIC-NEW-CASES.md).
