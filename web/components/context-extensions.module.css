@@ -1,9 +1,9 @@
-.tableWrap{max-width:100%;overflow-x:auto;margin:24px 0 30px;border:1px solid rgba(255,255,255,.12);border-radius:12px}
+.tableWrap{max-width:100%;overflow-x:auto;margin:24px 0 30px;border:1px solid var(--line);border-radius:8px;background:var(--white)}
 .table{width:100%;border-collapse:collapse;font-size:13px;text-align:left;color:inherit}
-.table caption{text-align:left;padding:18px 20px;color:inherit;opacity:.65;font-size:11px;letter-spacing:.04em}
-.table th,.table td{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1);vertical-align:top;line-height:1.5}
-.table thead th{font-size:11px;letter-spacing:.06em;font-weight:500;color:#c5d4e5}
+.table caption{text-align:left;padding:16px 18px;color:var(--muted);font-size:11px;letter-spacing:.04em}
+.table th,.table td{padding:13px 18px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5}
+.table thead th{font-size:10px;letter-spacing:.06em;font-weight:600;color:var(--muted);background:var(--paper);text-transform:uppercase}
 .table tbody th{font-weight:400;min-width:180px}
 .table td{font-variant-numeric:tabular-nums;white-space:nowrap}
-.table tbody tr:hover{background:rgba(255,255,255,.025)}
+.table tbody tr:hover{background:#f9f7ff}
 @media(max-width:640px){.table th,.table td{padding:12px}.table{font-size:12px}.table caption{padding:14px 12px}.table tbody th{min-width:140px}}

@@ -6,6 +6,14 @@ This guide separates a two-minute recorded walkthrough from the longer genuine n
 
 ## Choose the review path
 
+### Workspace navigation in the 9 October source refresh
+
+The refreshed interface opens **Recorded repair** by default. Use the sidebar (top navigation on narrow screens) to switch to **New individual case**. Recorded replay needs no fresh inference; a new case first opens a private session and a reviewed plan. The observed full remote case took about fourteen minutes. Navigation preserves an opened new-case component; switching modes does not automatically start or duplicate execution.
+
+The private workspace separates **Overview**, **Screening**, **Case library** and **Evidence archive**. The library keeps all six historical cases and supports search by case ID or artist name. Narrow tables scroll inside their own region, including with arrow keys when focused. Earlier failures remain in the evidence archive and outside the public capture-details disclosure.
+
+These navigation details describe the source refresh. Its publication/deployment is a separate step from the already verified 8 October hosted runtime recorded above.
+
 The hosted recorded reviewer requires no judge provider key, Docker installation or local model. For a private rehearsal, follow [PUBLIC-DEMO-DEPLOYMENT.md](PUBLIC-DEMO-DEPLOYMENT.md) with the owner's matching evidence package.
 
 The source-only distribution contains code and synthetic engineering tests. Without separately supplied evidence it reports UNAVAILABLE. The private local judge archive is a different package with compiled assets, recorded evidence and historical studies; the restricted hosted service does not expose the general local API or raw evidence exports. See [source setup](PUBLIC-CODE-QUICKSTART.md).
@@ -14,12 +22,12 @@ The source-only distribution contains code and synthetic engineering tests. With
 
 | Time | Interaction | Suggested narration |
 | --- | --- | --- |
-| 0:00–0:20 | Identify **Recorded replay** mode and the separate gates. | A personalized agent can return a valid movie list for the wrong taste profile. AffinityQA exposes the profile chain and checks a supported repair. |
+| 0:00–0:20 | Identify **Recorded repair** mode and the separate gates. | A personalized agent can return a valid movie list for the wrong taste profile. AffinityQA exposes the profile chain and checks a supported repair. |
 | 0:20–0:45 | Select **Mogwai / Kesha**, **Qloo context bound to wrong profile**, and **Repeat 3 · request Kesha**. Choose **Replay this incident**. | Qloo supplied real movie context in the original capture. This controlled fault binds Mogwai's context to a Kesha request. We are replaying that recorded experiment. |
 | 0:45–1:05 | In **Detect**, compare **Before repair** and **After repair** profile chains. Choose **Diagnose**. | The trace shows the requested profile, consumed tool context and profile reaching the agent. The supported diagnosis is WRONG_TOOL_PROFILE. |
 | 1:05–1:25 | Choose **Repair** and inspect before, after and healthy movie columns. | The workflow applies bind-request-tool and dispatches the repaired path. Four recorded decisions are dispatched here, with no fresh provider call. The repaired top five must match the recorded healthy execution. |
 | 1:25–1:45 | Choose **Verify** and inspect the six replay checks. | Replay checks diagnosis, repair, profile integrity, decision dispatch, healthy match and legitimate cache reuse. The original capture covered 18 controlled cases across six artist pairs and three fault types. |
-| 1:45–2:00 | Open **Protocol & provenance** and inspect retained quality results. | The original capture obtained 234 local-model decisions and 24 Qloo observations: 19 new requests and five reused searches. It observed 54 recoveries across repeats. These are controlled repeats, not independent users. Earlier quality failures remain visible. |
+| 1:45–2:00 | Open **Capture details & evidence boundaries** and its protocol/provenance details; inspect retained quality results. | The original capture obtained 234 local-model decisions and 24 Qloo observations: 19 new requests and five reused searches. It observed 54 recoveries across repeats. These are controlled repeats, not independent users. Earlier quality failures remain visible. |
 
 The fault is deliberately injected into a controlled adapter. Describe an integration incident and its supported repair; do not claim an undisclosed production incident or general source-code repair.
 

@@ -1,1 +1,20 @@
-.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:32px 0 0}.tabs button{font:inherit;font-size:11px;letter-spacing:.04em;padding:13px 18px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--muted);cursor:pointer}.tabs button[aria-pressed=true]{color:var(--plum);border-color:var(--plum);background:color-mix(in srgb,var(--plum) 10%,transparent)}.tabs button:focus-visible{outline:3px solid var(--steel);outline-offset:3px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px;padding:5px;border:1px solid var(--line,#e5e7ee);border-radius:10px;background:var(--white,#fff)}
+.tabs button{padding:10px 14px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--muted,#667085);font:inherit;font-size:11px;font-weight:650;line-height:1.6;cursor:pointer}
+.tabs button[aria-pressed=true]{border-color:var(--plum,#6654e8);background:var(--lavender,#eeebfc);color:var(--plum,#6654e8)}
+.tabs button:hover{color:#5543ce}
+.modeCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 22px}
+.modeCard{display:flex;gap:13px;align-items:center;text-align:left;padding:18px;border:1px solid var(--line,#e5e7ee);border-radius:10px;background:var(--white,#fff);color:var(--ink,#202332);font:inherit;cursor:pointer;min-width:0}
+.modeCard>span:nth-child(2){display:grid;gap:7px;min-width:0;flex:1}
+.modeCard strong{font-size:11px;line-height:1.6;font-weight:700;letter-spacing:.03em}
+.modeCard small{font-size:11px;line-height:1.6;color:var(--muted,#667085)}
+.modeNumber{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:8px;background:var(--paper,#f7f8fc);font-size:11px;font-weight:700;color:var(--muted)}
+.modeBadge{padding:4px 7px;border:1px solid var(--line);border-radius:6px;background:var(--paper);font-size:9px;font-weight:700;line-height:1.5;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
+.modeCard[aria-pressed=true]{border-color:var(--plum);background:var(--lavender,#eeebfc)}
+.modeCard[aria-pressed=true] .modeNumber{background:var(--plum);color:#fff}
+.modeCard[aria-pressed=true] .modeBadge{border-color:var(--plum);background:var(--white);color:var(--plum)}
+.modeCard:hover{border-color:var(--plum)}
+.modeCard:focus-visible,.tabs button:focus-visible{outline:3px solid var(--plum);outline-offset:3px}
+.modePanel{min-width:0}
+.modePanel[hidden]{display:none}
+@media(max-width:1000px){.modeCards{grid-template-columns:1fr}}
+@media(max-width:520px){.modeCard{padding:15px;gap:10px}.modeBadge{display:none}.tabs{display:grid;grid-template-columns:1fr}}
