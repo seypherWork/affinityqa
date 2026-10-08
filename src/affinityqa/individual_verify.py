@@ -188,7 +188,7 @@ class _PacketReplay:
 
 def _verify(directory, *, remote=False):
     # The public v1 wrapper never dispatches from untrusted file fields. Remote
-    # v2 has its own explicit wrapper and closed provider-specific checks.
+    # v3 has its own explicit wrapper and closed provider-specific checks.
     if remote:
         from .individual_remote_capture import SOURCE as REMOTE_SOURCE
         from .individual_remote_verify import verify_plan as remote_plan, verify_manifest, verify_packet
@@ -204,7 +204,7 @@ def _verify(directory, *, remote=False):
     complete = report['status'] == 'COMPLETE'
     source = report['source']
     need(source in states and report['status'] in ('COMPLETE','INCOMPLETE'), 'unknown status/source')
-    need(type(report['schema_version']) is int and report['schema_version'] == (2 if remote else 1) and report['run_id'] == directory.name
+    need(type(report['schema_version']) is int and report['schema_version'] == (3 if remote else 1) and report['run_id'] == directory.name
          and report['mode'] == plan['mode'] and report['plan_sha256'] == plan['plan_sha256'], 'report binding')
     need(report['cultural_gate'] == 'NOT_VALIDATED' and report['release_gate'] == 'BLOCKED' and
          report['release_approved'] is False and report['independent_verification'] == 'PENDING'
@@ -323,7 +323,7 @@ def _verify(directory, *, remote=False):
         'minItems':20,'maxItems':20}},'required':['ordered_catalog_indices'],'additionalProperties':False}
     builder = ToolContextMovieAgent.__new__(ToolContextMovieAgent)
     packets = []
-    deployment_fingerprint = None
+    deployment_fingerprints = []
     completion_ids = set()
     for i,name in enumerate(packet_names,1):
         packet = read(directory/name)
@@ -340,8 +340,7 @@ def _verify(directory, *, remote=False):
         need(observation['input_sha256']==fingerprint(packet['model_payload']) and observation['output_sha256']==fingerprint(ranks), 'observed model hashes')
         if remote:
             observed_fingerprint = verify_packet(packet,manifest,source)
-            need(not packets or observed_fingerprint==deployment_fingerprint, 'remote deployment fingerprint changed')
-            deployment_fingerprint = observed_fingerprint
+            deployment_fingerprints.append(observed_fingerprint)
             need(observation['completion_id'] not in completion_ids, 'remote completion identity was reused')
             completion_ids.add(observation['completion_id'])
         need(same(observed[i-1]['data'],{'execution_id':packet['execution_id'],'request_sha256':fingerprint(req),
@@ -439,7 +438,8 @@ def _verify(directory, *, remote=False):
         passing = sum(case['passing'] for case in summary['cases'])
         need(type(report['passing']) is int and report['passing']==passing and type(report['denominator']) is int and report['denominator']==3
              and same(report['summary'],summary) and report['policy_sha256']==policy['policy_sha256']
-             and same(report['observed_recoveries_by_fault'],recovered) and report['causal_gate']==('PASS' if passing==3 else 'FAIL')
+             and same(report['observed_recoveries_by_fault'],recovered)
+             and (remote or report['causal_gate']==('PASS' if passing==3 else 'FAIL'))
              and report['behavioral_gate']==('OBSERVED_RECOVERY' if all(recovered.values()) else 'INCONCLUSIVE'), 'reported result differs')
     else:
         need(report['causal_gate']==report['behavioral_gate']=='NOT_EVALUATED', 'partial approval')
@@ -447,6 +447,9 @@ def _verify(directory, *, remote=False):
             need(pair_name in replay_ledger.files and same(read(directory/pair_name),replay_ledger.files[pair_name]), 'partial completed pair differs')
         if summary_name in before:
             need(summary_name in replay_ledger.files and same(read(directory/summary_name),replay_ledger.files[summary_name]), 'partial summary differs')
+    if remote:
+        from .individual_remote_verify import verify_backend_gates
+        verify_backend_gates(report, deployment_fingerprints, passing if complete else None, complete=complete)
     allowed_files = {'individual-plan.json','individual-report.json','ledger.jsonl','individual-identities.json',
         'individual-tool-inputs.json','model-manifest.json','model-readiness.json','frozen-causal-policy.json',pair_name,summary_name}
     need(set(before)<=allowed_files | set(sample_names) | set(packet_names), 'unknown artifact')
@@ -465,7 +468,7 @@ def _verify(directory, *, remote=False):
         'verification_boundary':'Recorded-file coherence, sequential protocol replay and independent score arithmetic; '
             'no new requests, external-service cryptographic attestation, cultural quality or population reliability. '
             + ('Remote envelopes and effective request hashes are checked; full response hashes are un-reconstructible observations. '
-               'Provider model ID and stable optional fingerprint do not attest immutable weights. '
+               'Provider model ID and per-response optional fingerprints do not attest immutable weights. '
                'Monotonic pacing slots are local observations, not provider capacity reservations or independent timing attestation.' if remote else
                'Metadata request counts are planned budgets, not individually recorded transport observations.')}
 

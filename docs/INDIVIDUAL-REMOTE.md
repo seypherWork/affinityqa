@@ -84,10 +84,11 @@ python scripts/verify_individual_remote.py private/new-capture/<run-id> --receip
 ```
 
 The exclusive receipt must be outside the captured directory. The verifier
-checks the exact v2 plan and installed sources, Qloo sample/identity/context
+checks the exact v3 plan and installed sources, Qloo sample/identity/context
 bindings, sequential39-packet replay,54 session boundaries, healthy calibration
 ordering, unchanged faults, independent score arithmetic and complete/partial
-attempt accounting. A local v1 verifier does not silently admit v2, or vice versa.
+attempt accounting. The request template remains v2. A local v1 verifier does
+not silently admit remote v3, or vice versa.
 The remote verifier also checks the independently defined pacing contract,
 slot count, input-seal order, slot-before-packet order and recorded intervals.
 Rehashing a false quota claim or inventing a faster interval cannot pass these
@@ -100,9 +101,15 @@ refusals, private reasoning and both private credentials. Envelope hashes are
 recomputed. The full parsed response hash is only a recorded observation; the
 full response is deliberately not stored and its hash cannot be recomputed from
 the projection. The effective HTTP request body hash is independently rebuilt
-without Authorization. Fingerprints must stay identical through every accepted
-decision, including presence/absence. All-null fingerprints are explicitly
-unattested. Model IDs, optional fingerprints and seed7 do not attest immutable
+without Authorization. A valid response remains recordable when its fingerprint
+changes or is absent. Backend comparability is independently derived from all39
+packets. The nine unchanged checks for all three faults determine
+`integration_gate`; a passing integration with known identical fingerprints
+determines `causal_gate: PASS`. Variable or absent fingerprints instead yield
+`INCONCLUSIVE`, even when profile integrity is restored. Failed integration
+checks yield `FAIL`, an observed checklist failure without attribution of its
+cause. Recovery counts and `behavioral_gate` remain descriptive observations.
+Partials retain `NOT_EVALUATED` gates. Model IDs, optional fingerprints and seed7 do not attest immutable
 weights, a provider signature or deterministic generation.
 
 ## LOCAL PANEL WITH THE REMOTE OPERATOR

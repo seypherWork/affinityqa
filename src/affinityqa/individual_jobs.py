@@ -310,7 +310,7 @@ class IndividualJobManager:
             if job['status'] in {'COMPLETE','PARTIAL'}:
                 try:
                     receipt = self.receipt(job_id)
-                    fields = ('verification_status','provenance','status','causal_gate','behavioral_gate','cultural_gate',
+                    fields = ('verification_status','provenance','status','causal_gate','integration_gate','backend_comparability','behavioral_gate','cultural_gate',
                               'release_gate','verified_model_packets','verified_provider_samples','model_attempts','qloo_attempts',
                               'observed_recoveries_by_fault','summary','external_service_attested','error_class')
                     result['result'] = {k:receipt[k] for k in fields if k in receipt}

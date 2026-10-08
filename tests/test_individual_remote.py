@@ -40,6 +40,20 @@ class InterruptedOpener(OpenerFixture):
         return super().open(request, timeout)
 
 
+class VariedBackendOpener(OpenerFixture):
+    def __init__(self, *, absent=False, regression=False):
+        super().__init__(self.vary)
+        self.absent, self.regression = absent, regression
+
+    def vary(self, body):
+        body['system_fingerprint'] = None if self.absent and len(self.calls) == 2 else (
+            'unit-deployment-a' if len(self.calls) % 2 else 'unit-deployment-b')
+        if self.regression and len(self.calls) > 6:
+            message = body['choices'][0]['message']
+            indices = json.loads(message['content'])['ordered_catalog_indices']
+            message['content'] = json.dumps({'ordered_catalog_indices': indices[1:]+indices[:1]})
+
+
 class RemoteIndividualTests(unittest.TestCase):
     def setUp(self):
         temporary = ROOT/'.test-runs'
@@ -85,7 +99,7 @@ class RemoteIndividualTests(unittest.TestCase):
     def test_plan_is_pure_and_closes_provider_contract(self):
         plan = prepare_plan(self.request, self.output)
         self.assertEqual(list(self.parent.iterdir()), [])
-        self.assertEqual(plan['schema_version'], 2)
+        self.assertEqual(plan['schema_version'], 3)
         self.assertNotIn('ollama_url', plan)
         self.assertNotIn('model_digest', json.dumps(plan))
         self.assertEqual(plan['model_load_requests'], 0)
@@ -126,6 +140,9 @@ class RemoteIndividualTests(unittest.TestCase):
         self.assertEqual((receipt['verification_status'], receipt['verified_model_packets'], receipt['verified_provider_samples']),
                          ('VERIFIED_COMPLETE',39,4))
         self.assertEqual(receipt['causal_gate'], 'PASS')
+        self.assertEqual(receipt['integration_gate'], 'PASS')
+        self.assertEqual(receipt['backend_comparability']['status'], 'STABLE_KNOWN')
+        self.assertEqual(receipt['backend_comparability']['observed_decisions'], 39)
         self.assertEqual(receipt['behavioral_gate'], 'OBSERVED_RECOVERY')
         self.assertEqual(receipt['independent_score_reports'], 3)
         self.assertEqual(receipt['provenance'], 'SIMULATION_ONLY')
@@ -178,6 +195,41 @@ class RemoteIndividualTests(unittest.TestCase):
         self.assertEqual(receipt['verification_status'], 'VERIFIED_COMPLETE')
         self.assertEqual(receipt['behavioral_gate'], 'INCONCLUSIVE')
 
+    def test_varied_backend_completes_39_decisions_but_causal_attribution_is_inconclusive(self):
+        self.capture(opener=VariedBackendOpener())
+        self.assertEqual((self.report['status'], self.report['model_attempts']), ('COMPLETE', 39))
+        receipt = verify_individual_remote(self.run)
+        self.assertEqual(receipt['verified_model_packets'], 39)
+        self.assertEqual(receipt['integration_gate'], 'PASS')
+        self.assertEqual(receipt['causal_gate'], 'INCONCLUSIVE')
+        self.assertEqual(receipt['backend_comparability']['status'], 'VARIED')
+        self.assertEqual(receipt['backend_comparability']['system_fingerprints'],
+                         ['unit-deployment-a', 'unit-deployment-b'])
+        self.assertEqual(receipt['behavioral_gate'], 'OBSERVED_RECOVERY')
+        self.assertEqual(set(receipt['observed_recoveries_by_fault'].values()), {3})
+        self.assertTrue(all(len(case['checks']) == 9 and all(case['checks'].values())
+                            for case in receipt['summary']['cases']))
+
+    def test_backend_variance_does_not_hide_failed_integration_checks(self):
+        self.capture(opener=VariedBackendOpener(regression=True))
+        receipt = verify_individual_remote(self.run)
+        self.assertEqual(receipt['verified_model_packets'], 39)
+        self.assertEqual(receipt['integration_gate'], 'FAIL')
+        self.assertEqual(receipt['causal_gate'], 'FAIL')
+
+    def test_mixed_absent_and_varied_backend_is_inconclusive(self):
+        self.capture(opener=VariedBackendOpener(absent=True))
+        receipt = verify_individual_remote(self.run)
+        self.assertEqual(receipt['integration_gate'], 'PASS')
+        self.assertEqual(receipt['causal_gate'], 'INCONCLUSIVE')
+        self.assertEqual(receipt['backend_comparability']['status'], 'VARIED_AND_ABSENT')
+        self.assertEqual(receipt['backend_comparability']['missing_fingerprint_decisions'], 1)
+
+    def test_rehashed_report_cannot_promote_backend_variance_to_causal_pass(self):
+        self.capture(opener=VariedBackendOpener())
+        self.edit('individual-report.json', lambda r:r.update(causal_gate='PASS'))
+        self.rejected()
+
     def test_provider_manifest_wrong_weights_digest_or_options_rejected(self):
         self.capture()
         for change in (lambda m:m.update(model_digest='d'*64), lambda m:m['options'].update(seed=8),
@@ -216,7 +268,7 @@ class RemoteIndividualTests(unittest.TestCase):
         self.packet(lambda p:p['observation']['provider_envelope'].update(execution_source='remote-llm'))
         self.rejected()
 
-    def test_remote_fingerprint_must_stay_stable_in_independent_audit(self):
+    def test_rehashed_packet_cannot_keep_false_stable_backend_pass(self):
         self.capture()
         def change(packet):
             packet['observation']['system_fingerprint'] = None
@@ -228,9 +280,13 @@ class RemoteIndividualTests(unittest.TestCase):
         self.capture(opener=OpenerFixture(lambda b:b.pop('system_fingerprint')))
         receipt = verify_individual_remote(self.run)
         self.assertEqual(receipt['verification_status'], 'VERIFIED_COMPLETE')
+        self.assertEqual(receipt['integration_gate'], 'PASS')
+        self.assertEqual(receipt['causal_gate'], 'INCONCLUSIVE')
+        self.assertEqual(receipt['backend_comparability']['status'], 'ABSENT')
+        self.assertEqual(receipt['backend_comparability']['missing_fingerprint_decisions'], 39)
         self.assertFalse(receipt['external_service_attested'])
 
-    def test_fingerprint_first_appearance_is_rejected_even_with_rehashed_envelope(self):
+    def test_rehashed_first_fingerprint_cannot_keep_false_absent_backend_report(self):
         self.capture(opener=OpenerFixture(lambda b:b.pop('system_fingerprint')))
         def change(packet):
             packet['observation']['system_fingerprint'] = 'appeared'
@@ -251,7 +307,7 @@ class RemoteIndividualTests(unittest.TestCase):
         (self.run/'model-readiness.json').write_text('{}')
         self.rejected()
 
-    def test_local_v1_verifier_does_not_silently_admit_remote_v2(self):
+    def test_local_v1_verifier_does_not_silently_admit_remote_v3(self):
         self.capture()
         with self.assertRaises(SchemaError):
             verify_individual(self.run)

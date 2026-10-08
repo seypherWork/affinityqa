@@ -18,7 +18,8 @@ The adapter uses the existing musical-profile/movie-catalog/Qloo-context payload
 and unchanged causal operator. It requests strict JSON Schema: every one of the
 20 catalog positions exactly once. Independent local checks reject missing,
 duplicate, Boolean or invented positions, truncated completions, refusals,
-unexpected models, invalid usage and changing returned deployment fingerprints.
+unexpected models and invalid usage. Each valid response's optional backend
+fingerprint is recorded, including changes or absence.
 There is no model switch, schema downgrade, automatic retry or completed tail.
 
 Attempts are serialized and capped at 39. Request and response sizes and timeout
@@ -38,8 +39,14 @@ the model input.
 
 An API model ID and optional `system_fingerprint` do not attest an immutable
 weight revision. The manifest states `model_weights_sha256: null` and revision
-attestation false. It never manufactures an Ollama digest. A returned fingerprint
-must remain consistent across successful decisions, including its absence.
+attestation false. It never manufactures an Ollama digest. A changed or absent
+fingerprint permits recording a valid decision, but cannot pass backend
+comparability. The remote v3 plan/report and response/identity contracts keep
+the unchanged nine checks as `integration_gate`. If those checks pass and all39
+fingerprints are known and identical, `causal_gate` is `PASS`; variable or absent
+fingerprints make it `INCONCLUSIVE`. Failed integration checks produce `FAIL`,
+which records a failed checklist without attributing its cause to the repair.
+Observed recovery counts and the behavioral gate remain observations.
 
 Test transport injection is labelled `test-double-only`. Offline tests include
 the unchanged 39-decision healthy/fault/repair protocol, but do not establish
@@ -48,7 +55,7 @@ or external hosted acceptance. The independent review fixed and reproduced a
 reasoning-null/empty compatibility defect; the failed test evidence is retained.
 
 The local v1 capture/verifier still does not admit this adapter. The separately
-bound remote v2 flow and explicit owner-selected manager are documented in
+bound remote v3 flow and explicit owner-selected manager are documented in
 [INDIVIDUAL-REMOTE.md](INDIVIDUAL-REMOTE.md). Each accepted response now has an
 auditable closed envelope and independently rebuilt effective request hash.
 The hosted public demo must not advertise remote inference until actual service

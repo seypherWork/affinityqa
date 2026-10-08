@@ -210,14 +210,19 @@ class GroqAgentTests(unittest.TestCase):
             self.assertEqual(agent.calls, 1)
             self.assertEqual(agent.observations, [])
 
-    def test_deployment_change_stops_without_filling_result(self):
+    def test_backend_change_preserves_each_valid_response_without_retry(self):
         opener = OpenerFixture()
         agent, _ = self.agent(opener)
         agent.rank(self.request)
         opener.mutation = lambda body: body.update(system_fingerprint='unit-deployment-b')
-        with self.assertRaises(AgentError):
-            agent.rank(self.request)
-        self.assertEqual((agent.calls, len(agent.observations)), (2, 1))
+        agent.rank(self.request)
+        self.assertEqual((agent.calls, len(opener.calls), len(agent.observations)), (2, 2, 2))
+        self.assertEqual([row['system_fingerprint'] for row in agent.observations],
+                         ['unit-deployment-a', 'unit-deployment-b'])
+        self.assertEqual([row['provider_envelope']['system_fingerprint'] for row in agent.observations],
+                         ['unit-deployment-a', 'unit-deployment-b'])
+        self.assertEqual(agent.manifest['response_contract'], 'groq-strict-twenty-movie-v3-redacted-envelope')
+        self.assertEqual(agent.manifest['model_identity_mode'], 'provider-model-id+per-response-system-fingerprint-v3')
 
     def test_absent_fingerprint_stays_explicitly_unattested(self):
         agent, _ = self.agent(OpenerFixture(lambda body: body.pop('system_fingerprint')))

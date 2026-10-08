@@ -18,7 +18,7 @@ from affinityqa.public_cases import PublicCaseManager,public_policy
 from affinityqa.qloo import Settings
 from test_groq_agent import OpenerFixture,UNIT_SECRET,UNIT_QLOO_SECRET
 from test_individual_capture import TransportDouble
-from test_individual_remote import request_fixture
+from test_individual_remote import request_fixture,VariedBackendOpener
 
 
 class PublicCasesTests(unittest.TestCase):
@@ -101,6 +101,18 @@ class PublicCasesTests(unittest.TestCase):
             self.assertNotIn(forbidden,text)
         self.assertEqual(public['result']['cultural_gate'],'NOT_VALIDATED')
         self.assertEqual(self.reads,[1,1])
+
+    def test_varied_backend_gates_survive_public_result_and_receipt_allowlists(self):
+        self.opener_factory=VariedBackendOpener
+        service=self.service();token=self.visitor(service)
+        job=self.finish(service,token,service.prepare(token,self.request['artists']))
+        public=service.verification(token,job['job_id'])
+        for result in (job['result'],public['result']):
+            self.assertEqual(result['integration_gate'],'PASS')
+            self.assertEqual(result['causal_gate'],'INCONCLUSIVE')
+            self.assertEqual(result['backend_comparability']['status'],'VARIED')
+            self.assertEqual(result['backend_comparability']['observed_decisions'],39)
+        self.assertEqual((job['status'],job['saved_model_packets']),('COMPLETE',39))
 
     def test_failed_capture_consumes_budget_and_preserves_verified_partial(self):
         self.opener_factory=lambda:OpenerFixture(failure=HTTPError('https://unit.invalid',429,'unit failure',{},None))

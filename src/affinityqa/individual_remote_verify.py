@@ -1,4 +1,4 @@
-"""Pure v2 remote audit. No engine, credential lookup, requests or attestation."""
+"""Pure v3 remote audit. No engine, credential lookup, requests or attestation."""
 import json
 import math
 from pathlib import PurePosixPath, PureWindowsPath
@@ -17,11 +17,11 @@ def expected_manifest(execution_source):
     return {
         'provider': 'groq', 'model': 'openai/gpt-oss-20b',
         'endpoint': 'https://api.groq.com/openai/v1/chat/completions',
-        'model_identity_mode': 'provider-model-id+stable-system-fingerprint-if-returned',
+        'model_identity_mode': 'provider-model-id+per-response-system-fingerprint-v3',
         'model_weights_sha256': None, 'immutable_model_revision_attested': False,
         'prompt_version': PROTOCOL, 'prompt_sha256': fingerprint(PROMPT),
         'tool_contract': 'qloo-context-input-not-quality-label-v1',
-        'response_contract': 'groq-strict-twenty-movie-v2-redacted-envelope',
+        'response_contract': 'groq-strict-twenty-movie-v3-redacted-envelope',
         'options': {'temperature': 0, 'seed': 7, 'reasoning_effort': 'low',
                     'include_reasoning': False, 'stream': False, 'max_completion_tokens': 1024},
         'seed_determinism_guaranteed': False, 'max_inference_calls': 39,
@@ -38,7 +38,7 @@ def verify_plan(plan):
     output = plan['output_directory']
     need(isinstance(output, str) and len(output) <= 4000 and
          (PureWindowsPath(output).is_absolute() or PurePosixPath(output).is_absolute()), 'original remote output declaration')
-    expected = {'schema_version': 2, 'protocol_version': PROTOCOL, 'mode': 'individual-remote-capture',
+    expected = {'schema_version': 3, 'protocol_version': PROTOCOL, 'mode': 'individual-remote-capture',
         'request': request, 'output_directory': output, 'remote_operator': expected_manifest('remote-llm'),
         'execution_pacing': expected_pacing(plan['execution_pacing']['minimum_interval_seconds']),
         'source_sha256': {name: sha(SOURCE_ROOT/'src/affinityqa'/name) for name in SOURCES},
@@ -111,6 +111,33 @@ def verify_manifest(manifest, source):
 
 def integer(value, lower, upper):
     return type(value) is int and lower <= value <= upper
+
+
+def verify_backend_gates(report, deployments, passing, *, complete):
+    # Independently derive the result from validated packets, not producer helpers
+    # or report-selected fingerprints. No changing thresholds or skipping repeats.
+    known = sorted(set(value for value in deployments if value is not None))
+    missing = deployments.count(None)
+    if len(deployments) != 39:
+        status = 'NOT_EVALUATED'
+    elif missing:
+        status = 'VARIED_AND_ABSENT' if len(known) > 1 else 'ABSENT'
+    else:
+        status = 'VARIED' if len(known) > 1 else 'STABLE_KNOWN'
+    expected = {'schema_version': 1, 'status': status, 'expected_decisions': 39,
+                'observed_decisions': len(deployments), 'system_fingerprints': known,
+                'missing_fingerprint_decisions': missing,
+                'scope': 'Observed provider backend fingerprints across all 39 decisions; immutable weights are not attested.'}
+    integration = ('PASS' if passing == 3 else 'FAIL') if complete else 'NOT_EVALUATED'
+    attribution = ('FAIL' if integration == 'FAIL' else
+                   'PASS' if status == 'STABLE_KNOWN' else 'INCONCLUSIVE') if complete else 'NOT_EVALUATED'
+    need(same(report.get('backend_comparability'), expected), 'reported backend comparability differs from packets')
+    need(report.get('integration_gate') == integration and report['causal_gate'] == attribution,
+         'reported integration or causal gate differs')
+    need(report.get('integration_gate_scope') == 'All nine unchanged checks for all three declared faults; a failure is an observed checklist failure, not attribution of its cause.'
+         and report.get('causal_gate_scope') == 'Integration checks pass and all 39 observed backend fingerprints are known and identical; fingerprints do not attest immutable weights.'
+         and report.get('behavioral_gate_scope') == 'All three declared faults; at least one observed recovery repeat for each. Observed behavior alone does not causally attribute a recovery to repair.',
+         'remote gate scope differs')
 
 
 def verify_packet(packet, manifest, source):

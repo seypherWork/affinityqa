@@ -26,6 +26,27 @@ MODE = 'individual-remote-capture'
 SOURCE = 'qloo-tool+groq-remote-llm'
 
 
+def backend_comparability(observations):
+    """Describe the bounded sample; fingerprints never attest immutable weights."""
+    known = sorted({row['system_fingerprint'] for row in observations if row['system_fingerprint'] is not None})
+    missing = sum(row['system_fingerprint'] is None for row in observations)
+    status = ('NOT_EVALUATED' if len(observations) != 39 else
+              'VARIED_AND_ABSENT' if len(known) > 1 and missing else
+              'ABSENT' if missing else 'VARIED' if len(known) > 1 else 'STABLE_KNOWN')
+    return {'schema_version': 1, 'status': status, 'expected_decisions': 39,
+            'observed_decisions': len(observations), 'system_fingerprints': known,
+            'missing_fingerprint_decisions': missing,
+            'scope': 'Observed provider backend fingerprints across all 39 decisions; immutable weights are not attested.'}
+
+
+def causal_gate(integration_gate, backend):
+    if integration_gate == 'NOT_EVALUATED':
+        return 'NOT_EVALUATED'
+    if integration_gate == 'FAIL':
+        return 'FAIL'
+    return 'PASS' if backend['status'] == 'STABLE_KNOWN' else 'INCONCLUSIVE'
+
+
 def validate_request(value):
     need(isinstance(value, dict) and set(value) == {'schema_version', 'artists', 'catalog', 'model'}, 'Unexpected remote request fields.')
     need(type(value['schema_version']) is int and value['schema_version'] == 2, 'Use remote request version2.')
@@ -72,7 +93,7 @@ def prepare_plan(request, output, *, minimum_model_interval_seconds=None):
     need(not output.exists() and output.parent.is_dir(), 'Choose a new output directory with an existing parent.')
     source = Path(__file__).resolve().parent
     root = source.parents[1]
-    plan = {'schema_version': 2, 'protocol_version': PROTOCOL, 'mode': MODE,
+    plan = {'schema_version': 3, 'protocol_version': PROTOCOL, 'mode': MODE,
             'request': request, 'output_directory': str(output),
             'remote_operator': model_manifest('remote-llm'),
             'execution_pacing': pacing_policy(minimum_model_interval_seconds),
@@ -116,14 +137,17 @@ def execute_capture(request, output, expected_plan_hash, settings, remote_key, *
         ledger = Ledger(output, ledger_source, secrets)
         ledger.write('individual-plan.json', plan)
         ledger.record('individual_plan_frozen', {'plan_sha256': plan['plan_sha256'], 'model_calls': 0, 'qloo_calls': 0})
-        report = {'schema_version': 2, 'created_utc': utc_now(), 'run_id': ledger.run_id,
+        report = {'schema_version': 3, 'created_utc': utc_now(), 'run_id': ledger.run_id,
                   'mode': MODE, 'source': ledger.source, 'status': 'INCOMPLETE',
                   'causal_gate': 'NOT_EVALUATED', 'behavioral_gate': 'NOT_EVALUATED',
+                  'integration_gate': 'NOT_EVALUATED', 'backend_comparability': backend_comparability([]),
+                  'integration_gate_scope': 'All nine unchanged checks for all three declared faults; a failure is an observed checklist failure, not attribution of its cause.',
+                  'causal_gate_scope': 'Integration checks pass and all 39 observed backend fingerprints are known and identical; fingerprints do not attest immutable weights.',
                   'cultural_gate': 'NOT_VALIDATED', 'release_gate': 'BLOCKED', 'release_approved': False,
                   'plan_sha256': plan['plan_sha256'], 'model_attempts': 0, 'qloo_attempts': 0,
                   'model_attempts_scope': 'Remote ranking requests, including the first failed attempt; no startup calls or loading.',
                   'model_load_attempts': 0,
-                  'behavioral_gate_scope': 'All three declared faults; at least one observed recovery repeat for each.',
+                  'behavioral_gate_scope': 'All three declared faults; at least one observed recovery repeat for each. Observed behavior alone does not causally attribute a recovery to repair.',
                   'independent_verification': 'PENDING', 'error_class': None}
         engine = client = pacer = None
         try:
@@ -160,8 +184,11 @@ def execute_capture(request, output, expected_plan_hash, settings, remote_key, *
             pacer = PacedRemoteAgent(engine, plan['execution_pacing'], ledger, _test_clock=_test_pacing_clock)
             _, summary, policy = capture_pair(pacer, ledger, pair, request['catalog'], profiles, contexts, freeze=freeze)
             recovered = {c['fault']: c['behavioral_recovery_observed_repeats'] for c in summary['cases']}
+            integration = 'PASS' if all(c['passing'] for c in summary['cases']) else 'FAIL'
+            backend = backend_comparability(engine.observations)
             report.update(status='COMPLETE', passing=sum(c['passing'] for c in summary['cases']), denominator=3,
-                          causal_gate='PASS' if all(c['passing'] for c in summary['cases']) else 'FAIL',
+                          integration_gate=integration, backend_comparability=backend,
+                          causal_gate=causal_gate(integration, backend),
                           behavioral_gate='OBSERVED_RECOVERY' if all(recovered.values()) else 'INCONCLUSIVE',
                           observed_recoveries_by_fault=recovered, summary=summary, policy_sha256=policy['policy_sha256'])
         except BaseException as exc:
@@ -170,6 +197,7 @@ def execute_capture(request, output, expected_plan_hash, settings, remote_key, *
             if not isinstance(exc, (AffinityQAError, OSError)):
                 raise
         finally:
+            report['backend_comparability'] = backend_comparability(getattr(engine, 'observations', []))
             report['model_attempts'] = getattr(engine, 'calls', 0)
             report['admitted_model_slots'] = getattr(pacer, 'slots', 0)
             report['qloo_attempts'] = getattr(client, 'requests', 0)

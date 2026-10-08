@@ -1,7 +1,7 @@
 """Explicit remote adapter; no local weights, implicit calls or retry/fallback.
 
 This candidate is separate from the frozen local operator and captures. Provider
-identity is an API model ID plus optional stable system fingerprint, never a
+identity is an API model ID plus each response's optional system fingerprint, never a
 pretended SHA of weights. The existing local capture/verifier does not admit it.
 """
 import copy
@@ -59,11 +59,11 @@ def model_manifest(execution_source, *, max_calls=39, timeout=120):
     need(execution_source in ('remote-llm', 'test-double-only'), 'invalid execution provenance.')
     return {
         'provider': 'groq', 'model': MODEL, 'endpoint': ENDPOINT,
-        'model_identity_mode': 'provider-model-id+stable-system-fingerprint-if-returned',
+        'model_identity_mode': 'provider-model-id+per-response-system-fingerprint-v3',
         'model_weights_sha256': None, 'immutable_model_revision_attested': False,
         'prompt_version': PROTOCOL, 'prompt_sha256': fingerprint(PROMPT),
         'tool_contract': 'qloo-context-input-not-quality-label-v1',
-        'response_contract': 'groq-strict-twenty-movie-v2-redacted-envelope',
+        'response_contract': 'groq-strict-twenty-movie-v3-redacted-envelope',
         'options': {'temperature': 0, 'seed': 7, 'reasoning_effort': 'low',
                     'include_reasoning': False, 'stream': False,
                     'max_completion_tokens': MAX_COMPLETION_TOKENS},
@@ -100,8 +100,6 @@ class GroqToolContextMovieAgent:
         self.observations = []
         self.last_input = None
         self._lock = threading.Lock()
-        self._identity_observed = False
-        self._system_fingerprint = None
         self.source = 'test-double-only' if _test_opener is not None else 'remote-llm'
         self.opener = _test_opener if _test_opener is not None else build_opener(
             ProxyHandler({}), _RejectRedirects(), HTTPSHandler(context=ssl.create_default_context()))
@@ -193,12 +191,8 @@ class GroqToolContextMovieAgent:
         system_fingerprint = body.get('system_fingerprint')
         need(system_fingerprint is None or (isinstance(system_fingerprint, str)
              and re.fullmatch(r'[!-~]{1,128}', system_fingerprint)), 'invalid deployment fingerprint.')
-        need(not self._identity_observed or system_fingerprint == self._system_fingerprint,
-             'provider deployment fingerprint changed during this capture.')
         catalog_ids = validate_catalog(request['catalog'])
         ranking = [catalog_ids[index] for index in indices]
-        self._identity_observed = True
-        self._system_fingerprint = system_fingerprint
         self.last_input = copy.deepcopy(decision_input)
         # Explicit projection: do not persist arbitrary response fields, refusal,
         # reasoning, headers or credential-shaped content. Its hash is auditable.

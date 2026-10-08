@@ -21,7 +21,7 @@ VIEW_FIELDS=('job_id','status','created_utc','artists','model','operator_mode','
              'maximum_model_decisions','simulation_only','cultural_gate','release_gate','error_class',
              'saved_provider_samples','saved_model_packets','result','pacing_configured',
              'minimum_model_interval_seconds','receipt_sha256')
-RESULT_FIELDS=('verification_status','provenance','status','causal_gate','behavioral_gate','cultural_gate',
+RESULT_FIELDS=('verification_status','provenance','status','causal_gate','integration_gate','backend_comparability','behavioral_gate','cultural_gate',
                'release_gate','verified_model_packets','verified_provider_samples','model_attempts',
                'qloo_attempts','observed_recoveries_by_fault','summary','external_service_attested','error_class','frames')
 

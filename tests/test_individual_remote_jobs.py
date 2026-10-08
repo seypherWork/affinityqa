@@ -17,7 +17,7 @@ from affinityqa.qloo import Settings
 from test_groq_agent import OpenerFixture, UNIT_SECRET, UNIT_QLOO_SECRET
 from test_individual_capture import TransportDouble
 from test_individual_jobs import asgi
-from test_individual_remote import request_fixture, InterruptedOpener
+from test_individual_remote import request_fixture, InterruptedOpener, VariedBackendOpener
 
 
 class RemoteJobTests(unittest.TestCase):
@@ -92,6 +92,16 @@ class RemoteJobTests(unittest.TestCase):
         self.assertEqual(self.reads,[1,1])
         self.assertNotIn(UNIT_SECRET,json.dumps(manager.receipt(job['job_id'])))
         self.assertNotIn(UNIT_QLOO_SECRET,json.dumps(job))
+
+    def test_varied_backend_is_visible_as_complete_inconclusive_result(self):
+        self.opener_factory = VariedBackendOpener
+        manager = self.manager()
+        job = self.finish(manager,manager.prepare(self.request['artists']))
+        self.assertEqual((job['status'],job['saved_model_packets']),('COMPLETE',39))
+        self.assertEqual(job['result']['integration_gate'],'PASS')
+        self.assertEqual(job['result']['causal_gate'],'INCONCLUSIVE')
+        self.assertEqual(job['result']['backend_comparability']['status'],'VARIED')
+        self.assertEqual(len(job['result']['frames']),3)
 
     def test_remote_partial_is_reviewable_and_cannot_execute_again(self):
         self.opener_factory = InterruptedOpener
