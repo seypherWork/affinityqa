@@ -19,6 +19,7 @@ from .causal_agent import PROMPT, PROTOCOL, ToolContextMovieAgent, validate_cata
 from .evidence import fingerprint
 
 ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions'
+USER_AGENT = 'AffinityQA/0.2.0 (+https://github.com/seypherWork/affinityqa)'
 MODEL = 'openai/gpt-oss-20b'
 MAX_PROMPT_TOKENS = 8192
 MAX_COMPLETION_TOKENS = 1024
@@ -111,6 +112,7 @@ class GroqToolContextMovieAgent:
         request = Request(ENDPOINT, data=encoded, method='POST', headers={
             'Authorization': 'Bearer ' + self._api_key,
             'Accept': 'application/json', 'Content-Type': 'application/json',
+            'User-Agent': USER_AGENT,
         })
         try:
             with self.opener.open(request, timeout=self.timeout) as response:

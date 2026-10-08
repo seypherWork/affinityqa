@@ -96,6 +96,8 @@ class GroqAgentTests(unittest.TestCase):
         self.assertEqual(request.full_url, ENDPOINT)
         self.assertEqual(request.get_method(), 'POST')
         self.assertEqual(request.get_header('Authorization'), 'Bearer ' + UNIT_SECRET)
+        self.assertEqual(request.get_header('User-agent'),
+                         'AffinityQA/0.2.0 (+https://github.com/seypherWork/affinityqa)')
         self.assertFalse(payload['stream'])
         self.assertFalse(payload['include_reasoning'])
         self.assertEqual(payload['reasoning_effort'], 'low')
