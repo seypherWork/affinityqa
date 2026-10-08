@@ -1,10 +1,20 @@
-# INDIVIDUAL REMOTE CASES — CANDIDATE
+# INDIVIDUAL REMOTE CASES
 
-This candidate connects a separately versioned Groq operator to new-case capture,
-diagnosis, repair, read-only verification and the local panel. It is not yet
-accepted against Groq's real service or deployed for unrestricted judging.
-No cloud account, key, billing plan or third-party data-transfer permission is
-inferred from the existence of this code.
+**Verified snapshot · 8 October 2026.** The Groq operator connects new-case capture,
+diagnosis, repair, read-only verification and the panel. Tested runtime code
+`457fcace665b29a206840cedf24bceac56865b8f` is deployed in the
+[hosted application](https://affinityqa-review.onrender.com/demo). One actual hosted
+case completed with 39 Groq decisions, four fresh Qloo responses, integration PASS
+across three faults and nine observed recoveries; its case, session and consumed
+admission survived a real service restart. That observed case reported 25 known
+backend fingerprints and causal INCONCLUSIVE. Sustained judge capacity and
+independent cultural validation remain pending; full jury acceptance is NO-GO.
+See [the current acceptance record](JUDGE-ACCEPTANCE.md) for distinct direct,
+hosted, source-CI and restart evidence.
+
+The following commands describe the operator contract. Source existence alone
+does not establish an account, keys, billing capacity or permission to transfer
+third-party data. Those bindings must be reviewed for each real execution.
 
 ## PREPARE A REQUEST
 
@@ -58,7 +68,7 @@ Faults are profile omitted from cache keys, stale profile, and wrong tool profil
 There is no retry, automatic model/schema substitution, invented tail ranking,
 resume or timeout-driven restart. A failure stops the capture and preserves the
 first failed attempt and all committed evidence. HTTP429 may stop a run; this
-candidate does not claim that an unverified free account supports39 requests at
+operator does not claim that an unverified free account supports39 requests at
 the required rate. Prompt usage is checked after each response and is not a
 prepaid financial cap or a local tokenizer estimate.
 

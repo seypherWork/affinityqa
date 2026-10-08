@@ -1,11 +1,18 @@
-# Remote model preparation candidate
+# Remote model contract and preparation
 
-This unpublished source derivative adds a Groq ranking adapter and a separately
-versioned capture, verifier and panel integration for a future externally usable
-demonstration. The original reviewed sources remain in their unchanged trees;
-this candidate changes only the integration files and preserves the historical
-Qloo/Ollama captures. It does not change their outcome,
-noise thresholds, cultural-quality status or license boundary.
+**Updated · 8 October 2026.** The Groq ranking adapter and versioned capture,
+verifier and panel integration are published. Tested runtime code
+`457fcace665b29a206840cedf24bceac56865b8f` completed both a direct remote case and
+one genuine hosted case; the latter survived a real service restart. Each obtained
+39 valid Groq packets and four Qloo responses, with integration PASS across three
+faults and nine observed recoveries. Backend variation kept causal attribution
+INCONCLUSIVE: 27 known fingerprints in the direct case and 25 in the hosted case.
+See [the acceptance record](JUDGE-ACCEPTANCE.md) for the dated evidence and scope.
+
+This guide documents the preparation and transport contract. Historical
+Qloo/Ollama captures, outcomes, noise thresholds, cultural-quality status and
+license boundaries remain unchanged. Independent cultural evidence and sustained
+judge capacity remain pending; the observed functional case is not full jury GO.
 
 ## Intended server contract
 
