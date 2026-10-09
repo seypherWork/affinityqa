@@ -87,21 +87,23 @@ class PublicCaseManager:
         self.binding=binding
         self._binding_hash=fingerprint(binding)
         self.root.mkdir(mode=0o700,parents=False,exist_ok=True)
+        for directory in (self.sessions,self.owners):
+            safe_directory_path(directory);directory.mkdir(mode=0o700,exist_ok=True)
         path=self.root/'public-policy.json'
-        from .public_policy_continuation import validate_chain
+        self._continuation_applied = False
         if path.exists():
-            need(all(safe_directory_path(directory).is_dir() for directory in
-                     (self.sessions,self.owners,self.root/'jobs')),'Existing public storage directories differ.')
             previous = read(path)
-            self._continuation_snapshot=validate_chain(self.root,previous,binding)
-            self.binding=previous
-            self._binding_hash=fingerprint(previous)
+            if fingerprint(previous) != self._binding_hash:
+                from .public_policy_continuation import MARKER, validate_continuation
+                need((self.root/MARKER).is_file(), 'Public source seal changed; review and explicitly continue stopped storage without resetting budgets.')
+                validate_continuation(previous, binding, read(self.root/MARKER))
+                self.binding = previous
+                self._binding_hash = fingerprint(previous)
+                self._continuation_applied = True
         else:
-            need(not list(self.root.iterdir()),'Storage predates its public policy; retain and inspect it.')
-            for directory in (self.sessions,self.owners):
-                safe_directory_path(directory);directory.mkdir(mode=0o700)
+            need(not (self.root/'jobs').exists() and not list(self.sessions.iterdir())
+                 and not list(self.owners.iterdir()),'Storage predates its public policy; retain and inspect it.')
             write(path,binding)
-            self._continuation_snapshot=validate_chain(self.root,binding,binding)
         self.manager=IndividualJobManager(self.root/'jobs',self.template,operator='groq',
             execution_enabled=execution_enabled,settings_loader=settings_loader,remote_key_loader=remote_key_loader,
             remote_minimum_interval_seconds=cadence['minimum_interval_seconds'],_test_adapters=_test_adapters,
@@ -121,14 +123,12 @@ class PublicCaseManager:
 
     def _bound(self):
         need(not self.manager.closed,'The public case service is closed.')
-        from .public_policy_continuation import validate_chain
-        current={**self.binding,'controller_sha256':sha(Path(__file__)),
-                 'manager_sha256':sha(Path(__file__).with_name('individual_jobs.py'))}
-        current['policy_sha256']=fingerprint({k:v for k,v in current.items() if k!='policy_sha256'})
-        need(validate_chain(self.root,self.binding,current)==self._continuation_snapshot
-             and {path.name for path in self.root.iterdir()}==
-                 set(self._continuation_snapshot['files_sha256'])|{'sessions','ownership','jobs'},
-             'Public continuation chain changed during service; stop and inspect it.')
+        if self._continuation_applied:
+            from .public_policy_continuation import MARKER, validate_continuation
+            current = {**self.binding, 'controller_sha256':sha(Path(__file__)),
+                       'manager_sha256':sha(Path(__file__).with_name('individual_jobs.py'))}
+            current['policy_sha256'] = fingerprint({k:v for k,v in current.items() if k != 'policy_sha256'})
+            validate_continuation(self.binding, current, read(self.root/MARKER))
         need(fingerprint(read(self.root/'public-policy.json'))==self._binding_hash
              and fingerprint(self.binding)==self._binding_hash
              and fingerprint(self.binding['policy'])==fingerprint(self.policy),'Public policy changed during service.')
@@ -146,7 +146,7 @@ class PublicCaseManager:
     def _restore_access(self):
         self._bound()
         entries=list(self.root.iterdir())
-        need({path.name for path in entries}==(set(self._continuation_snapshot['files_sha256'])|{'sessions','ownership','jobs'}),
+        need({path.name for path in entries}==({'public-policy.json','sessions','ownership','jobs'} | ({'public-policy-continuation.json'} if self._continuation_applied else set())),
              'Unknown public storage entry; retain and inspect it.')
         sessions=list(self.sessions.iterdir())
         need(len(sessions)<=self.policy['maximum_sessions'],'Public session storage exceeds its bound.')

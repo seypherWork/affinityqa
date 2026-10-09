@@ -24,22 +24,33 @@ function TraceView({title,trace,identity}:{title:string;trace:Trace;identity:Ide
 const publicItems=[{id:'recorded',label:'Recorded repair',icon:'recorded' as const},{id:'new',label:'New individual case',icon:'new' as const}];
 
 export function PublicScreening(){
-  const [mode,setMode]=useState('recorded');
+  const [mode,setMode]=useState<'recorded'|'new'>('recorded');
   const [summary,setSummary]=useState<Summary|null>(null),[error,setError]=useState(''),[refresh,setRefresh]=useState(0);
   const [pairIndex,setPairIndex]=useState(0),[fault,setFault]=useState('cache-omits-profile'),[repeat,setRepeat]=useState(1),[stage,setStage]=useState<typeof stages[number]>('Detect');
   const [result,setResult]=useState<Replay|null>(null),[busy,setBusy]=useState(false);const active=useRef<AbortController|null>(null);
   useEffect(()=>{const controller=new AbortController();setError('');setSummary(null);fetch('/api/demo/summary',{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('The recorded demo is unavailable. Please try again.');const data=await r.json();if(data.schema_version!==1||!Array.isArray(data.pairs))throw Error('Unverified demo format.');setSummary(data);}).catch(e=>{if(e.name!=='AbortError')setError(e.message)});return()=>controller.abort()},[refresh]);
   useEffect(()=>()=>active.current?.abort(),[]);
+  useEffect(()=>{
+    const syncMode=()=>setMode(window.location.hash==='#new'?'new':'recorded');
+    syncMode();
+    window.addEventListener('hashchange',syncMode);
+    return()=>window.removeEventListener('hashchange',syncMode);
+  },[]);
+  function navigateMode(id:string){
+    const next=id==='new'?'new':'recorded';
+    setMode(next);
+    if(window.location.hash!=='#'+next)window.location.hash='#'+next;
+  }
   function reset(){active.current?.abort();setResult(null);setError('');setBusy(false);setStage('Detect')}
   const pair=summary?.pairs[pairIndex];
   async function replay(){
     if(!pair||busy)return;const controller=new AbortController();active.current=controller;setBusy(true);setError('');setResult(null);
     try{const response=await fetch('/api/demo/replay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pair_id:pair.pair_id,fault,repeat}),signal:controller.signal});const value=await response.json();if(!response.ok)throw Error(response.status===429?'The demo is busy. Please try again shortly.':'Recorded evidence could not be verified. No result approved.');if(value.source!=='recorded-local-llm-replay'||value.new_model_calls!==0||value.new_qloo_calls!==0||value.run_id!==summary?.run_id||value.pair_id!==pair.pair_id||value.fault!==fault||value.repeat!==repeat||value.requested_artist!==(repeat===2?pair.artists.A:pair.artists.B)||!['PASS','FAIL'].includes(value.status)||!value.checks||Object.keys(value.checks).length!==checkNames.length||checkNames.some(key=>typeof value.checks[key]!=='boolean'))throw Error('The replay response could not be verified.');if(!controller.signal.aborted)setResult(value)}catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'Replay failed.')}finally{if(!controller.signal.aborted)setBusy(false)}
   }
-  return <WorkspaceShell publicMode active={mode} title={mode==='recorded'?'RECORDED REPAIR':'NEW INDIVIDUAL CASE'} items={publicItems} onNavigate={id=>setMode(id==='new'?'new':'recorded')}>
+  return <WorkspaceShell publicMode active={mode} title={mode==='recorded'?'RECORDED REPAIR':'NEW INDIVIDUAL CASE'} items={publicItems} onNavigate={navigateMode}>
     <div className={modeStyles.modeCards} role="group" aria-label="Choose review mode">
-      <button type="button" className={modeStyles.modeCard} aria-pressed={mode==='recorded'} onClick={()=>setMode('recorded')}><span className={modeStyles.modeNumber}>01</span><span><strong>EXPLORE A RECORDED REPAIR</strong><small>Saved evidence · 0 new model or Qloo calls</small></span><span className={modeStyles.modeBadge}>RECORDED</span></button>
-      <button type="button" className={modeStyles.modeCard} aria-pressed={mode==='new'} onClick={()=>setMode('new')}><span className={modeStyles.modeNumber}>02</span><span><strong>CREATE AN INDIVIDUAL CASE</strong><small>Review a plan first · approximately 14 minutes per run</small></span><span className={modeStyles.modeBadge}>NEW CALLS</span></button>
+      <button type="button" className={modeStyles.modeCard} aria-pressed={mode==='recorded'} onClick={()=>navigateMode('recorded')}><span className={modeStyles.modeNumber}>01</span><span><strong>EXPLORE A RECORDED REPAIR</strong><small>Saved evidence · 0 new model or Qloo calls</small></span><span className={modeStyles.modeBadge}>RECORDED</span></button>
+      <button type="button" className={modeStyles.modeCard} aria-pressed={mode==='new'} onClick={()=>navigateMode('new')}><span className={modeStyles.modeNumber}>02</span><span><strong>CREATE AN INDIVIDUAL CASE</strong><small>Review a plan first · two or 39 model decisions, depending on the review</small></span><span className={modeStyles.modeBadge}>NEW CALLS</span></button>
     </div>
     <div className={modeStyles.modePanel} hidden={mode!=='new'}><IndividualScreening publicMode/></div>
     <div className={modeStyles.modePanel} hidden={mode!=='recorded'}><section className={styles.root+' '+styles.recordedRoot} aria-labelledby="public-demo-title"><header className={styles.header}><div><span className={styles.label}>RECORDED PERSONALIZATION / INTEGRATION REPAIR</span><h1 id="public-demo-title">RECORDED PROFILE REPAIR</h1></div><p>Inspect a profile, cache or tool-routing incident using saved decisions. Follow the requested interest through the fault, correction and verification.</p></header>

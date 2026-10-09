@@ -71,3 +71,19 @@ Official references: [native runtimes](https://render.com/docs/native-runtimes),
 [Node selection](https://render.com/docs/node-version),
 [disks](https://render.com/docs/disks), [SSH](https://render.com/docs/ssh),
 [pricing](https://render.com/pricing).
+
+## Case-storage continuity and fallback
+
+Source changes use the stopped-store proposal in
+[PUBLIC-NEW-CASES.md](../docs/PUBLIC-NEW-CASES.md#continue-the-same-case-storage-across-source-versions).
+Keep the same root and admission history; startup never migrates it. Apply only
+an exact reviewed proposal after checking actual host space and terminal workers.
+Do not restore an older snapshot as active storage to recover budgets.
+
+Full case rollback requires a chain-aware destination that supports every stored
+protocol. Rollback adds a new record rather than removing forward history. The
+exact older public release is not made compatible by adding metadata. Its
+fallback leaves cases unconfigured and serves only a separately verified replay;
+`execution_enabled=false` alone still permits session/plan writes. Without that
+replay, do not claim restored product behavior. No cloud migration, fallback or
+publication is authorized by packaging or passing local engineering tests.

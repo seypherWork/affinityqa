@@ -7,7 +7,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from .errors import SchemaError
-from .individual_api import JobId, PlanBody, StartBody, StrictBody
+from .individual_api import ConfirmBody, JobId, PlanBody, StartBody, StrictBody
 from .public_cases import SHA, TOKEN
 
 
@@ -121,10 +121,15 @@ def routes(manager, *, origin):
                 if current.capabilities(token)['remaining_plans'] <= 0:
                     raise _Denial(429, 'Public plan admissions exhausted.')
                 try:
-                    current.manager._validate_request({**current.template, 'artists': body.artists.model_dump()})
+                    current.manager.request_for(body.artists.model_dump(), body.preferences.model_dump() if body.preferences is not None else None,
+                        **({'confirm_identities':True} if body.confirm_identities else {}),
+                        **({'discover_new_movies':True} if body.discover_new_movies else {}))
                 except SchemaError:
-                    raise _Denial(422, 'Use two distinct, valid musical interests.') from None
-                return response(current.prepare(token, body.artists.model_dump()), 201)
+                    raise _Denial(422, 'Use two distinct interests and valid, disjoint cinema preferences from this catalog.') from None
+                return response(current.prepare(token, body.artists.model_dump(),
+                    **({'preferences':body.preferences.model_dump()} if body.preferences is not None else {}),
+                    **({'confirm_identities':True} if body.confirm_identities else {}),
+                    **({'discover_new_movies':True} if body.discover_new_movies else {})), 201)
         return call(action)
 
     @router.get('/jobs/{job_id}')
@@ -162,6 +167,28 @@ def routes(manager, *, origin):
                 raise _Denial(409, 'No verified receipt is available for this case.')
             return response(current.verification(token, job_id), extra={
                 'Content-Disposition': f'attachment; filename=affinityqa-public-{job_id}-verification.json'})
+        return call(action)
+
+    @router.post('/jobs/{job_id}/confirm-identities', status_code=202)
+    def confirm(request: Request, job_id: JobId, body: ConfirmBody):
+        def action():
+            current, token = access(request, mutation=True)
+            with current.lock:
+                view = current.view(token, job_id)
+                if view['status'] != 'AWAITING_IDENTITY_CONFIRMATION' or view['case_protocol'] not in ('cinema-confirmed-identity-v1', 'cinema-confirmed-discovery-v2'):
+                    raise _Denial(409, 'This saved identity selection cannot be admitted again.')
+                if view['plan_sha256'] != body.plan_sha256 or view.get('identity_receipt_sha256') != body.identity_receipt_sha256:
+                    raise _Denial(409, 'The reviewed plan or identity receipt differs.')
+                if not current.capabilities(token)['execution_enabled']:
+                    raise _Denial(503, 'Confirmed capture is disabled; saved cases remain readable.')
+                worker = current.manager.worker
+                if worker and worker.is_alive():
+                    raise _Denial(429, 'Another public capture is active.')
+                try:
+                    return response(current.confirm_identities(token, job_id, body.plan_sha256,
+                        body.identity_receipt_sha256, body.selected_entity_ids.model_dump()), 202)
+                except SchemaError:
+                    raise _Denial(409, 'The saved identity choices or evidence no longer match this plan.') from None
         return call(action)
 
     return router

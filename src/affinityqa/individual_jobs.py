@@ -16,8 +16,13 @@ from .individual_capture import (execute_capture, execution_lease, prepare_plan,
 from .individual_verify import inventory, verify_individual, write_receipt
 
 JOB_ID = re.compile(r'^\d{8}T\d{6}Z-[a-f0-9]{8}$')
-ACTIVE = {'STARTED', 'VERIFYING'}
-TRANSITIONS = {'PLANNED': {'STARTED'}, 'STARTED': {'VERIFYING', 'FAILED', 'ABANDONED'},
+ACTIVE = {'STARTED', 'VERIFYING', 'STARTED_IDENTITY_SEARCH', 'STARTED_CONFIRMED_CAPTURE'}
+IDENTITY_STATES = {'STARTED_IDENTITY_SEARCH', 'AWAITING_IDENTITY_CONFIRMATION', 'STARTED_CONFIRMED_CAPTURE'}
+TRANSITIONS = {'PLANNED': {'STARTED', 'STARTED_IDENTITY_SEARCH'},
+               'STARTED': {'VERIFYING', 'FAILED', 'ABANDONED'},
+               'STARTED_IDENTITY_SEARCH': {'AWAITING_IDENTITY_CONFIRMATION', 'VERIFYING', 'FAILED', 'ABANDONED'},
+               'AWAITING_IDENTITY_CONFIRMATION': {'STARTED_CONFIRMED_CAPTURE', 'ABANDONED'},
+               'STARTED_CONFIRMED_CAPTURE': {'VERIFYING', 'FAILED', 'ABANDONED'},
                'VERIFYING': {'COMPLETE', 'PARTIAL', 'FAILED', 'ABANDONED'}}
 
 
@@ -44,7 +49,7 @@ def write(path, value):
 
 
 class IndividualJobManager:
-    """Server-owned catalog/model, client supplies only two canonical interests."""
+    """Server-owned catalog/model; explicit interests and optional catalog-bound cinema preferences."""
     def __init__(self, root, template, url=None, *, execution_enabled=False,
                  settings_loader=None, _test_adapters=None, operator='local', remote_key_loader=None,
                  remote_minimum_interval_seconds=None, maximum_plans=20, maximum_executions=3):
@@ -60,14 +65,23 @@ class IndividualJobManager:
             from .individual_remote_capture import prepare_plan as remote_plan, validate_request as remote_request
             from .individual_remote_verify import verify_individual_remote
             need(url is None, 'The remote operator does not accept an Ollama URL.')
-            self._validate_request = remote_request
+            from .cinema_capture import validate_request as cinema_request, prepare_plan as cinema_plan
+            from .cinema_verify import verify_cinema
+            from .cinema_identity_capture import validate_request as identity_request, prepare_plan as identity_plan
+            from .cinema_identity_verify import verify_confirmed_cinema
+            from .cinema_discovery_capture import validate_request as discovery_request, prepare_plan as discovery_plan
+            from .cinema_discovery_file_verify import verify_confirmed_discoveries
+            validators = {3: cinema_request, 4: identity_request, 5: discovery_request}
+            planners = {3: cinema_plan, 4: identity_plan, 5: discovery_plan}
+            verifiers = {3: verify_cinema, 4: verify_confirmed_cinema, 5: verify_confirmed_discoveries}
+            self._validate_request = lambda request: validators.get(request.get('schema_version'), remote_request)(request)
             from .remote_pacing import pacing_policy
             pacing_policy(remote_minimum_interval_seconds)
             need(execution_enabled is not True or _test_adapters is not None or remote_minimum_interval_seconds is not None,
                  'Real remote execution requires an explicitly reviewed model interval.')
-            self._prepare_plan = lambda request, output: remote_plan(request, output,
+            self._prepare_plan = lambda request, output: planners.get(request.get('schema_version'), remote_plan)(request, output,
                 minimum_model_interval_seconds=self.remote_minimum_interval_seconds)
-            self._verify = verify_individual_remote
+            self._verify = lambda directory: verifiers.get(read(directory/'individual-plan.json')['request'].get('schema_version'), verify_individual_remote)(directory)
         else:
             need(remote_minimum_interval_seconds is None,'Local execution does not accept remote pacing configuration.')
             self._validate_request = validate_request
@@ -133,11 +147,18 @@ class IndividualJobManager:
                      and type(event['sequence']) is int and event['sequence'] == sequence
                      and event['job_id'] == path.name and event['status'] in TRANSITIONS.get(status, set()),
                      'Invalid local transition history; no automatic resumption.')
+                identity = plan['request'].get('schema_version') in (4, 5)
+                need((event['status'] not in IDENTITY_STATES or identity)
+                     and (event['status'] != 'STARTED' or not identity), 'Persisted transition differs from its protocol.')
                 status, receipt_hash, error = event['status'], event['receipt_sha256'], event['error_class']
             self.jobs[path.name] = {**envelope, 'status':status, 'sequence':sequence,
                                     'receipt_sha256':receipt_hash, 'error_class':error}
             if status in ACTIVE:
                 self._event(path.name, 'ABANDONED', error='ServerRestart')
+            elif status == 'AWAITING_IDENTITY_CONFIRMATION' and (path/'identity-confirmation.json').exists():
+                # A durable choice without its durable active transition is uncertain.
+                # Never infer permission to replay it after a crash.
+                self._event(path.name, 'ABANDONED', error='UncommittedConfirmation')
         need(sum(j['sequence']>0 for j in self.jobs.values())<=self.maximum_executions,
              'Persisted admissions exceed the configured execution budget.')
 
@@ -152,6 +173,9 @@ class IndividualJobManager:
             return {'configured':True, 'execution_enabled':self.enabled and not self.closed,
                 'simulation_only':self.adapters is not None, 'default_artists':self.template['artists'],
                 'operator_mode':self.operator, 'provider':'groq' if self.operator=='groq' else 'ollama-local',
+                'cinema_preferences_supported':self.operator=='groq',
+                'cinema_identity_confirmation_supported':self.operator=='groq',
+                'cinema_discoveries_supported':self.operator=='groq',
                 'model':self.template['model']['name'], 'catalog':self.template['catalog'],
                 'catalog_sha256':fingerprint(self.template['catalog']),
                 'maximum_qloo_requests':4, 'maximum_model_decisions':39,
@@ -160,13 +184,23 @@ class IndividualJobManager:
                 'jobs':[{'job_id':k,'status':v['status'],'artists':v['plan']['request']['artists']} for k,v in self.jobs.items()],
                 'cultural_gate':'NOT_VALIDATED', 'release_gate':'BLOCKED'}
 
-    def prepare(self, artists):
+    def request_for(self, artists, preferences=None, confirm_identities=False, discover_new_movies=False):
+        need(type(confirm_identities) is bool, 'Identity confirmation must be a boolean.')
+        need(type(discover_new_movies) is bool, 'Discovery selection must be a boolean.')
+        need(not discover_new_movies or confirm_identities, 'Discoveries require explicit identity confirmation.')
+        need(not confirm_identities or preferences is not None, 'Identity confirmation requires cinema preferences.')
+        request = {**copy.deepcopy(self.template), 'artists':artists}
+        if preferences is not None:
+            need(self.operator == 'groq', 'Cinema preference review requires the configured remote operator.')
+            request.update(schema_version=5 if discover_new_movies else (4 if confirm_identities else 3), preferences=copy.deepcopy(preferences))
+        return self._validate_request(request)
+
+    def prepare(self, artists, preferences=None, confirm_identities=False, discover_new_movies=False):
         with self.lock:
             self._check_limits()
             need(not self.closed, 'The local manager is closed.')
             need(len(self.jobs) < self.maximum_plans, 'This local storage has reached its plan limit; retain it and review the owner-selected budget.')
-            request = {**copy.deepcopy(self.template), 'artists':artists}
-            self._validate_request(request)
+            request = self.request_for(artists, preferences, confirm_identities, discover_new_movies)
             job_id = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')+'-'+uuid4().hex[:8]
             path = self.root/job_id
             # Parent for the actual output exists only after a validated, deliberately prepared plan.
@@ -187,6 +221,9 @@ class IndividualJobManager:
     def _event(self, job_id, status, *, error=None, receipt_hash=None):
         job = self._job(job_id)
         need(status in TRANSITIONS.get(job['status'], set()), 'This job transition is not permitted.')
+        identity = job['plan']['request'].get('schema_version') in (4, 5)
+        need((status not in IDENTITY_STATES or identity)
+             and (status != 'STARTED' or not identity), 'This transition differs from the reviewed protocol.')
         sequence = job['sequence']+1
         event = {'sequence':sequence,'job_id':job_id,'utc':utc_now(),'status':status,
                  'error_class':error,'receipt_sha256':receipt_hash}
@@ -214,12 +251,13 @@ class IndividualJobManager:
             need(isinstance(settings.api_key,str) and bool(settings.api_key.strip())
                  and redact(plan['request'], (settings.api_key,)) == plan['request'], 'Local credential configuration or capture inputs are invalid.')
             remote_key = None
-            if self.operator == 'groq':
+            identity = plan['request'].get('schema_version') in (4, 5)
+            if self.operator == 'groq' and not identity:
                 from .groq_agent import contains_secret
                 remote_key = self.remote_key_loader()
                 need(isinstance(remote_key,str) and re.fullmatch(r'[!-~]{20,512}',remote_key)
                      and not contains_secret(plan,(settings.api_key,remote_key)), 'Private remote configuration or capture inputs are invalid.')
-            self._event(job_id, 'STARTED')
+            self._event(job_id, 'STARTED_IDENTITY_SEARCH' if identity else 'STARTED')
             self.worker = Thread(target=self._run, args=(job_id, settings, remote_key), daemon=False, name='affinityqa-individual')
             try:
                 self.worker.start()
@@ -242,8 +280,32 @@ class IndividualJobManager:
     def _run(self, job_id, settings, remote_key=None):
         try:
             plan = self.jobs[job_id]['plan']
+            if plan['request'].get('schema_version') in (4, 5):
+                if plan['request']['schema_version'] == 5:
+                    from .cinema_discovery_capture import search_identities
+                    from .cinema_discovery_file_verify import verify_discovery_search as verify_identity_search
+                else:
+                    from .cinema_identity_capture import search_identities
+                    from .cinema_identity_verify import verify_identity_search
+                _, directory = search_identities(plan['request'], self.root/job_id/'capture', plan['plan_sha256'],
+                    settings, _test_adapters=self.adapters,
+                    minimum_model_interval_seconds=plan['execution_pacing']['minimum_interval_seconds'])
+                receipt = verify_identity_search(directory)
+                if receipt['verification_status'] == 'VERIFIED_IDENTITY_SEARCH':
+                    destination = self.root/job_id/'identity-verification.json'
+                    write_receipt(receipt, destination, directory)
+                    with self.lock:
+                        self._event(job_id, 'AWAITING_IDENTITY_CONFIRMATION', receipt_hash=sha(destination))
+                    return
+                with self.lock:
+                    self._event(job_id, 'VERIFYING')
+                self._finish(job_id, directory, receipt)
+                return
             if self.operator == 'groq':
-                from .individual_remote_capture import execute_capture as remote_capture
+                if plan['request'].get('schema_version') == 3:
+                    from .cinema_capture import execute_capture as remote_capture
+                else:
+                    from .individual_remote_capture import execute_capture as remote_capture
                 remote_capture(plan['request'], self.root/job_id/'capture', plan['plan_sha256'],
                                settings, remote_key, _test_adapters=self.adapters,
                                minimum_model_interval_seconds=plan['execution_pacing']['minimum_interval_seconds'])
@@ -254,11 +316,89 @@ class IndividualJobManager:
                 self._event(job_id, 'VERIFYING')
             directory = self._capture_dir(job_id)
             receipt = self._verify(directory)
-            destination = self.root/job_id/'verification.json'
-            write_receipt(receipt, destination, directory)
+            self._finish(job_id, directory, receipt)
+        except BaseException as exc:
             with self.lock:
-                self._event(job_id, 'COMPLETE' if receipt['verification_status']=='VERIFIED_COMPLETE' else 'PARTIAL',
-                            receipt_hash=sha(destination), error=receipt['error_class'])
+                self._event(job_id, 'FAILED', error=type(exc).__name__)
+
+    def _finish(self, job_id, directory, receipt):
+        destination = self.root/job_id/'verification.json'
+        write_receipt(receipt, destination, directory)
+        with self.lock:
+            self._event(job_id, 'COMPLETE' if receipt['verification_status']=='VERIFIED_COMPLETE' else 'PARTIAL',
+                        receipt_hash=sha(destination), error=receipt['error_class'])
+
+    def identity_receipt(self, job_id):
+        with self.lock:
+            job = self._job(job_id)
+            need(job['status'] == 'AWAITING_IDENTITY_CONFIRMATION', 'No pending identity selection is available.')
+            path = self.root/job_id/'identity-verification.json'
+            need(sha(path) == job['receipt_sha256'], 'The identity receipt changed.')
+            receipt = read(path)
+            need(receipt['verification_status'] == 'VERIFIED_IDENTITY_SEARCH'
+                 and receipt['plan_sha256'] == job['plan']['plan_sha256']
+                 and inventory(self._capture_dir(job_id)) == receipt['artifact_sha256'], 'Identity search evidence changed.')
+            return receipt
+
+    def confirm_identities(self, job_id, plan_hash, identity_receipt_hash, selected_entity_ids):
+        with self.lock:
+            self._check_limits()
+            job = self._job(job_id)
+            need(self.enabled and not self.closed, 'Confirmed capture is disabled.')
+            need(job['status'] == 'AWAITING_IDENTITY_CONFIRMATION'
+                 and job['plan']['request'].get('schema_version') in (4, 5), 'This identity choice is single use.')
+            need(not (self.root/job_id/'identity-confirmation.json').exists(),
+                 'A confirmation was already saved; retain it and inspect before further execution.')
+            need(not (self.worker and self.worker.is_alive()), 'Another capture is active.')
+            need(plan_hash == job['plan']['plan_sha256'] and job['manager_sha256'] == sha(Path(__file__)),
+                 'The reviewed plan or manager changed.')
+            need(read(self.root/job_id/'job-plan.json') == {k:job[k] for k in ('job_id','created_utc','manager_sha256','plan')},
+                 'The saved plan changed.')
+            receipt = self.identity_receipt(job_id)
+            need(identity_receipt_hash == job['receipt_sha256'], 'The selected identity receipt differs.')
+            if job['plan']['request']['schema_version'] == 5:
+                from .cinema_discovery_file_verify import verify_discovery_search as verify_identity_search
+                from .cinema_discovery_capture import selection_profiles
+            else:
+                from .cinema_identity_verify import verify_identity_search, selection_profiles
+            current = verify_identity_search(self._capture_dir(job_id))
+            need(fingerprint({k:v for k,v in current.items() if k != 'verified_utc'})
+                 == fingerprint({k:v for k,v in receipt.items() if k != 'verified_utc'}), 'Identity evidence or installed source changed.')
+            profiles = selection_profiles(receipt, selected_entity_ids)
+            # This is continuation of the consumed admission, not a new admission.
+            # Validate all bindings and choices before loading either private key.
+            settings, remote_key = self.settings_loader(), self.remote_key_loader()
+            from .groq_agent import contains_secret
+            need(isinstance(settings.api_key,str) and bool(settings.api_key.strip())
+                 and isinstance(remote_key,str) and re.fullmatch(r'[!-~]{20,512}',remote_key)
+                 and not contains_secret((job['plan'], receipt, profiles),(settings.api_key,remote_key)),
+                 'Private configuration or confirmed inputs are invalid.')
+            write(self.root/job_id/'identity-confirmation.json', {'schema_version':1,
+                'plan_sha256':plan_hash, 'identity_receipt_sha256':identity_receipt_hash,
+                'selected_entity_ids':copy.deepcopy(selected_entity_ids), 'chosen_identities':profiles})
+            self._event(job_id, 'STARTED_CONFIRMED_CAPTURE')
+            self.worker = Thread(target=self._run_confirmed,
+                args=(job_id, settings, remote_key, copy.deepcopy(selected_entity_ids), receipt),
+                daemon=False, name='affinityqa-confirmed-cinema')
+            try:
+                self.worker.start()
+            except BaseException as exc:
+                self._event(job_id, 'FAILED', error=type(exc).__name__)
+                self.worker = None
+                raise
+            return self.view(job_id)
+
+    def _run_confirmed(self, job_id, settings, remote_key, selected_entity_ids, identity_receipt):
+        try:
+            if self.jobs[job_id]['plan']['request']['schema_version'] == 5:
+                from .cinema_discovery_capture import capture_confirmed
+            else:
+                from .cinema_identity_capture import capture_confirmed
+            _, directory = capture_confirmed(self._capture_dir(job_id), selected_entity_ids, identity_receipt,
+                settings, remote_key, _test_adapters=self.adapters)
+            with self.lock:
+                self._event(job_id, 'VERIFYING')
+            self._finish(job_id, directory, self._verify(directory))
         except BaseException as exc:
             with self.lock:
                 self._event(job_id, 'FAILED', error=type(exc).__name__)
@@ -282,13 +422,24 @@ class IndividualJobManager:
                 'operator_mode':self.operator, 'model_load_requests':plan['model_load_requests'],
                 'model_metadata_requests':plan['new_model_metadata_requests'],
                 'plan_sha256':plan['plan_sha256'],'catalog_sha256':fingerprint(plan['request']['catalog']),
-                'maximum_qloo_requests':4,'maximum_model_decisions':39,'simulation_only':self.adapters is not None,
+                'maximum_qloo_requests':plan['maximum_qloo_requests'],'maximum_model_decisions':plan['maximum_model_decisions'],
+                'case_protocol':plan['protocol_version'],'declared_faults':len(plan['faults']),
+                'preferences':copy.deepcopy(plan['request'].get('preferences')),
+                'simulation_only':self.adapters is not None,
                 'cultural_gate':'NOT_VALIDATED','release_gate':'BLOCKED','error_class':job['error_class'],
                 'saved_provider_samples':0,'saved_model_packets':0, 'result':None}
             if self.operator=='groq':
                 result['pacing_configured']=plan['execution_pacing']['configured']
                 result['minimum_model_interval_seconds']=plan['execution_pacing']['minimum_interval_seconds']
             directory = self._capture_dir(job_id)
+            if job['status'] == 'AWAITING_IDENTITY_CONFIRMATION':
+                try:
+                    pending = self.identity_receipt(job_id)
+                    result.update(identity_candidates=copy.deepcopy(pending['identity_candidates']),
+                        identity_queries=copy.deepcopy(pending['identity_queries']),
+                        identity_receipt_sha256=job['receipt_sha256'])
+                except (SchemaError,OSError,KeyError,TypeError):
+                    result.update(status='EVIDENCE_CHANGED', error_class='EvidenceIntegrityFailure')
             if directory:
                 # Saved-file progress is deliberately distinct from actual attempted requests.
                 ledger = directory/'ledger.jsonl'
@@ -305,16 +456,20 @@ class IndividualJobManager:
                             events.append(event)
                         except (SchemaError,ValueError,UnicodeError):
                             break
+                packet_event = 'observed_discovery_execution' if plan['request'].get('schema_version') == 5 else 'observed_model_execution'
                 result.update(saved_provider_samples=min(4,sum(e.get('kind')=='tool_call' for e in events)),
-                              saved_model_packets=min(39,sum(e.get('kind')=='observed_model_execution' for e in events)))
+                              saved_model_packets=min(plan['maximum_model_decisions'],sum(e.get('kind')==packet_event for e in events)))
             if job['status'] in {'COMPLETE','PARTIAL'}:
                 try:
                     receipt = self.receipt(job_id)
                     fields = ('verification_status','provenance','status','causal_gate','integration_gate','backend_comparability','behavioral_gate','cultural_gate',
                               'release_gate','verified_model_packets','verified_provider_samples','model_attempts','qloo_attempts',
-                              'observed_recoveries_by_fault','summary','external_service_attested','error_class')
+                              'observed_recoveries_by_fault','summary','external_service_attested','error_class',
+                              'preference_gate','cinema_results','chosen_identities')
                     result['result'] = {k:receipt[k] for k in fields if k in receipt}
-                    if receipt['verification_status']=='VERIFIED_COMPLETE':
+                    if 'chosen_identities' in receipt:
+                        result['chosen_identities'] = copy.deepcopy(receipt['chosen_identities'])
+                    if receipt['verification_status']=='VERIFIED_COMPLETE' and plan['request'].get('schema_version') not in (3,4,5):
                         record = read(directory/f"causal-pair-individual-{receipt['run_id']}.json")
                         names = {r['entity_id']:r['name'] for r in record['catalog']}
                         frames = []

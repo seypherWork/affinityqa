@@ -54,15 +54,20 @@ def contains_secret(value, secrets):
     return False
 
 
-def model_manifest(execution_source, *, max_calls=39, timeout=120):
+def model_manifest(execution_source, *, max_calls=39, timeout=120, cinema=False):
     """Pure closed contract, usable in a plan without credentials or requests."""
     need(execution_source in ('remote-llm', 'test-double-only'), 'invalid execution provenance.')
+    need(type(cinema) is bool, 'invalid cinema contract selector.')
+    prompt, version, contract = PROMPT, PROTOCOL, 'qloo-context-input-not-quality-label-v1'
+    if cinema:
+        from .cinema_preferences import CINEMA_PROMPT, CINEMA_PROTOCOL
+        prompt, version, contract = CINEMA_PROMPT, CINEMA_PROTOCOL, 'qloo-context+explicit-cinema-preferences-v1'
     return {
         'provider': 'groq', 'model': MODEL, 'endpoint': ENDPOINT,
         'model_identity_mode': 'provider-model-id+per-response-system-fingerprint-v3',
         'model_weights_sha256': None, 'immutable_model_revision_attested': False,
-        'prompt_version': PROTOCOL, 'prompt_sha256': fingerprint(PROMPT),
-        'tool_contract': 'qloo-context-input-not-quality-label-v1',
+        'prompt_version': version, 'prompt_sha256': fingerprint(prompt),
+        'tool_contract': contract,
         'response_contract': 'groq-strict-twenty-movie-v3-redacted-envelope',
         'options': {'temperature': 0, 'seed': 7, 'reasoning_effort': 'low',
                     'include_reasoning': False, 'stream': False,
@@ -84,7 +89,7 @@ class GroqToolContextMovieAgent:
     decision_input = ToolContextMovieAgent.decision_input
 
     def __init__(self, api_key, *, model=MODEL, timeout=120, max_calls=39,
-                 forbidden_secrets=(), _test_opener=None):
+                 forbidden_secrets=(), _test_opener=None, cinema=False):
         need(isinstance(api_key, str) and re.fullmatch(r'[!-~]{20,512}', api_key),
              'configure a private server credential; never include it in inputs.')
         need(model == MODEL, 'only the reviewed model ID is admitted.')
@@ -103,7 +108,12 @@ class GroqToolContextMovieAgent:
         self.source = 'test-double-only' if _test_opener is not None else 'remote-llm'
         self.opener = _test_opener if _test_opener is not None else build_opener(
             ProxyHandler({}), _RejectRedirects(), HTTPSHandler(context=ssl.create_default_context()))
-        self.manifest = model_manifest(self.source, max_calls=max_calls, timeout=timeout)
+        self.manifest = model_manifest(self.source, max_calls=max_calls, timeout=timeout, cinema=cinema)
+        if cinema:
+            from .cinema_preferences import CINEMA_PROMPT
+            self.system_prompt = CINEMA_PROMPT
+        else:
+            self.system_prompt = PROMPT
         self._manifest_sha256 = fingerprint(self.manifest)
 
     def _completion(self, encoded):
@@ -134,6 +144,7 @@ class GroqToolContextMovieAgent:
     def _rank_locked(self, request):
         need(self.calls < self.max_calls, 'decision budget exhausted.')
         need(fingerprint(self.manifest) == self._manifest_sha256, 'frozen model contract changed; no request.')
+        need(fingerprint(self.system_prompt) == self.manifest['prompt_sha256'], 'frozen system prompt changed; no request.')
         schema = {'type': 'object', 'properties': {
             'ordered_catalog_indices': {'type': 'array',
                 'items': {'type': 'integer', 'enum': list(range(20))},
@@ -142,7 +153,7 @@ class GroqToolContextMovieAgent:
         decision_input = self.decision_input(request, schema)
         need(not contains_secret(decision_input, self._secrets), 'a private credential must not enter a model payload.')
         payload = {'model': self.model, 'messages': [
-            {'role': 'system', 'content': PROMPT},
+            {'role': 'system', 'content': self.system_prompt},
             {'role': 'user', 'content': json.dumps(decision_input, ensure_ascii=False, allow_nan=False)}],
             'response_format': {'type': 'json_schema', 'json_schema': {
                 'name': 'affinityqa_twenty_movie_ranking', 'strict': True, 'schema': schema}},

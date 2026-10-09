@@ -26,6 +26,7 @@ class PublicSourcePackageTests(unittest.TestCase):
         'tests/test_public_case_api.py', 'src/affinityqa/public_case_api.py',
         'tests/test_public_case_config.py', 'src/affinityqa/public_case_config.py',
         'tests/test_capture_paths.py',
+        'tests/fixtures/policy_v1/public_cases.py','tests/fixtures/policy_v1/public_policy_continuation.py',
         'docs/INDIVIDUAL-CAPTURE.md', 'docs/INDIVIDUAL-VERIFICATION.md',
         'docs/INDIVIDUAL-PANEL.md', 'docs/INDIVIDUAL-REMOTE.md',
         'docs/REMOTE-MODEL-CANDIDATE.md',

@@ -19,7 +19,7 @@ rules do not prescribe our specific cultural gate.
 
 The owner supplies the catalog, model, interval, origin and private credential
 loaders. No visitor can choose a provider, output path, quota or model option.
-One shared manager performs the unchanged 39-decision causal protocol, with at
+One shared manager performs the unchanged 39-decision causal protocol (artist-only mode), with at
 most four Qloo attempts and a single active capture. Existing local defaults
 remain 20 plans and three cumulative execution admissions; the public wrapper
 requires its own explicit bounded policy.
@@ -193,3 +193,54 @@ limits, including the longest summary filename, before reading keys or calling
 providers. An incompatible root is refused with an instruction to choose a
 shorter one; no registry setting or general extended-path support is enabled.
 The same preflight protects both local and remote direct capture drivers.
+
+## Film preferences mode
+
+An optional typed `preferences` pair selects the separate two-decision cinema protocol.
+It shares the same sessions, worker and consumed execution admissions.
+See [CINEMA-PREFERENCES.md](CINEMA-PREFERENCES.md) for inputs, delivery checks,
+limitations and the explicit continuation required for existing public storage.
+
+## Continue the same case storage across source versions
+
+Stop the service and observe that its workers have finished before changing
+sources. Keep the same root and its original policy, sessions, ownership,
+capture paths and consumed admissions. A retained legacy
+`public-policy-continuation.json` remains byte-identical.
+
+The reader accepts consecutive `public-policy-continuation-v2-000001.json`
+records, up to 64 records of at most 4096 bytes each. Each links the previous
+bytes and exact source pair. Installed sources must match the final tail; an
+earlier entry never authorizes an older runtime. Runtime pins the exact chain.
+
+Use the destination software to prepare a private proposal. Review `from_source`,
+`to_source`, next filename, absolute root, inventory and `proposal_sha256`, and
+obtain approval for that exact operation:
+
+```sh
+python scripts/continue_public_policy.py --storage /var/data/cases
+python scripts/continue_public_policy.py --storage /var/data/cases --execute --expected-proposal-sha256 REVIEWED_SHA256
+```
+
+Both commands acquire the existing operating-system lease; neither loads keys
+nor calls providers. Execution rebuilds the proposal and rejects changed sources
+or inventory. It flushes a new staging file outside the root, publishes an
+exclusive hardlink, flushes and verifies the final bytes and originals. Staging
+remains for inspection and is never cleaned automatically. POSIX also flushes
+directories; Windows flushes published-file metadata using a write-capable
+handle, following Microsoft's [file metadata guidance](https://learn.microsoft.com/en-us/windows/win32/fileio/file-caching).
+This is not a tested power-loss guarantee.
+
+Unsupported links, disk exhaustion or any flush/publication failure stop the
+operation. Inspect root and staging before restarting or taking related actions.
+Do not substitute commit methods, discard records, refund admissions or retry
+inference automatically. Check actual host space and inodes before the operation.
+
+A rollback between compatible chain-aware candidates appends a new record from
+the current tail to the exact reviewed destination. Forward history, expiry and
+budgets remain. Pending jobs retain their original manager and plan-source
+checks; a chain entry grants neither execution nor protocol compatibility.
+An exact old release without this reader cannot use the extended case root.
+Its fallback is replay-only with cases unconfigured, requiring a separately
+verified authorized replay bundle. That fallback and hosted rollback have their
+own acceptance gates and are not established by these local tests.

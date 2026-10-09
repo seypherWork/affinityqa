@@ -12,6 +12,17 @@ AffinityQA traces the requested taste profile through an AI agent's routing, cac
 
 [Quickstart](#quickstart) · [Architecture](#architecture) · [Evidence and acceptance](#evidence-and-acceptance) · [Reviewer guide](docs/DEMO-GUIDE.md) · [MIT license](LICENSE)
 
+## Explicit film preferences
+
+New cases can also use **FILM PREFERENCES**: select favorite movies and explicit
+exclusions independently for each profile, review the exact plan, then compare
+the raw model ranking, guarded delivery and a preferences-aware baseline.
+This separate two-decision protocol preserves the existing 39-decision integrity
+experiment. Exclusion compliance is auditable; human satisfaction remains
+unvalidated. See [the film preferences contract](docs/CINEMA-PREFERENCES.md).
+Existing public storage requires an explicit source-seal continuation that keeps
+all prior sessions, evidence and consumed admissions.
+
 ## Current review surfaces
 
 | Surface | Verified state | Boundary |

@@ -140,7 +140,7 @@ def verify_backend_gates(report, deployments, passing, *, complete):
          'remote gate scope differs')
 
 
-def verify_packet(packet, manifest, source):
+def verify_packet(packet, manifest, source, *, system_prompt=PROMPT):
     observation = packet['observation']
     need(set(observation) == {'call', 'input_sha256', 'output_sha256', 'elapsed_ms',
         'prompt_eval_count', 'eval_count', 'private_thinking_recorded', 'done', 'done_reason',
@@ -192,7 +192,7 @@ def verify_packet(packet, manifest, source):
          'remote full response observation scope')
     need(observation['provider_envelope_sha256'] == fingerprint(envelope), 'remote envelope hash')
     payload = {'model': manifest['model'], 'messages': [
-        {'role': 'system', 'content': PROMPT},
+        {'role': 'system', 'content': system_prompt},
         {'role': 'user', 'content': json.dumps(packet['model_payload'], ensure_ascii=False, allow_nan=False)}],
         'response_format': {'type': 'json_schema', 'json_schema': {'name': 'affinityqa_twenty_movie_ranking',
             'strict': True, 'schema': packet['model_payload']['output_schema']}}, **manifest['options']}

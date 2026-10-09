@@ -13,13 +13,20 @@ TESTS=('test_causal_agent.py','test_causal_runner.py','test_causal_evaluator.py'
        'test_public_demo.py','test_public_demo_verifier.py','test_groq_agent.py',
        'test_individual_capture.py','test_individual_verify.py','test_individual_jobs.py',
        'test_individual_remote.py','test_individual_remote_jobs.py','test_remote_pacing.py','test_public_cases.py',
-       'test_public_case_api.py','test_public_case_config.py','test_capture_paths.py')
+       'test_public_case_api.py','test_public_case_config.py','test_capture_paths.py',
+       'test_cinema_preferences.py','test_cinema_capture.py','test_cinema_panel.py','test_public_policy_continuation.py','test_public_policy_chain.py',
+       'test_cinema_identity_capture.py','test_cinema_identity_jobs.py',
+       'test_discovery_context.py','test_discovery_delivery.py',
+       'test_discovery_agent.py','test_discovery_session.py','test_discovery_capture.py',
+       'test_discovery_jobs.py','test_discovery_pacing.py','test_discovery_diagnostics.py',
+       'test_discovery_slots.py','test_discovery_failure_evidence.py')
 DRIVERS=('affinityqa.py','run_causal_repair.py','continue_causal_validation.py',
          'resume_causal_identity.py','verify_causal_repair.py','build_public_source.py',
          'serve_public_demo.py','verify_public_demo.py','capture_individual_pair.py',
-         'verify_individual_capture.py','capture_individual_remote.py','verify_individual_remote.py')
+         'verify_individual_capture.py','capture_individual_remote.py','verify_individual_remote.py','continue_public_policy.py')
 EXACT=('pyproject.toml','requirements-backend.lock.txt','fixtures/synthetic.json',
-       'src/affinityqa/remote_pacing.py',
+       'tests/fixtures/policy_v1/public_cases.py','tests/fixtures/policy_v1/public_policy_continuation.py',
+       'src/affinityqa/remote_pacing.py','docs/CINEMA-PREFERENCES.md',
        'src/affinityqa/public_cases.py','src/affinityqa/public_case_api.py',
        'src/affinityqa/public_case_config.py','docs/PUBLIC-NEW-CASES.md',
        'evals/qloo.json','evals/film-suite.json','docs/PUBLIC-CODE-QUICKSTART.md',
