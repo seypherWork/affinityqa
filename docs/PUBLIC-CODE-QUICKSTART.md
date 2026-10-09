@@ -1,12 +1,16 @@
 # AffinityQA — source setup and review
 
-**Updated · 8 October 2026.** Tested runtime/backend code revision `457fcace665b29a206840cedf24bceac56865b8f` passed [CI run 37824994293](https://github.com/seypherWork/affinityqa/actions/runs/37824994293): 295 source-only tests on each of Windows and Ubuntu, source allowlist checks, frontend type checking and build. The hosted service uses that code and completed one genuine new case, server verification, service restart and saved browser-case restoration. Useful judge capacity and independent cultural quality remain unvalidated. A later documentation-only commit may differ without changing runtime modules; no new CI result is implied.
+**Updated · 9 October 2026.** [UI release 52851c9](https://github.com/seypherWork/affinityqa/commit/52851c98e36c8c8594b5c0a8c7643c03a717000e) (`52851c98e36c8c8594b5c0a8c7643c03a717000e`) passed [CI run 37861553671](https://github.com/seypherWork/affinityqa/actions/runs/37861553671): 295 source-only tests on each of Windows and Ubuntu, source allowlist checks and frontend type checking/build. Render deployment `dep-db42qnub7d7c73a5ihkg` was verified LIVE on 9 October. Backend modules remain byte-identical to revision `457fcace665b29a206840cedf24bceac56865b8f`. UI review used recorded replay and the existing owned case with zero new provider calls; 62 retained case files and owner configuration were unchanged. The separate private Windows portable has installation, recorded HTTP, selected desktop browser and launcher-restart observations; useful judge capacity and independent cultural quality remain unvalidated.
+
+The retained 8 October backend revision `457fcace665b29a206840cedf24bceac56865b8f` passed [CI run 37824994293](https://github.com/seypherWork/affinityqa/actions/runs/37824994293), also with 295 tests per platform. That deployment completed one genuine new case, server verification, service restart and saved browser-case restoration. These historical observations keep their original scope.
 
 This distribution contains code and synthetic engineering tests. It excludes Qloo snapshots, recorded model decisions, private evidence receipts, credentials and compiled output. Passing source tests does not reproduce a provider experiment. Original project code is MIT licensed under `LICENSE`, Copyright (c) 2026 Seypher; provider data retains its own terms.
 
+The owner's separate private portable, built from UI release `52851c98e36c8c8594b5c0a8c7643c03a717000e`, passed clean extraction and real default installation on Windows 11/Python 3.12.14 on 9 October. Its loopback HTTP review passed 20 GET routes, 41 static assets and 54 recorded replays. Selected desktop browser checks covered four workspace views, case search, retained mixed-result losses, skip-link focus and one recorded replay. The installed server restarted through `Start-Judge.cmd` with HTTP 200; afterward its owned process was absent and the port closed. All 2,100 payload and 1,873 environment files stayed unchanged, and an attempted reinstall was refused with exit code 2. No new Qloo/model calls occurred. These are recorded local-capture observations, separate from the hosted Groq case; they do not establish mobile, optional PowerShell, Python 3.13 portable, fresh-inference or graceful admitted-job shutdown acceptance.
+
 ## Choose the Python interpreter
 
-| Platform | Source setup | Observed CI runtime |
+| Platform | Source setup | Retained 8 October CI runtime |
 | --- | --- | --- |
 | Windows | Python 3.13 | Python 3.13.16; 295 tests in 54.247 s |
 | Ubuntu 24.04 / Linux | Python 3.12 | Python 3.12.14; 295 tests in 58.926 s |
@@ -37,7 +41,7 @@ python3.12 -m venv .venv
 
 The packaged tests use labelled fake engines and fabricated tool envelopes. They require no Qloo or Groq key and are not attestations of live requests. The allowlist includes local/remote capture drivers, verifiers and their fixture dependencies; required missing files stop packaging. The published workflow runs the complete packaged test directory with locked dependencies and propagates failures.
 
-Running these commands creates a new local engineering observation. The dated 295-test CI result belongs to the named published revision; a later source change needs matching validation. Missing or skipped private tests are not passing provider acceptance.
+Running these commands creates a new local engineering observation. Each dated 295-test CI result belongs to its named published revision; a later source change needs matching validation. Missing or skipped private tests are not passing provider acceptance.
 
 ## Build the interface
 
@@ -98,7 +102,7 @@ For 39 model starts at the current 22-second minimum spacing, the pacing lower b
 
 ## Current hosted access and acceptance
 
-The [hosted application](https://affinityqa-review.onrender.com) uses tested runtime/backend code revision `457fcace665b29a206840cedf24bceac56865b8f`. Its recorded HTTPS review passed 54 selections and 324 strict checks on 8 October before activation. The enabled deployment subsequently completed hosted job `20261008T190344Z-a49a92a0`, run `20261008T190353Z-772b6659`, from **19:03:53.159 to 19:17:54.786 UTC**, taking **841.627 seconds (14 min 1.627 s)**.
+The [hosted application](https://affinityqa-review.onrender.com) runs UI release `52851c98e36c8c8594b5c0a8c7643c03a717000e`, verified on 9 October; backend modules remain unchanged from `457fcace665b29a206840cedf24bceac56865b8f`. Its recorded HTTPS review passed 54 selections and 324 strict checks on 8 October before activation. The 8 October enabled deployment subsequently completed hosted job `20261008T190344Z-a49a92a0`, run `20261008T190353Z-772b6659`, from **19:03:53.159 to 19:17:54.786 UTC**, taking **841.627 seconds (14 min 1.627 s)**.
 
 The hosted run obtained **39 Groq packets and four fresh Qloo samples**. All three fault cases passed nine unchanged checks with three repeats, and nine recoveries were observed. Its **25 distinct known fingerprints, with none absent**, produced backend VARIED and causal INCONCLUSIVE. Server verification reported COMPLETE; the selected public result received bounded independent review. This is one functional case, not independent cultural or population validation.
 

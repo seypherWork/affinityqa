@@ -1,18 +1,18 @@
 # AffinityQA — reviewer walkthrough
 
-**Updated · 8 October 2026.** Open the [hosted application](https://affinityqa-review.onrender.com), using tested runtime/backend code revision `457fcace665b29a206840cedf24bceac56865b8f`. Its recorded journey passed 54 HTTPS selections and 324 strict checks. A later genuine hosted case completed 39 Groq decisions and four Qloo samples, passed all three fault checklists and survived a real service restart. Browser reload restored the saved session/case and all nine fault/repeat views without a new capture. This one-case functional/persistence acceptance leaves sustained judge capacity and independent cultural quality unvalidated.
+**Updated · 9 October 2026.** Open the [hosted application](https://affinityqa-review.onrender.com), running [UI release 52851c9](https://github.com/seypherWork/affinityqa/commit/52851c98e36c8c8594b5c0a8c7643c03a717000e) (`52851c98e36c8c8594b5c0a8c7643c03a717000e`) with backend modules unchanged from `457fcace665b29a206840cedf24bceac56865b8f`. The 8 October recorded journey passed 54 HTTPS selections and 324 strict checks. A later genuine hosted case on 8 October completed 39 Groq decisions and four Qloo samples, passed all three fault checklists and survived a real service restart. Browser reload restored the saved session/case and all nine fault/repeat views without a new capture. This one-case functional/persistence acceptance leaves sustained judge capacity and independent cultural quality unvalidated.
 
 This guide separates a two-minute recorded walkthrough from the longer genuine new-case path. Recorded replay uses captured model decisions and makes no new model or Qloo calls. A recording is optional and cannot replace the functional application.
 
 ## Choose the review path
 
-### Workspace navigation in the 9 October source refresh
+### Workspace navigation in the 9 October UI release
 
 The refreshed interface opens **Recorded repair** by default. Use the sidebar (top navigation on narrow screens) to switch to **New individual case**. Recorded replay needs no fresh inference; a new case first opens a private session and a reviewed plan. The observed full remote case took about fourteen minutes. Navigation preserves an opened new-case component; switching modes does not automatically start or duplicate execution.
 
 The private workspace separates **Overview**, **Screening**, **Case library** and **Evidence archive**. The library keeps all six historical cases and supports search by case ID or artist name. Narrow tables scroll inside their own region, including with arrow keys when focused. Earlier failures remain in the evidence archive and outside the public capture-details disclosure.
 
-These navigation details describe the source refresh. Its publication/deployment is a separate step from the already verified 8 October hosted runtime recorded above.
+These navigation details describe UI release `52851c98e36c8c8594b5c0a8c7643c03a717000e`, verified on 9 October. [CI run 37861553671](https://github.com/seypherWork/affinityqa/actions/runs/37861553671) passed 295 tests per platform, source allowlist checks and frontend type checking/build; Render `dep-db42qnub7d7c73a5ihkg` was verified LIVE. Review used recorded replay and the existing owned case with zero new provider calls. The 62 retained case files and owner configuration were unchanged. The separate private portable built from this UI release completed real default installation on Windows 11/Python 3.12.14: 20 GET routes, 41 static assets and 54 recorded replays passed. Selected desktop browser checks covered the four workspace views, case search, retained mixed-result losses, skip-link focus and one recorded replay. `Start-Judge.cmd` restarted the installed recorded server with HTTP 200; owned processes and the port were closed afterward. All 2,100 payload and 1,873 environment files stayed unchanged, with zero new provider calls. This does not cover mobile, optional PowerShell, Python 3.13 portable, fresh inference or graceful shutdown of admitted jobs; the 8 October case and restart retain their separate scope.
 
 The hosted recorded reviewer requires no judge provider key, Docker installation or local model. For a private rehearsal, follow [PUBLIC-DEMO-DEPLOYMENT.md](PUBLIC-DEMO-DEPLOYMENT.md) with the owner's matching evidence package.
 
@@ -65,7 +65,7 @@ For new cases, use the retained status and case controls. A lost start response 
 
 ## Genuine hosted new-case journey — one case verified
 
-New-case configuration is enabled in the LIVE deployment at tested runtime/backend code revision `457fcace665b29a206840cedf24bceac56865b8f`. Hosted job `20261008T190344Z-a49a92a0`, run `20261008T190353Z-772b6659`, completed this journey on 8 October with 39 Groq packets, four Qloo samples, integration PASS and causal INCONCLUSIVE. The following describes that reviewed path. Starting another full case consumes shared provider budget; inspect availability and the plan first.
+New-case configuration was retained in the LIVE UI release `52851c98e36c8c8594b5c0a8c7643c03a717000e`, verified on 9 October; backend modules remain byte-identical to revision `457fcace665b29a206840cedf24bceac56865b8f`. Hosted job `20261008T190344Z-a49a92a0`, run `20261008T190353Z-772b6659`, completed this journey on 8 October with 39 Groq packets, four Qloo samples, integration PASS and causal INCONCLUSIVE. The following describes that reviewed path. Starting another full case consumes shared provider budget; inspect availability and the plan first.
 
 1. Open the external application in a fresh browser and enter the new-case controls. Confirm the real remote execution label and separate integration, causal, cultural and release results. Opening a page alone must not start provider inference.
 2. Open the visitor session explicitly. Select the two artist interests and review the twenty-item catalog, frozen protocol, execution budget and pacing. Private provider configuration belongs to the owner; judges do not supply API keys.
@@ -82,7 +82,7 @@ Do not promise a two-minute fresh provider capture. An optional short video can 
 
 ## Submission operator checks
 
-The tested runtime/backend code and hosting use revision `457fcace665b29a206840cedf24bceac56865b8f`. [CI run 37824994293](https://github.com/seypherWork/affinityqa/actions/runs/37824994293) passed 295 source-only tests on Windows/Python 3.13.16 and Ubuntu/Python 3.12.14, source allowlist checks, frontend type checking and build. A later documentation-only commit can differ while runtime modules remain unchanged; it creates no new observed CI result. Provider and browser evidence remain separate.
+The hosted source/UI release verified on 9 October is `52851c98e36c8c8594b5c0a8c7643c03a717000e`. [CI run 37861553671](https://github.com/seypherWork/affinityqa/actions/runs/37861553671) passed 295 source-only tests on Windows/Python 3.13.16 and Ubuntu/Python 3.12.14, source allowlist checks and frontend type checking/build. Backend modules remain byte-identical to `457fcace665b29a206840cedf24bceac56865b8f`, whose retained 8 October [CI run 37824994293](https://github.com/seypherWork/affinityqa/actions/runs/37824994293) also passed 295 tests per platform. Documentation proposals create no new CI or provider observation. Provider and browser evidence remain separate.
 
 On 8 October, before activation, the code's recorded HTTPS journey passed 54 selections and 324 strict controls, private-route/origin guards and busy recovery. The later hosted case completed and retained its evidence/session/admission across a real restart. The selected hosted result was independently checked; a separate supplement reviewed consistency of operator-reported remote retention and browser restoration. Reviewers did not repeat remote UI or private hash actions and provide no external-service attestation. Useful free capacity through judging and independent cultural quality remain unvalidated.
 
