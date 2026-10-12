@@ -1,12 +1,15 @@
 ![AffinityQA — Follow the profile. Prove the recovery.](docs/images/hero.svg)
 
+
 # AffinityQA
 
 **Follow the profile. Prove the recovery.**
 
 AffinityQA traces the requested taste profile through an AI agent's routing, cache and Qloo tool context. It diagnoses three controlled integration faults, applies a supported repair and checks the resulting behavior against a healthy reference.
 
-**Current observed runtime · 11 October 2026.** The [hosted demo](https://affinityqa-review.onrender.com/demo) runs source [`760b4df`](https://github.com/seypherWork/affinityqa/commit/760b4df4dade75430ba25d907f342f96b88acc49). The authorized storage continuation and two configuration deployments completed; final deployment `dep-db5lcsjbc2fs739a3q0g` was observed LIVE. **New cases are enabled with their persistent store attached.** GPT-OSS 20B, the 22-second minimum interval, credentials, plan and automatic-deployment setting were preserved.
+**Engineering review · 13 October 2026.** The current Render deploy is `250aac1258535db593db644747a5659003fced82`. The proposed review branch fixes interrupted progress polling and the artist-search duplicate-UUID stop through a source-bound discovery v3 successor. Original retained v2 evidence and admission history remain unchanged; this review does not deploy v3 or grant cultural/jury acceptance. See [engineering results](docs/CLOUD-ENGINEERING-REVIEW.md), [v3 search contract and deployment continuity](docs/DISCOVERY-V3-SEARCH.md), and [read-only diagnostics](docs/IDENTITY-SEARCH-DIAGNOSTICS.md).
+
+**Previous observed runtime · 11 October 2026.** The [hosted demo](https://affinityqa-review.onrender.com/demo) runs source [`760b4df`](https://github.com/seypherWork/affinityqa/commit/760b4df4dade75430ba25d907f342f96b88acc49). The authorized storage continuation and two configuration deployments completed; final deployment `dep-db5lcsjbc2fs739a3q0g` was observed LIVE. **New cases are enabled with their persistent store attached.** GPT-OSS 20B, the 22-second minimum interval, credentials, plan and automatic-deployment setting were preserved.
 
 Two authorized owner trials completed with **eight Qloo requests and 41 Groq decisions in total**. Cinema job `20261011T094456Z-85c5729d` delivered five eligible films per profile, with no favorite or excluded film delivered; both deliveries equalled the preferences-aware Qloo baseline. Its two model responses used 10,131 tokens. Causal job `20261011T095441Z-3212bc72` retained four Qloo responses and 39 unique model decisions, using 57,544 tokens. All nine integration checks passed for each of the three mandatory faults, with nine observed recoveries. Integration is **PASS**; causal attribution remains **INCONCLUSIVE** under 25 distinct known backend fingerprints. These are technical demonstrations, not independent cultural validation or evidence of quality improvement.
 

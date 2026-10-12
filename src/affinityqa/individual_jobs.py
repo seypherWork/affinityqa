@@ -69,7 +69,9 @@ class IndividualJobManager:
             from .cinema_verify import verify_cinema
             from .cinema_identity_capture import validate_request as identity_request, prepare_plan as identity_plan
             from .cinema_identity_verify import verify_confirmed_cinema
-            from .cinema_discovery_capture import validate_request as discovery_request, prepare_plan as discovery_plan
+            from .cinema_discovery_capture import validate_request as discovery_request
+            from .cinema_discovery_v3_capture import prepare_plan as discovery_plan
+            from .cinema_discovery_v3_verify import verify_confirmed_discoveries as verify_discoveries_v3
             from .cinema_discovery_file_verify import verify_confirmed_discoveries
             validators = {3: cinema_request, 4: identity_request, 5: discovery_request}
             planners = {3: cinema_plan, 4: identity_plan, 5: discovery_plan}
@@ -81,7 +83,12 @@ class IndividualJobManager:
                  'Real remote execution requires an explicitly reviewed model interval.')
             self._prepare_plan = lambda request, output: planners.get(request.get('schema_version'), remote_plan)(request, output,
                 minimum_model_interval_seconds=self.remote_minimum_interval_seconds)
-            self._verify = lambda directory: verifiers.get(read(directory/'individual-plan.json')['request'].get('schema_version'), verify_individual_remote)(directory)
+            def verify(directory):
+                plan = read(directory/'individual-plan.json')
+                if plan['protocol_version'] == 'cinema-confirmed-discovery-v3':
+                    return verify_discoveries_v3(directory)
+                return verifiers.get(plan['request'].get('schema_version'), verify_individual_remote)(directory)
+            self._verify = verify
         else:
             need(remote_minimum_interval_seconds is None,'Local execution does not accept remote pacing configuration.')
             self._validate_request = validate_request
@@ -243,7 +250,12 @@ class IndividualJobManager:
             need(plan_hash == plan['plan_sha256'] and job['manager_sha256'] == sha(Path(__file__)), 'The reviewed plan or manager changed.')
             need(read(self.root/job_id/'job-plan.json') == {k:job[k] for k in ('job_id','created_utc','manager_sha256','plan')},
                  'The saved plan changed; retain and inspect it.')
-            now = self._prepare_plan(plan['request'], self.root/job_id/'capture')
+            if plan['protocol_version'] == 'cinema-confirmed-discovery-v2':
+                from .cinema_discovery_capture import prepare_plan as legacy_discovery_plan
+                now = legacy_discovery_plan(plan['request'], self.root/job_id/'capture',
+                    minimum_model_interval_seconds=self.remote_minimum_interval_seconds)
+            else:
+                now = self._prepare_plan(plan['request'], self.root/job_id/'capture')
             need(now['plan_sha256'] == plan_hash, 'Request, model, dependency or capture source changed before admission.')
             # Credential loading is delayed until explicit admission, never echoed or stored in jobs.
             settings = self.settings_loader()
@@ -281,7 +293,10 @@ class IndividualJobManager:
         try:
             plan = self.jobs[job_id]['plan']
             if plan['request'].get('schema_version') in (4, 5):
-                if plan['request']['schema_version'] == 5:
+                if plan['protocol_version'] == 'cinema-confirmed-discovery-v3':
+                    from .cinema_discovery_v3_capture import search_identities
+                    from .cinema_discovery_v3_verify import verify_discovery_search as verify_identity_search
+                elif plan['request']['schema_version'] == 5:
                     from .cinema_discovery_capture import search_identities
                     from .cinema_discovery_file_verify import verify_discovery_search as verify_identity_search
                 else:
@@ -356,7 +371,10 @@ class IndividualJobManager:
                  'The saved plan changed.')
             receipt = self.identity_receipt(job_id)
             need(identity_receipt_hash == job['receipt_sha256'], 'The selected identity receipt differs.')
-            if job['plan']['request']['schema_version'] == 5:
+            if job['plan']['protocol_version'] == 'cinema-confirmed-discovery-v3':
+                from .cinema_discovery_v3_verify import verify_discovery_search as verify_identity_search
+                from .cinema_discovery_v3_capture import selection_profiles
+            elif job['plan']['request']['schema_version'] == 5:
                 from .cinema_discovery_file_verify import verify_discovery_search as verify_identity_search
                 from .cinema_discovery_capture import selection_profiles
             else:
@@ -390,7 +408,9 @@ class IndividualJobManager:
 
     def _run_confirmed(self, job_id, settings, remote_key, selected_entity_ids, identity_receipt):
         try:
-            if self.jobs[job_id]['plan']['request']['schema_version'] == 5:
+            if self.jobs[job_id]['plan']['protocol_version'] == 'cinema-confirmed-discovery-v3':
+                from .cinema_discovery_v3_capture import capture_confirmed
+            elif self.jobs[job_id]['plan']['request']['schema_version'] == 5:
                 from .cinema_discovery_capture import capture_confirmed
             else:
                 from .cinema_identity_capture import capture_confirmed

@@ -102,8 +102,8 @@ class DiscoveryJobTests(unittest.TestCase):
         manager = self.manager()
         self.assertTrue(manager.capabilities()['cinema_discoveries_supported'])
         job = self.plan(manager)
-        self.assertEqual((job['case_protocol'], job['maximum_model_decisions']), ('cinema-confirmed-discovery-v2', 2))
-        self.assertEqual(manager.jobs[job['job_id']]['plan']['schema_version'], 6)
+        self.assertEqual((job['case_protocol'], job['maximum_model_decisions']), ('cinema-confirmed-discovery-v3', 2))
+        self.assertEqual(manager.jobs[job['job_id']]['plan']['schema_version'], 7)
         for kwargs in ({'discover_new_movies': True}, {'discover_new_movies': 1, 'confirm_identities': True}):
             with self.subTest(kwargs=kwargs), self.assertRaises(SchemaError):
                 manager.request_for(self.request['artists'], self.request['preferences'], **kwargs)
@@ -207,7 +207,7 @@ class DiscoveryJobTests(unittest.TestCase):
                 'confirm_identities': True, 'discover_new_movies': True}
         response = client.post('/api/individual/plans', json=body, headers={'Origin': 'http://localhost'})
         self.assertEqual(response.status_code, 201, response.text)
-        self.assertEqual(response.json()['case_protocol'], 'cinema-confirmed-discovery-v2')
+        self.assertEqual(response.json()['case_protocol'], 'cinema-confirmed-discovery-v3')
         self.assertEqual(self.reads, [0, 0]); self.assertFalse(self.transport.calls)
 
 

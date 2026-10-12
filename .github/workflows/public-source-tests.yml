@@ -47,3 +47,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npx --yes pnpm@11.25.0 build
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install browser for synthetic UI regressions
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: npx --yes pnpm@11.25.0 exec playwright install --with-deps chromium
+      - name: Check interrupted progress recovery on desktop and mobile
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: npx --yes pnpm@11.25.0 test:recovery
+      - name: Check complete synthetic browser case and session restoration
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: npx --yes pnpm@11.25.0 test:case-journey

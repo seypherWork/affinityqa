@@ -175,7 +175,7 @@ def routes(manager, *, origin):
             current, token = access(request, mutation=True)
             with current.lock:
                 view = current.view(token, job_id)
-                if view['status'] != 'AWAITING_IDENTITY_CONFIRMATION' or view['case_protocol'] not in ('cinema-confirmed-identity-v1', 'cinema-confirmed-discovery-v2'):
+                if view['status'] != 'AWAITING_IDENTITY_CONFIRMATION' or view['case_protocol'] not in ('cinema-confirmed-identity-v1', 'cinema-confirmed-discovery-v2', 'cinema-confirmed-discovery-v3'):
                     raise _Denial(409, 'This saved identity selection cannot be admitted again.')
                 if view['plan_sha256'] != body.plan_sha256 or view.get('identity_receipt_sha256') != body.identity_receipt_sha256:
                     raise _Denial(409, 'The reviewed plan or identity receipt differs.')

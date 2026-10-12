@@ -19,11 +19,11 @@ TESTS=('test_causal_agent.py','test_causal_runner.py','test_causal_evaluator.py'
        'test_discovery_context.py','test_discovery_delivery.py',
        'test_discovery_agent.py','test_discovery_session.py','test_discovery_capture.py',
        'test_discovery_jobs.py','test_discovery_pacing.py','test_discovery_diagnostics.py',
-       'test_discovery_slots.py','test_discovery_failure_evidence.py')
+       'test_discovery_slots.py','test_discovery_failure_evidence.py','test_identity_diagnostics.py','test_discovery_v3_search.py')
 DRIVERS=('affinityqa.py','run_causal_repair.py','continue_causal_validation.py',
          'resume_causal_identity.py','verify_causal_repair.py','build_public_source.py',
          'serve_public_demo.py','verify_public_demo.py','capture_individual_pair.py',
-         'verify_individual_capture.py','capture_individual_remote.py','verify_individual_remote.py','continue_public_policy.py')
+         'verify_individual_capture.py','capture_individual_remote.py','verify_individual_remote.py','continue_public_policy.py','diagnose_identity_search.py')
 EXACT=('pyproject.toml','requirements-backend.lock.txt','fixtures/synthetic.json',
        'tests/fixtures/policy_v1/public_cases.py','tests/fixtures/policy_v1/public_policy_continuation.py',
        'src/affinityqa/remote_pacing.py','docs/CINEMA-PREFERENCES.md',
@@ -37,6 +37,8 @@ EXACT=('pyproject.toml','requirements-backend.lock.txt','fixtures/synthetic.json
        'docs/images/hero.svg','docs/images/architecture.svg','docs/ASSET-PROVENANCE.md',
        'docs/DEMO-GUIDE.md','docs/PUBLIC-DEMO-DEPLOYMENT.md',
        'docs/JUDGE-ACCEPTANCE.md','docs/SUBMISSION-DRAFT.md',
+       'tests/browser/session-recovery.cjs','tests/browser/new-case-journey.cjs','tests/browser/serve_synthetic_cases.py',
+       'docs/CLOUD-ENGINEERING-REVIEW.md','docs/IDENTITY-SEARCH-DIAGNOSTICS.md','docs/DISCOVERY-V3-SEARCH.md',
        'render.yaml','deployment/README.md','deployment/build_render.py',
        'deployment/start_render.py','deployment/provision_only.py')
 BLOCKED={'.git','.env','.private','runs','evidence','node_modules','.next','out',
