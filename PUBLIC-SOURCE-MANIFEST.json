@@ -1,7 +1,7 @@
 {
   "mode": "source-only",
   "source_file_count": 218,
-  "source_bytes": 2337233,
+  "source_bytes": 2337842,
   "provider_captures_included": false,
   "license_granted": true,
   "mit_original_code": true,
@@ -207,7 +207,7 @@
     "web/components/evidence.tsx": "e543c495daa89b6acceae7374e6e4f050a1c6473c368125801941a89350906fb",
     "web/components/individual-development.tsx": "1652742bbc07d5570376b564a8be40de791d75fbccde43e938f01e41ee2c3cc6",
     "web/components/individual-screening.module.css": "11feac57e4ab044b100f78c34748375643f886ef065f169942352074b29c3874",
-    "web/components/individual-screening.tsx": "2975366df6050982c8e75492ad1a8a90e7e64eeae0972a2931ddd7a80030134b",
+    "web/components/individual-screening.tsx": "02c7407a229389611fc8d16d89968ec4781b0fc8827c58ddfa1c88e926f61952",
     "web/components/library.tsx": "d6d797ab94763e89de6600656e2254272a71a164d39c3418fb041368ca26d348",
     "web/components/live-screening.tsx": "03e6b75161e4afe249e726f19519111956287a649edd56bd6a1d08b52c519aef",
     "web/components/metadata-development.tsx": "f9d4e466060c12b4ccdbfc466d3af321d9bdffa508fe379c0358429bf919672d",
