@@ -55,7 +55,7 @@ npx --yes pnpm@11.25.0 test:case-journey
 The full browser journey uses the actual frontend, FastAPI and persistent case
 manager with explicitly fake providers, including the nonmusical repeated-UUID
 shape. It checks no automatic choice, one admission, exact 4/2 provider/model
-counts, exclusion/favorite guards, verification download and session restoration.
+counts, exclusion/favorite guards, verification HTTP response and session restoration.
 It does not certify live-provider capacity or physical iOS/Safari behavior.
 
 Before deploying over an existing public store, follow

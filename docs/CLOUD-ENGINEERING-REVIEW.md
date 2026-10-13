@@ -26,7 +26,7 @@ from surviving a restarted polling effect.
 | Browser reproduction on unchanged baseline assets | Failed waiting for COMPLETE after successful same-status recovery | This established the defect before editing the component |
 | Desktop recovery after one interruption | PASS, four job GETs and one session POST | Built assets, synthetic responses, zero provider calls |
 | Mobile recovery after two interruptions | PASS, five job GETs and one session POST; 390 × 844 viewport fits without horizontal overflow | Built assets, synthetic responses; viewport coverage is not physical iOS/Safari acceptance |
-| Complete new-case browser journey | PASS: actual frontend, FastAPI and case store; search variants, explicit selection, result, receipt download, reload/session restoration; exactly one execution admission | Four fake Qloo calls and two fake model calls; zero real provider calls |
+| Complete new-case browser journey | PASS: actual frontend, FastAPI and case store; search variants, explicit selection, result, verification HTTP response, reload/session restoration; exactly one execution admission | Four fake Qloo calls and two fake model calls; zero real provider calls |
 | Original retained search diagnosis | Independent original-source verifier passed; B rejected duplicate UUIDs, five raw rows/four unique IDs; proposed pure projection produced A=5/B=4 musical choices | Read-only server inspection; original artifact inventory unchanged; no new provider/model calls |
 | Public health and recorded summary | Both returned HTTP 200; new cases configured, capture inactive; recorded summary COMPLETE, causal PASS, cultural NOT_VALIDATED, release BLOCKED | Read-only observation on 13 October; health is not provider readiness or sustained capacity |
 

@@ -1,6 +1,42 @@
 # AffinityQA — reviewer walkthrough
 
-**Updated · 9 October 2026.** Open the [hosted application](https://affinityqa-review.onrender.com), running [UI release 52851c9](https://github.com/seypherWork/affinityqa/commit/52851c98e36c8c8594b5c0a8c7643c03a717000e) (`52851c98e36c8c8594b5c0a8c7643c03a717000e`) with backend modules unchanged from `457fcace665b29a206840cedf24bceac56865b8f`. The 8 October recorded journey passed 54 HTTPS selections and 324 strict checks. A later genuine hosted case on 8 October completed 39 Groq decisions and four Qloo samples, passed all three fault checklists and survived a real service restart. Browser reload restored the saved session/case and all nine fault/repeat views without a new capture. This one-case functional/persistence acceptance leaves sustained judge capacity and independent cultural quality unvalidated.
+## Start here — jury click path
+
+Open [the hosted workspace](https://affinityqa-review.onrender.com/demo). A browser is sufficient; no Docker, local model or personal provider key is needed.
+
+### Recorded repair — about two minutes
+
+1. Open **Recorded repair**.
+2. Choose **Mogwai / Kesha**, **Qloo context bound to wrong profile**, and **Repeat 3 · request Kesha**.
+3. Press **Replay this incident**.
+4. In **Detect**, compare the requested interest with the consumed Qloo profile.
+5. Open **Diagnose**, then **Repair**. Inspect the supported diagnosis, the correction and the before/after/healthy outputs.
+6. Open **Verify**. Inspect the six checks and the evidence boundaries.
+
+This path replays saved real-provider/model decisions. It adds no new Qloo/model requests or independent trial. Cultural quality and tested-agent release retain their separate results.
+
+### A fresh individual case — separate provider execution
+
+Use this path only while the new-case controls are enabled and capacity is available. Discovery-v3 hosted acceptance is pending until the reviewed source update completes.
+
+1. Open **New individual case**, then **OPEN OR RESTORE MY SESSION**.
+2. Enter two musical interests. For the short film-preference/discovery review, mark favorite or excluded films only when desired. These are declared inputs, not inferred personal data.
+3. Press **REVIEW A NEW PLAN**. Inspect the mode, artists, declared Qloo/model budget and preferences. The short discovery protocol allows at most four Qloo requests and two model attempts; the separate causal campaign has 39 model decisions.
+4. Press **FIND ARTISTS** once. Inspect each proposed identity and choose one verified musical identity per profile. No artist is chosen automatically.
+5. Press **CONFIRM ARTISTS & START REVIEW** once. Follow progress. If it becomes unavailable, use **CHECK CURRENT STATUS**; a lost response does not authorize a second execution.
+6. Inspect the completed result, favorite/exclusion guards, verification and honest gate labels. Technical compliance does not establish individual satisfaction or superiority to the Qloo baseline.
+7. Press **DOWNLOAD SELECTED VERIFICATION**. Check that the JSON belongs to the selected case.
+8. Reload, restore the same session and open that saved case. This should read the existing result without a new plan or provider capture.
+
+If the session is expired, capacity is exhausted, evidence changed or a provider stops the case, retain the displayed result and receipt. Preserve failed admissions; do not clear cookies or repeat an admitted case to hide a failure. Recorded repair remains a separate review path.
+
+### Current acceptance boundary
+
+The PR's synthetic browser journey reached COMPLETE, explicit selection, verification HTTP response and session restoration. It did not prove a native file download, a completed live discovery-v3 case, provider quota reservation or physical iOS/Safari behavior. The live acceptance record will be updated only after those observations occur.
+
+## Historical walkthrough and provenance
+
+**Historical walkthrough · 9 October 2026.** Open the [hosted application](https://affinityqa-review.onrender.com), running [UI release 52851c9](https://github.com/seypherWork/affinityqa/commit/52851c98e36c8c8594b5c0a8c7643c03a717000e) (`52851c98e36c8c8594b5c0a8c7643c03a717000e`) with backend modules unchanged from `457fcace665b29a206840cedf24bceac56865b8f`. The 8 October recorded journey passed 54 HTTPS selections and 324 strict checks. A later genuine hosted case on 8 October completed 39 Groq decisions and four Qloo samples, passed all three fault checklists and survived a real service restart. Browser reload restored the saved session/case and all nine fault/repeat views without a new capture. This one-case functional/persistence acceptance leaves sustained judge capacity and independent cultural quality unvalidated.
 
 This guide separates a two-minute recorded walkthrough from the longer genuine new-case path. Recorded replay uses captured model decisions and makes no new model or Qloo calls. A recording is optional and cannot replace the functional application.
 
