@@ -27,7 +27,12 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install declared Python dependencies
-        run: python -m pip install -r requirements-backend.lock.txt
+        run: |
+          python -m pip install -r requirements-backend.lock.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip install --require-hashes -r requirements-repeatable.lock.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip check
       - name: Synthetic tests only
         run: |
           python -B -m unittest discover -s tests -v
@@ -59,3 +64,11 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: web
         run: npx --yes pnpm@11.25.0 test:case-journey
+      - name: Check repeatable queue, quota wait and historical recovery
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: npx --yes pnpm@11.25.0 test:repeatable-journey
+      - name: Check repeatable frontend with real synthetic backend and owned storage
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: npx --yes pnpm@11.25.0 test:repeatable-backend

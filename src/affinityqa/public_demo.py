@@ -278,7 +278,8 @@ def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
         raise ValueError('Public case request limits must be 1..600 per minute.')
     if case_manager is not None:
         from .public_cases import PublicCaseManager
-        if not isinstance(case_manager, PublicCaseManager) or case_manager.origin != origin:
+        from .repeatable_cases import RepeatableCaseManager
+        if not isinstance(case_manager, (PublicCaseManager, RepeatableCaseManager)) or case_manager.origin != origin:
             raise ValueError('One explicit case manager must use the exact demo origin.')
     capture = _Capture(root, run_id, receipt_sha256) if run_id is not None else None
     @asynccontextmanager
@@ -297,7 +298,11 @@ def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
                        case_read_limit=case_read_limit)
     app.state.capture = capture
     app.state.case_manager = case_manager
-    from .public_case_api import routes
+    from .repeatable_cases import RepeatableCaseManager
+    if isinstance(case_manager, RepeatableCaseManager):
+        from .repeatable_case_api import routes
+    else:
+        from .public_case_api import routes
     app.include_router(routes(case_manager, origin=origin))
 
     @app.exception_handler(RequestValidationError)
@@ -314,6 +319,13 @@ def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
     def health():
         # Cheap liveness only. Integrity and approval belong to summary/replay, never this route.
         if case_manager is not None:
+            if isinstance(case_manager, RepeatableCaseManager):
+                return JSONResponse({'status': 'alive', 'capture_configured': capture is not None,
+                    'execution': 'recorded-replay-and-repeatable-cases' if capture is not None else 'repeatable-cases',
+                    'new_cases_configured': True,
+                    'remote_execution_configured': case_manager.manager.enabled,
+                    **case_manager.health(),
+                    'provider_readiness': 'NOT_CHECKED_BY_LIVENESS'}, headers={'Cache-Control': 'no-store'})
             worker = case_manager.manager.worker
             return JSONResponse({'status': 'alive', 'capture_configured': capture is not None,
                 'execution': 'recorded-replay-and-remote-cases' if capture is not None else 'remote-cases',

@@ -1,5 +1,11 @@
 # AffinityQA — source setup and review
 
+The source now includes the separately activated
+[repeatable reviewer queue](PUBLIC-REPEATABLE-CASES.md). Install both dependency
+locks below; its token vocabulary is bundled for offline integrity checking.
+The dated observations retained in this guide describe their named releases,
+not acceptance of an unactivated deployment.
+
 **Updated · 9 October 2026.** [UI release 52851c9](https://github.com/seypherWork/affinityqa/commit/52851c98e36c8c8594b5c0a8c7643c03a717000e) (`52851c98e36c8c8594b5c0a8c7643c03a717000e`) passed [CI run 37861553671](https://github.com/seypherWork/affinityqa/actions/runs/37861553671): 295 source-only tests on each of Windows and Ubuntu, source allowlist checks and frontend type checking/build. Render deployment `dep-db42qnub7d7c73a5ihkg` was verified LIVE on 9 October. Backend modules remain byte-identical to revision `457fcace665b29a206840cedf24bceac56865b8f`. UI review used recorded replay and the existing owned case with zero new provider calls; 62 retained case files and owner configuration were unchanged. The separate private Windows portable has installation, recorded HTTP, selected desktop browser and launcher-restart observations; useful judge capacity and independent cultural quality remain unvalidated.
 
 The retained 8 October backend revision `457fcace665b29a206840cedf24bceac56865b8f` passed [CI run 37824994293](https://github.com/seypherWork/affinityqa/actions/runs/37824994293), also with 295 tests per platform. That deployment completed one genuine new case, server verification, service restart and saved browser-case restoration. These historical observations keep their original scope.
@@ -28,6 +34,7 @@ Run from the repository root in a new virtual environment. Replace the Windows i
 ```powershell
 & "C:\path\to\python.exe" -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-backend.lock.txt
+.\.venv\Scripts\python.exe -m pip install --require-hashes -r requirements-repeatable.lock.txt
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
@@ -36,6 +43,7 @@ Run from the repository root in a new virtual environment. Replace the Windows i
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements-backend.lock.txt
+.venv/bin/python -m pip install --require-hashes -r requirements-repeatable.lock.txt
 .venv/bin/python -m unittest discover -s tests -v
 ```
 

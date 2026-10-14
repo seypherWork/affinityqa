@@ -47,6 +47,12 @@ The original v2 case `20261012T230633Z-8a5793a9` remains PARTIAL after two Qloo 
 
 Judge access is browser-based and free to the reviewer. New cases use the owner's Groq Free and Qloo capacity; application admissions do not reserve provider quota. Retained cases and recorded repairs remain inspectable when new execution is unavailable. The owner must maintain testing access through the judging period; this one-case acceptance cannot guarantee future capacity. [Detailed acceptance and limits](docs/JUDGE-ACCEPTANCE.md).
 
+The source also includes [repeatable reviewer access](docs/PUBLIC-REPEATABLE-CASES.md):
+multiple plans in the same ownership session, a durable provider-capacity queue,
+explicit recovery provenance and a separate store with read-only historical
+cases. Activating this mode is a separate deployment step. It keeps Groq Free;
+it does not promise unlimited provider capacity or change evaluation gates.
+
 ## Run the source checks
 
 CI used Python **3.13.16 on Windows**, **3.12.14 on Ubuntu 24.04**, Node.js **24.19.0** and pnpm **11.25.0**.

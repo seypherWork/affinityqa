@@ -10,6 +10,8 @@ Reviewed on 9 October 2026. The application uses project-authored vector and CSS
 | Active workspace palette, panels and responsive layout | `web/app/workspace.css`, `web/app/typography.css`, component CSS | Original graphite, ivory and violet styles |
 | Earlier cinematic artwork and treatments | `web/components/projection.tsx`, `web/app/style.css`, `web/app/cinematic.css` | Retained project source; the active layout no longer imports the two earlier global stylesheets |
 | Framework and dependency material | Dependency locks and `THIRD-PARTY-LICENSES.txt` | Upstream rights and notices retained |
+| Offline OpenAI token vocabulary | `assets/tokenizers/o200k_base.tiktoken` | Official OpenAI encoding asset; SHA-256 `446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d`; upstream material |
+| Tokenizer and copied encoding pattern | `requirements-repeatable.lock.txt`, `licenses/tiktoken-MIT.txt` | OpenAI tiktoken 0.14.0, pinned release wheel hashes; MIT notice retained |
 | Artist names, film names and recorded decisions | Separately authorized evidence | Outside the project's MIT grant |
 
 Inspection of `web/app`, `web/components` and `web/lib` found no external image URLs or downloaded raster assets. The package manifest binds the actual source bytes. This inventory is a source inspection, not a trademark-clearance opinion or a certification of every dependency's rights. See [licensing scope](LICENSING.md).

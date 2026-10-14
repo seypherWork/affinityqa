@@ -18,6 +18,8 @@ def main():
     if version != '11.25.0':
         raise RuntimeError('Expected reviewed pnpm 11.25.0.')
     run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements-backend.lock.txt'], root)
+    run([sys.executable, '-m', 'pip', 'install', '--require-hashes',
+         '-r', 'requirements-repeatable.lock.txt'], root)
     run([sys.executable, '-m', 'pip', 'check'], root)
     for args in (['install', '--frozen-lockfile', '--ignore-scripts'], ['typecheck'], ['build']):
         run([*pnpm, *args], root / 'web')

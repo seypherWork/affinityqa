@@ -1,5 +1,10 @@
 # Public new-case service and HTTP integration
 
+This document describes the retained finite-policy manager. For the separate
+versioned queue without lifetime admission caps, see
+[repeatable reviewer access](PUBLIC-REPEATABLE-CASES.md). Its activation does not
+modify this historical policy or its consumed admissions.
+
 `affinityqa.public_cases.PublicCaseManager` prepares visitor isolation and shared
 admissions for new remote cases. The public app accepts one explicit instance via
 `create_public_app(..., case_manager=manager)`. Its owned HTTP routes are mounted
