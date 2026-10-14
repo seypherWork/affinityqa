@@ -26,7 +26,7 @@ DRIVERS=('affinityqa.py','run_causal_repair.py','continue_causal_validation.py',
          'resume_causal_identity.py','verify_causal_repair.py','build_public_source.py',
          'serve_public_demo.py','verify_public_demo.py','capture_individual_pair.py',
          'verify_individual_capture.py','capture_individual_remote.py','verify_individual_remote.py','continue_public_policy.py','diagnose_identity_search.py')
-EXACT=('pyproject.toml','requirements-backend.lock.txt','requirements-repeatable.lock.txt','fixtures/synthetic.json',
+EXACT=('.gitattributes','pyproject.toml','requirements-backend.lock.txt','requirements-repeatable.lock.txt','fixtures/synthetic.json',
        'assets/tokenizers/o200k_base.tiktoken','licenses/tiktoken-MIT.txt',
        'tests/fixtures/policy_v1/public_cases.py','tests/fixtures/policy_v1/public_policy_continuation.py',
        'src/affinityqa/remote_pacing.py','docs/CINEMA-PREFERENCES.md',

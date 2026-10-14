@@ -29,6 +29,8 @@ Private Windows v9 used Python 3.12.14 in its separately verified 6 October inst
 
 Run from the repository root in a new virtual environment. Replace the Windows interpreter path with your installed Python 3.13 executable. Package installation accesses the package index unless an authorized local wheelhouse is supplied.
 
+The included `.gitattributes` preserves exact file bytes on Windows and Linux, including the pinned tokenizer vocabulary and source fingerprints. Keep it when cloning or distributing the source. Git's automatic line-ending conversion must not alter these files; integrity checks still reject a changed vocabulary instead of loading it.
+
 **Windows · PowerShell**
 
 ```powershell
