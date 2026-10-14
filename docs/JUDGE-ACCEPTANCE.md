@@ -1,5 +1,40 @@
 # Judge acceptance record
 
+## Current bounded engineering acceptance — 14 October 2026
+
+**PASS: one complete real hosted discovery-v3 journey on Windows/Brave.** This is acceptance of the documented diagnostic application and short individual-case route, not production approval of the tested recommender or a guarantee of unrestricted future provider capacity.
+
+| Requirement | Observed evidence | Scope |
+| --- | --- | --- |
+| Public source and build | Tested code `2c2f28a9866920031c84779a38af340e3a724966`; [CI 38472962653](https://github.com/seypherWork/affinityqa/actions/runs/38472962653): 479 Python tests on each of Windows and Ubuntu, type checking and production export | Three Linux browser regressions used synthetic providers; they are separate from the native Windows trial |
+| Hosted source | The same code is LIVE on the existing Render service, deployment `dep-db7bbqfavr4c73fiklg0` | No service, model, key, paid plan or automatic-deployment change for this trial |
+| Preserved rollout | All 264 inventoried original files were unchanged; only the reviewed continuation marker and staging payload were added. Reattachment retained all 266 inventoried files | This is the dated deployment inventory, before the new trial. Two auxiliary files were compared by metadata only; no current whole-disk count is claimed |
+| Plan and manual identities | Case `20261014T144251Z-c1eb0039`, protocol `cinema-confirmed-discovery-v3`, Sade and Nine Inch Nails explicitly selected | One engineering visitor with synthetic preferences; no verified human participant |
+| Genuine completion | Four saved Qloo responses and two Groq model packets; `VERIFIED_COMPLETE`; preference checks PASS | One attempt per request, no retry or fallback; this short mode does not run the controlled causal campaign |
+| Explicit tastes | Get Out known favorite and Everything Everywhere All at Once excluded in both profiles; 18 eligible movies, five delivered per profile | Neither known favorite nor excluded film was delivered. Both top fives equalled the same-input Qloo baseline |
+| Native file download | Brave marked the one download complete; the physical JSON was 5,605 bytes, SHA-256 `42546b06d00be2a6d9b669e5502a8298ce0c81db267b4123fa251a75073ab686` | Actual browser save plus physical-file check; not an HTTP-only substitute |
+| Same-session recovery | Reload, owned capability read, one final restoration and opening the same COMPLETE job; same plan/catalog/preferences/intent/raw/delivery fingerprints | One saved job retained, remaining executions 0 and plans 1. No new plan, capture, cookie export or limit reset |
+| Independent review | Retained screenshots/AX observations, 24 artifact hashes, physical download and public catalog/preference/ranking/delivery calculations checked locally | Reviewer did not repeat the providers, UI or private-ledger audit; no external cryptographic attestation |
+
+The trial's plan fingerprint is `2c40caae83ea498132cf52a357c43c131ced65d6ab7282441abb1dfe76259a0d`; catalog fingerprint `79b831ee81c65f886a746026c5805ea76fb3bdbb13458142a3f57da3f2cc3b02`; selected private receipt fingerprint `c1f11c5457de08189366c49edd121106cfe13584b4d3d47230b785902309736c`. The independent review matched the receipt identifier carried by the public projection; it did not derive that private-ledger hash from excluded raw files.
+
+One normal browser read of the plan reloaded the client view before execution. The owner separately approved restoring that same session once before continuing; the originally planned final restoration was also performed. This added no session, plan, admission or provider attempt. No older failed case was reclassified as complete.
+
+## Remaining boundaries and owner handoff
+
+- **Cultural quality:** NOT_VALIDATED; verified human participants 0. Role-play preferences are synthetic inputs. Earlier development and independent quality failures retain their scores and thresholds.
+- **Remote causal attribution:** INCONCLUSIVE for the separate controlled Groq campaign under varied backend fingerprints. The short discovery trial's causal, integration and behavioral campaign gates are NOT_EVALUATED.
+- **Tested recommender:** release BLOCKED remains an evaluator finding, distinct from the web application's availability.
+- **Testing capacity:** the hosted entry point was accessible without a judge account, local installation or provider key. Groq Free remains shared and unreserved; a cumulative application admission limit is not guaranteed provider capacity. Failed or quota-limited cases stop and retain evidence rather than retrying silently.
+- **Official testing period:** [the rules](https://qloo.devpost.com/rules), checked 14 October 2026, require free project access through the end of judging. Availability and permitted access throughout that future period remain the owner's operational obligation; this trial does not prove them in advance.
+- **Distribution and submission:** original code is MIT; third-party data and model terms remain separate. Raw captures and credentials stay private. Final documentation publication and entry submission require separate owner approval. No entry has been submitted by this workflow.
+
+## Retained historical acceptance
+
+The dated records below preserve the complete earlier text and outcomes. Their previous NO-GO/PENDING statements describe those snapshots; the current bounded technical result above closes only the observed live journey, download and recovery. It does not erase scientific or future-access limits.
+
+# Judge acceptance record
+
 **Status reconciliation · 13 October 2026.** Render is still LIVE at source `250aac1258535db593db644747a5659003fced82` (deploy `dep-db6l70lg1s2s739prm70`). PR #1 is source `f2a780877322d8e788bf55100ae9d600bf3e25e5`; its 479-test Windows/Ubuntu CI and three Linux synthetic browser scenarios passed. It fixes polling recovery and proposes discovery v3 for mixed musical/nonmusical duplicate IDs, but is not yet deployed. The original v2 live job `20261012T230633Z-8a5793a9` remains PARTIAL after two Qloo searches and zero model calls; no failed admission was refunded.
 
 The 12 October deployment preserved all 248 observed case files (17,950,918 bytes) and owner configuration at its dated before/after inspection. That inventory predates the cloud's additional partial trial and is not a current total. The current source-browser regression checks the selected verification over HTTP; native file download is still unverified. A complete real v3 browser journey and usable capacity through judging remain pending. Human participants: 0; cultural quality NOT_VALIDATED; varied remote backend fingerprints retain causal INCONCLUSIVE. This snapshot neither submits the project nor declares full jury acceptance.

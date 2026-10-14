@@ -17,10 +17,10 @@ This path replays saved real-provider/model decisions. It adds no new Qloo/model
 
 ### A fresh individual case — separate provider execution
 
-Use this path only while the new-case controls are enabled and capacity is available. Discovery-v3 hosted acceptance is pending until the reviewed source update completes.
+Use this path while the new-case controls are enabled and capacity is available. The real discovery-v3 journey was verified in Brave on Windows on 14 October 2026, including the native download and same-session recovery.
 
 1. Open **New individual case**, then **OPEN OR RESTORE MY SESSION**.
-2. Enter two musical interests. For the short film-preference/discovery review, mark favorite or excluded films only when desired. These are declared inputs, not inferred personal data.
+2. Keep **FILM PREFERENCES** selected for the short review. Enter two musical interests and optionally mark known favorites and exclusions. The verified example used **Sade / Nine Inch Nails**, **Get Out** as a known favorite and **Everything Everywhere All at Once** as an exclusion in both profiles. These are declared inputs, not inferred personal data.
 3. Press **REVIEW A NEW PLAN**. Inspect the mode, artists, declared Qloo/model budget and preferences. The short discovery protocol allows at most four Qloo requests and two model attempts; the separate causal campaign has 39 model decisions.
 4. Press **FIND ARTISTS** once. Inspect each proposed identity and choose one verified musical identity per profile. No artist is chosen automatically.
 5. Press **CONFIRM ARTISTS & START REVIEW** once. Follow progress. If it becomes unavailable, use **CHECK CURRENT STATUS**; a lost response does not authorize a second execution.
@@ -32,9 +32,11 @@ If the session is expired, capacity is exhausted, evidence changed or a provider
 
 ### Current acceptance boundary
 
-The PR's synthetic browser journey reached COMPLETE, explicit selection, verification HTTP response and session restoration. It did not prove a native file download, a completed live discovery-v3 case, provider quota reservation or physical iOS/Safari behavior. The live acceptance record will be updated only after those observations occur.
+On tested runtime `2c2f28a`, one real Windows/Brave visitor completed identity selection, four Qloo requests, two Groq decisions, a physical native verification download and recovery of the same completed case. Preferences and result fingerprints survived the reload. The five delivered films per profile respected favorites and exclusions; both lists equalled the same-input Qloo baseline. This proves the bounded technical route, not human satisfaction, backend causal comparability, reserved provider quota or physical iOS/Safari behavior. See [the acceptance record](JUDGE-ACCEPTANCE.md).
 
 ## Historical walkthrough and provenance
+
+The following dated observations retain their original versions and limits. They do not supersede the current acceptance above.
 
 **Historical walkthrough · 9 October 2026.** Open the [hosted application](https://affinityqa-review.onrender.com), running [UI release 52851c9](https://github.com/seypherWork/affinityqa/commit/52851c98e36c8c8594b5c0a8c7643c03a717000e) (`52851c98e36c8c8594b5c0a8c7643c03a717000e`) with backend modules unchanged from `457fcace665b29a206840cedf24bceac56865b8f`. The 8 October recorded journey passed 54 HTTPS selections and 324 strict checks. A later genuine hosted case on 8 October completed 39 Groq decisions and four Qloo samples, passed all three fault checklists and survived a real service restart. Browser reload restored the saved session/case and all nine fault/repeat views without a new capture. This one-case functional/persistence acceptance leaves sustained judge capacity and independent cultural quality unvalidated.
 
