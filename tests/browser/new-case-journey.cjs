@@ -6,9 +6,18 @@ const {createRequire} = require('node:module');
 const webRequire = createRequire(path.resolve(__dirname, '../../web/package.json'));
 const {chromium} = webRequire('playwright');
 
+async function bounded(promise, milliseconds, message) {
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((_, reject) => {
+      timer = setTimeout(() => reject(Error(message)), milliseconds);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
 async function main() {
   const child = spawn(process.env.AFFINITYQA_TEST_PYTHON || 'python',
-    ['-B', path.join(__dirname, 'serve_synthetic_cases.py')], {stdio: ['ignore', 'pipe', 'pipe']});
+    ['-B', path.join(__dirname, 'serve_synthetic_cases.py'), '--exit-after-seconds', '60'], {stdio: ['ignore', 'pipe', 'pipe']});
   let output = '', errors = '', origin, closed = false;
   const exit = new Promise(resolve => child.on('close', (code, signal) => {closed = true; resolve({code, signal});}));
   const ready = new Promise((resolve, reject) => {
@@ -24,7 +33,7 @@ async function main() {
   });
   let browser;
   try {
-    const url = await ready;
+    const url = await bounded(ready, 20000, 'Synthetic case host readiness timed out');
     for (let attempt = 0; attempt < 100; attempt += 1) {
       try {if ((await fetch(url + '/healthz')).ok) break;} catch {}
       if (attempt === 99) throw Error('Synthetic case host did not become healthy');
@@ -96,8 +105,8 @@ async function main() {
     assert.equal(posts.filter(p => p.endsWith('/session')).length, 2);
     assert.deepEqual(pageErrors, []);
     await browser.close(); browser = undefined;
-    child.kill('SIGTERM');
-    const exitResult = await exit;
+    // Wait for the fixture's bounded graceful shutdown on Windows and Unix.
+    const exitResult = await bounded(exit, 75000, 'Synthetic case host graceful shutdown timed out');
     assert.equal(exitResult.code, 0, errors);
     const state = output.split('\n').flatMap(line => {try {return [JSON.parse(line)];} catch {return [];}}).find(v => 'real_provider_calls' in v);
     assert.deepEqual(state, {synthetic_qloo_calls: 4, synthetic_model_calls: 2,
@@ -105,7 +114,7 @@ async function main() {
     console.log(JSON.stringify({result: 'PASS', scenario: 'full new-case browser journey and reload', ...state}));
   } finally {
     if (browser) await browser.close();
-    if (!closed) child.kill('SIGTERM');
+    if (!closed) child.kill('SIGKILL');
   }
 }
 main().catch(error => {console.error(error.message); process.exitCode = 1;});

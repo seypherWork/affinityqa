@@ -1,6 +1,8 @@
-# Render recorded replay — hosted acceptance checked
+# Render hosting — setup and retained acceptance
 
-On 7 October 2026 the existing [hosted recorded demo](https://affinityqa-review.onrender.com) passed 54 HTTPS replay selections and 324 strict checks, followed by a tested service-process restart retaining the reviewed evidence. The deployed revision is `e08ddf2a7b7751b07b9c0b4635ad838247c44c00`; the separately published source engineering revision is `20d6abfe489eff5ae361d8c45a92bf14d4133de9`. Automatic deployments remain off. New cloud-case execution and independent cultural acceptance remain pending.
+**Current verified deployment · 15 October 2026.** Runtime `32406c2` has repeatable reviewer access enabled on the existing service. See the [current acceptance record](../docs/JUDGE-ACCEPTANCE.md) for the two completed cases, downloads, restoration and evidence boundaries, and [repeatable configuration](../docs/PUBLIC-REPEATABLE-CASES.md) for its separate store and provider limits. The observations below retain their dated scope.
+
+**Historical recorded-replay acceptance · 7 October 2026.** The existing [hosted recorded demo](https://affinityqa-review.onrender.com) passed 54 HTTPS replay selections and 324 strict checks, followed by a tested service-process restart retaining the reviewed evidence. The deployed revision was `e08ddf2a7b7751b07b9c0b4635ad838247c44c00`; the separately published source engineering revision was `20d6abfe489eff5ae361d8c45a92bf14d4133de9`. Automatic deployments were off. New cloud-case execution and independent cultural acceptance were pending at that date. The current acceptance linked above supersedes only the closed technical items; cultural quality remains NOT_VALIDATED.
 
 This repository is source only. The source-archive builder generates
 PUBLIC-SOURCE-MANIFEST.json for its exact included source, diagrams and hosting

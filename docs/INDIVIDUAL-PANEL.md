@@ -6,10 +6,10 @@ The public source includes a separate **NEW INDIVIDUAL CASE** screen. It works w
 
 Supply an explicit local JSON request template following [Individual capture](INDIVIDUAL-CAPTURE.md): schema version 1, two initial musical interests, exactly 20 Qloo movie UUID/name/year records, and the name plus full digest of a model already installed in local Ollama. No catalog is guessed or loaded from historical runs. The browser can change the two interests; catalog, model, destination and credential configuration belong to the server owner. Do not paste credentials into the browser or chat.
 
-From an installed backend environment, preparation only:
+From the repository root, using the dependency environment in the [source setup guide](PUBLIC-CODE-QUICKSTART.md), preparation only. Here `python` means that virtual environment's interpreter:
 
 ```powershell
-python -m affinityqa serve --port 8794 --individual-template C:\path\request.json --individual-output C:\path\new-job-storage --ollama-url http://127.0.0.1:11434
+python scripts/affinityqa.py serve --port 8794 --individual-template C:\path\request.json --individual-output C:\path\new-job-storage --ollama-url http://127.0.0.1:11434
 ```
 
 The storage parent must already exist. Open `http://127.0.0.1:8794/#screening`, select **NEW INDIVIDUAL CASE**, choose the interests, and select **REVIEW A NEW PLAN**. This writes a private plan, with no credential loading, Qloo requests, model queries or inference. A template does not enable execution.
@@ -17,7 +17,7 @@ The storage parent must already exist. Open `http://127.0.0.1:8794/#screening`, 
 When the owner is ready to use Qloo and the local model, explicitly enable execution:
 
 ```powershell
-python -m affinityqa serve --port 8794 --individual-template C:\path\request.json --individual-output C:\path\new-job-storage --ollama-url http://127.0.0.1:11434 --individual-local-enabled --env-file C:\path\.env
+python scripts/affinityqa.py serve --port 8794 --individual-template C:\path\request.json --individual-output C:\path\new-job-storage --ollama-url http://127.0.0.1:11434 --individual-local-enabled --env-file C:\path\.env
 ```
 
 Inspect the budget and fingerprints, then select **START THIS REVIEWED LOCAL PLAN**. The exact request, capture source, dependency lock, output and manager must still match the plan. Credentials are loaded locally at admission. The limit per job is four Qloo attempts and 39 fresh ranking decisions, with the previously declared metadata checks and one model load. One capture is active per manager storage; storage is limited to 20 prepared plans and three execution admissions, including failed or interrupted admissions. Use a new owner-selected storage root after inspecting old evidence; there is no automatic cleanup, retry, quota reset or resume. These limits do not control unrelated GPU clients or separately configured storage roots.

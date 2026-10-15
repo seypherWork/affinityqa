@@ -190,6 +190,25 @@ class RepeatableJobManager:
                            (now,encoded(choice),job['job_id']))
                 db.execute("INSERT INTO queue(job_id,phase,eligible) VALUES(?,'capture',?)",(job['job_id'],now))
                 self.store.event(db,job['job_id'],'QUEUED',{'recovered_explicit_pre_dispatch_confirmation':True})
+        self.reconcile_terminal_reservations()
+
+    def reconcile_terminal_reservations(self):
+        """Finish interrupted terminal cleanup before enabling a dispatcher.
+
+        Job status and provider reservations live in separate durable stores.
+        A process can stop between committing a terminal job and releasing its
+        unsent work. Such a PENDING row must not remain an eligible FIFO head.
+        Sent/unknown/accepted observations and case artifacts are never changed.
+        """
+        with self.lock:
+            if self.scheduler is None or self._admissions_blocked():return
+            for row in self.store.rows("SELECT job_id,owner,status FROM jobs WHERE status IN ('COMPLETE','PARTIAL','FAILED','UNKNOWN')"):
+                cancelled=self.scheduler.abandon_pending(row['job_id'],row['owner'])
+                if cancelled:
+                    with self.store.transaction() as db:
+                        self.store.event(db,row['job_id'],row['status'],{
+                            'reconciled_terminal_unsent_reservations':cancelled,
+                            'automatic_retry':False})
 
     def request_for(self,artists,preferences=None,confirm_identities=False,discover_new_movies=False):
         return request_for(self.template,artists,preferences,confirm_identities,discover_new_movies)

@@ -164,6 +164,108 @@ class RepeatableTests(unittest.TestCase):
         self.assertEqual((len(self.transport.calls),len(self.opener.calls)),(4,1))
         next_plan=self.prepare(restored,token);self.assertEqual(next_plan['status'],'PLANNED')
 
+    def test_restart_reconciles_unsent_terminal_reservation_without_replaying_failed_job(self):
+        self.request=identity_request();self.request['schema_version']=5
+        self.transport=DiscoveryTransport(self.request);self.opener=DiscoveryOpener()
+        scheduler=self.scheduler(groq_requests=1);manager=self.manager(scheduler=scheduler)
+        token,_=manager.session();planned=self.prepare(manager,token)
+        manager.start(token,planned['job_id'],planned['plan_sha256']);manager.manager.run_once()
+        pending=manager.view(token,planned['job_id'])
+        manager.confirm_identities(token,planned['job_id'],planned['plan_sha256'],
+            pending['identity_receipt_sha256'],{'A':ID_A,'B':ID_B})
+        manager.manager.run_once()
+        self.assertEqual(manager.view(token,planned['job_id'])['status'],'WAITING_PROVIDER_CAPACITY')
+        self.assertEqual((len(self.transport.calls),len(self.opener.calls)),(4,1))
+        self.now+=timedelta(seconds=61)
+        class InterruptedBeforeCleanup(BaseException):pass
+        # Process-exit seam: FAILED is committed, but its unsent reservation has
+        # not yet been cancelled. The original accepted capture stays untouched.
+        with patch.object(manager.manager,'_validate_sources',side_effect=SchemaError('synthetic source mismatch')):
+            with patch.object(scheduler,'abandon_pending',side_effect=InterruptedBeforeCleanup):
+                with self.assertRaises(InterruptedBeforeCleanup):manager.manager.run_once()
+        self.assertEqual(manager.view(token,planned['job_id'])['status'],'FAILED')
+        owner=manager._identity(token)
+        unknown=dict(job_id=planned['job_id'],owner_id=owner,stage='synthetic-unknown-retention',
+            provider='qloo',request_sha256=fingerprint('synthetic unknown receipt'))
+        op=scheduler.reserve(**unknown);scheduler.mark_sent(op['id'])
+        scheduler.finish(op['id'],unknown=True)
+        with scheduler._transaction() as db:
+            before=[dict(row) for row in db.execute('SELECT * FROM operations ORDER BY id')]
+        pending_ids=[row['id'] for row in before if row['state']=='PENDING']
+        self.assertEqual(len(pending_ids),1)
+        job_root=manager.root/'jobs'/planned['job_id']
+        preserved={str(p.relative_to(job_root)):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in job_root.rglob('*') if p.is_file()}
+        manager.close();restored=self.manager(root=manager.root,scheduler=scheduler)
+        self.assertEqual((len(self.transport.calls),len(self.opener.calls)),(4,1))
+        with scheduler._transaction() as db:
+            after={row['id']:dict(row) for row in db.execute('SELECT * FROM operations ORDER BY id')}
+        for row in before:
+            if row['id'] in pending_ids:
+                self.assertEqual(after[row['id']],{**row,'state':'CANCELLED','reason':'job-terminal'})
+            else:self.assertEqual(after[row['id']],row)
+        self.assertEqual(scheduler.lookup(**unknown)['state'],'UNKNOWN')
+        self.assertEqual(restored.view(token,planned['job_id'])['status'],'FAILED')
+        self.assertEqual(preserved,{str(p.relative_to(job_root)):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in job_root.rglob('*') if p.is_file()})
+        # A different admitted case can now use real protocol runners with fake
+        # HTTP, then finish after the actual synthetic one-request window elapses.
+        next_job=self.finish(restored,token,self.prepare(restored,token))
+        self.assertEqual(next_job['status'],'WAITING_PROVIDER_CAPACITY',next_job)
+        self.assertEqual(len(self.opener.calls),2)
+        with scheduler._transaction() as db:
+            active_pending=[dict(row) for row in db.execute("SELECT * FROM operations WHERE job=? AND state='PENDING'",(next_job['job_id'],))]
+        self.assertEqual(len(active_pending),1)
+        restored.close();continued=self.manager(root=manager.root,scheduler=scheduler)
+        with scheduler._transaction() as db:
+            self.assertEqual(active_pending,[dict(row) for row in db.execute("SELECT * FROM operations WHERE job=? AND state='PENDING'",(next_job['job_id'],))])
+        events=continued.store.rows('SELECT details FROM events WHERE job_id=?',(planned['job_id'],))
+        self.assertEqual(sum('reconciled_terminal_unsent_reservations' in json.loads(event['details']) for event in events),1)
+        self.now+=timedelta(seconds=61);continued.manager.run_once()
+        self.assertEqual(continued.view(token,next_job['job_id'])['status'],'COMPLETE')
+        self.assertEqual(len(self.opener.calls),3)
+        self.assertEqual(continued.view(token,planned['job_id'])['status'],'FAILED')
+
+    def test_configured_dispatcher_reconciles_terminal_pending_before_worker_activation(self):
+        from affinityqa.repeatable_case_config import configure_repeatable_cases
+        from affinityqa.repeatable_cases import repeatable_policy
+        from affinityqa.provider_scheduler import ProviderDeferred
+        from affinityqa.individual_jobs import write
+        config={'schema_version':2,'admission_mode':'repeatable-v1','request':self.request,
+            'policy':repeatable_policy(),'minimum_model_interval_seconds':0.0,
+            'http_limits':{'case_session_limit':10,'case_write_limit':10,'case_read_limit':60},
+            'provider_limits':{name:[{'name':'rpm','capacity':1,'seconds':60,
+                'metric':'requests','basis':'conservative'}] for name in ('qloo','groq')}}
+        path=self.parent/'config.json';write(path,config)
+        root=self.parent/'configured'
+        manager,_=configure_repeatable_cases(path,root,origin=ORIGIN)
+        self.addCleanup(manager.close)
+        token,_=manager.session();job=manager.prepare(token,self.request['artists'])
+        scheduler=manager.manager.scheduler;owner=manager._identity(token)
+        first=dict(job_id=job['job_id'],owner_id=owner,stage='accepted-before-crash',
+            provider='groq',request_sha256=fingerprint('accepted-before-crash'))
+        op=scheduler.reserve(**first);scheduler.mark_sent(op['id'])
+        scheduler.finish(op['id'],result={'synthetic':True},status=200)
+        waiting={**first,'stage':'unsent-before-crash','request_sha256':fingerprint('unsent-before-crash')}
+        with self.assertRaises(ProviderDeferred):scheduler.reserve(**waiting)
+        with manager.store.transaction() as db:
+            db.execute("UPDATE jobs SET status='FAILED',error_class='SchemaError' WHERE job_id=?",(job['job_id'],))
+            manager.store.event(db,job['job_id'],'FAILED',{'synthetic_crash_checkpoint':True})
+        accepted=scheduler.lookup(**first)
+        job_root=root/'jobs'/job['job_id']
+        preserved={str(p.relative_to(job_root)):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in job_root.rglob('*') if p.is_file()}
+        manager.close()
+        restored,_=configure_repeatable_cases(path,root,origin=ORIGIN)
+        self.addCleanup(restored.close)
+        self.assertEqual(restored.manager.scheduler.lookup(**waiting)['state'],'CANCELLED')
+        self.assertEqual(restored.manager.scheduler.lookup(**first),accepted)
+        self.assertEqual(restored.view(token,job['job_id'])['status'],'FAILED')
+        self.assertIsNone(restored.manager.worker)
+        self.assertEqual(preserved,{str(p.relative_to(job_root)):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in job_root.rglob('*') if p.is_file()})
+        self.assertEqual((len(self.transport.calls),len(self.opener.calls)),(0,0))
+
     def test_private_qloo_cache_preserves_exact_scope_and_fresh_models(self):
         manager=self.manager(scheduler=self.scheduler())
         manager.manager.qloo_cache=PrivateQlooCache(self.parent/'private-cache')

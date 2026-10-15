@@ -1,10 +1,12 @@
 """Loopback browser-test host; only explicit fake Qloo/model adapters exist."""
+import argparse
 import json
 import copy
 from pathlib import Path
 import socket
 import signal
 import sys
+import threading
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT/'src'), str(ROOT/'tests')]
@@ -14,6 +16,11 @@ import test_discovery_jobs as fixtures
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--exit-after-seconds', type=int, default=0)
+    args = parser.parse_args()
+    if not 0 <= args.exit_after_seconds <= 300:
+        parser.error('--exit-after-seconds must be between 0 and 300')
     # Reserve a candidate loopback port before provider/DNS guards are installed.
     with socket.socket() as listener:
         listener.bind(('127.0.0.1', 0))
@@ -37,9 +44,18 @@ def main():
         # Uvicorn restores and replays SIGTERM after graceful shutdown. Let the
         # replay return so this test host can report its provider-call counts.
         previous_handler = signal.signal(signal.SIGTERM, lambda *_: None)
+        # Windows forcibly terminates a child sent SIGTERM. A bounded fixture
+        # timer instead permits the real lifespan to close and emit its counts.
+        shutdown_timer = None
+        if args.exit_after_seconds:
+            shutdown_timer = threading.Timer(args.exit_after_seconds, lambda: setattr(server, 'should_exit', True))
+            shutdown_timer.daemon = True
+            shutdown_timer.start()
         try:
             server.run()
         finally:
+            if shutdown_timer is not None:
+                shutdown_timer.cancel()
             signal.signal(signal.SIGTERM, previous_handler)
         print(json.dumps({'synthetic_qloo_calls': len(fixture.transport.calls),
                           'synthetic_model_calls': len(fixture.opener.calls),

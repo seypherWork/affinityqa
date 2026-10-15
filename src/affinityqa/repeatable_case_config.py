@@ -74,6 +74,7 @@ def configure_repeatable_cases(config_file,storage,*,origin,execution_enabled=Fa
         from .qloo_cache import PrivateQlooCache
         manager.manager.qloo_cache=PrivateQlooCache(root/'private-qloo-cache')
         manager.manager.scheduler=scheduler
+        manager.manager.reconcile_terminal_reservations()
         manager.manager.enabled=execution_enabled
         manager.manager.autostart=True
         if execution_enabled:manager.manager._ensure_worker()
