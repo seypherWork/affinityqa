@@ -17,22 +17,25 @@ This path replays saved real-provider/model decisions. It adds no new Qloo/model
 
 ### A fresh individual case — separate provider execution
 
-Use this path while the new-case controls are enabled and capacity is available. The real discovery-v3 journey was verified in Brave on Windows on 14 October 2026, including the native download and same-session recovery.
+Repeatable new-case access is enabled on the tested 15 October runtime. Two consecutive discovery-v3 cases passed in one Windows/Codex browser session, including both native downloads and recovery of the first case. Groq remains free; shared provider capacity can delay or pause work.
 
 1. Open **New individual case**, then **OPEN OR RESTORE MY SESSION**.
 2. Keep **FILM PREFERENCES** selected for the short review. Enter two musical interests and optionally mark known favorites and exclusions. The verified example used **Sade / Nine Inch Nails**, **Get Out** as a known favorite and **Everything Everywhere All at Once** as an exclusion in both profiles. These are declared inputs, not inferred personal data.
 3. Press **REVIEW A NEW PLAN**. Inspect the mode, artists, declared Qloo/model budget and preferences. The short discovery protocol allows at most four Qloo requests and two model attempts; the separate causal campaign has 39 model decisions.
 4. Press **FIND ARTISTS** once. Inspect each proposed identity and choose one verified musical identity per profile. No artist is chosen automatically.
-5. Press **CONFIRM ARTISTS & START REVIEW** once. Follow progress. If it becomes unavailable, use **CHECK CURRENT STATUS**; a lost response does not authorize a second execution.
+5. Press **CONFIRM ARTISTS & START REVIEW** once. Follow progress. QUEUED or WAITING FOR PROVIDER CAPACITY means the durable queue is waiting for shared capacity, not that another start is needed. A displayed eligibility estimate is not a guaranteed start time. If it becomes unavailable, use **CHECK CURRENT STATUS**; a lost response does not authorize a second execution.
 6. Inspect the completed result, favorite/exclusion guards, verification and honest gate labels. Technical compliance does not establish individual satisfaction or superiority to the Qloo baseline.
 7. Press **DOWNLOAD SELECTED VERIFICATION**. Check that the JSON belongs to the selected case.
-8. Reload, restore the same session and open that saved case. This should read the existing result without a new plan or provider capture.
+8. After completion you may review another plan in the same session. The completed-case count has no lifetime application cap. Exact saved Qloo context can be reused; inspect the separate fresh HTTP, cached and restored-work counters. Each admitted model request is still a fresh bounded decision.
+9. Download the second result if you ran another case. Reload, restore the same session and open the first saved case by its ID. Opening it reads the existing result without a new plan or provider capture.
 
 If the session is expired, capacity is exhausted, evidence changed or a provider stops the case, retain the displayed result and receipt. Preserve failed admissions; do not clear cookies or repeat an admitted case to hide a failure. Recorded repair remains a separate review path.
 
 ### Current acceptance boundary
 
-On tested runtime `2c2f28a`, one real Windows/Brave visitor completed identity selection, four Qloo requests, two Groq decisions, a physical native verification download and recovery of the same completed case. Preferences and result fingerprints survived the reload. The five delivered films per profile respected favorites and exclusions; both lists equalled the same-input Qloo baseline. This proves the bounded technical route, not human satisfaction, backend causal comparability, reserved provider quota or physical iOS/Safari behavior. See [the acceptance record](JUDGE-ACCEPTANCE.md).
+On tested runtime `32406c2`, one engineering visitor completed two consecutive cases in the same Windows/Codex browser session. Both used Sade / Nine Inch Nails, Get Out as a favorite and Everything Everywhere All at Once as an exclusion for both profiles. The first used four fresh Qloo HTTP attempts and two fresh Groq decisions; the second used four cached Qloo responses and two fresh Groq decisions. Both 6,693-byte native JSON files were physically saved and verified. Reloading and restoring recovered the first completed case, plan and saved results without starting another capture.
+
+The five films per profile respected favorites and exclusions and equalled the same-input Qloo baseline. This proves the observed technical route and repeatability, not human satisfaction, improvement over Qloo, reserved provider capacity or physical iOS/Safari behavior. The original failed case and all historical files remain preserved. [Exact acceptance evidence](JUDGE-ACCEPTANCE.md).
 
 ## Historical walkthrough and provenance
 

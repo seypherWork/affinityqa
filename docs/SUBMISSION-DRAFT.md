@@ -1,5 +1,84 @@
 # AffinityQA — English submission draft
 
+English working entry, 15 October 2026. Prepared for factual review; not submitted.
+
+## Project name
+
+AffinityQA
+
+## Tagline
+
+Follow the profile. Prove the recovery.
+
+## Elevator pitch
+
+A personalized agent can return a valid movie list for the wrong taste profile. AffinityQA traces Qloo context through agent requests and caches, diagnoses three supported integration faults, and checks whether a repair restores healthy behavior.
+
+## Inspiration
+
+A movie list can pass every format check and still belong to yesterday's profile. A stale cache or a mismatched tool response can silently survive a change in taste. We built AffinityQA to make that failure visible: which profile reached the decision, what broke, what changed, and what evidence supports recovery?
+
+## What it does
+
+The hosted workspace gives judges two complementary paths:
+
+- **Recorded repair:** select a controlled incident and follow Detect, Diagnose, Repair and Verify. Compare the requested interest, consumed Qloo context, faulty output, repaired output and healthy reference. These genuine saved experiments can be replayed without new provider calls.
+- **New individual case:** open a private browser session, declare two musical interests and optional film favorites or exclusions, review the plan, and explicitly confirm the artist identities returned by Qloo. Inspect five new films per profile, the original model ranking, the Qloo baseline and a downloadable verification receipt. This short preference route is separate from the controlled-fault campaign.
+
+Reviewers can complete another case in the same session and restore their saved cases after a reload. They need no account, Docker installation, local model or API key. Fresh, cached and restored work are labelled separately.
+
+## How Qloo is used
+
+Qloo supplies real artist-identity candidates and cross-domain movie-affinity context for explicit musical interests. The agent consumes that context to rank a fixed twenty-film catalog. Known favorites guide both Qloo and the model; favorites and exclusions stay outside the delivered five.
+
+The evaluator follows identity across the requested interest, transmitted model input, consumed tool context and output. Three deliberately injected incidents break that chain: a cache key omitting the profile, a stale request profile and another profile's Qloo response. Supported repairs change the adapter's session routing or cache configuration, then verification checks recovery against healthy behavior and legitimate reuse. It does not claim arbitrary source-code repair.
+
+## How we built it
+
+Next.js and TypeScript provide the review workspace; Python and FastAPI run the capture, diagnostics, repairs and file verifiers. Persistent storage retains plans, confirmed identities, original observations, failed attempts and selected verification receipts.
+
+The original controlled experiment used a local model. The hosted operator uses Groq Free with GPT-OSS 20B. A durable provider queue reserves conservative request and token capacity before dispatch. Accepted work can be restored without resending it; exact Qloo context can be reused privately with explicit provenance. There is no lifetime application count cap, while shared provider quotas and storage safeguards still apply. Free inference is finite, and waiting estimates are not promises.
+
+## Challenges we ran into
+
+A real artist search contained mixed musical and nonmusical duplicate IDs. Discovery v3 validates raw rows before projecting selectable musical identities, collapses only identical musical candidates and rejects conflicting identities. A later live trial exposed a private-cache validator still applying the stricter ranking contract to those searches. We aligned cache semantics with the pinned versioned identity contract and repaired the reader for historical partial search receipts. The failed trials, original responses and consumed work remain intact.
+
+We also separated application access from provider capacity. Repeatable sessions do not create unlimited model quota. The queue reports waiting, preserves accepted work and exposes fresh versus reused context rather than silently retrying sent failures or switching to a paid provider.
+
+## Accomplishments and verified results
+
+| Evidence | Observed result |
+| --- | --- |
+| Engineering checks | Tested runtime `32406c2`; [CI 38785730767](https://github.com/seypherWork/affinityqa/actions/runs/38785730767): 544 Python tests on each of Windows and Ubuntu, type checks and production build. Four Linux browser commands used synthetic providers. |
+| Real repeatable browser journey, 15 October | Two consecutive Sade / Nine Inch Nails cases in one Windows/Codex browser session. First: 4 fresh Qloo HTTP attempts and 2 fresh Groq decisions. Second: 4 saved Qloo responses, no fresh Qloo attempt and 2 fresh Groq decisions. Both completed. |
+| Delivery, download and recovery | Five unique films per profile, with Get Out favorite and Everything Everywhere All at Once excluded. Two actual 6,693-byte native verification downloads were saved and checked. Reloading and restoring recovered the first completed case without a new capture. |
+| Preservation | Post-restoration comparison retained all 297 historical-store file hashes and all 11 files of the original failed 15 October case. No failed result was promoted to complete. |
+| Original controlled capture | Six artist pairs, three injected faults and three repeats: 18 controlled cases and 54 observed recoveries from 234 local-model decisions and 24 Qloo observations. These repeats are not independent users. |
+
+## What we learned
+
+Profile integrity, backend comparability and cultural quality answer different questions. A pipeline can pass integration checks while remote backend fingerprints vary; causal attribution for that separate 39-decision remote campaign therefore remains **INCONCLUSIVE**. A coherent recommendation list also does not establish that a person would enjoy the films.
+
+Both latest top-five deliveries equalled the same-input Qloo baseline: this demonstrates integration and preference constraints, not improvement over Qloo. Cultural quality remains **NOT_VALIDATED**, verified human participants **0**, and historical quality failures retain their scores and thresholds. Role-play inputs are synthetic engineering inputs. The tested-recommender release gate remains **BLOCKED**; that is an evaluator finding, separate from the diagnostic web application's availability.
+
+## What comes next
+
+Independent human preference evaluation and broader controlled fault coverage need their own evidence. We will keep the hosted review freely accessible during judging, with preserved results and a zero-new-call recorded path when shared inference capacity is unavailable. Groq stays free; no unlimited throughput or future uptime is claimed. Raw provider captures and credentials remain private; original code is MIT licensed and third-party data retain their terms.
+
+## Links
+
+- [Hosted judge workspace](https://affinityqa-review.onrender.com/demo)
+- [Public source, MIT original code and setup commands](https://github.com/seypherWork/affinityqa)
+- [Judge click path](https://github.com/seypherWork/affinityqa/blob/main/docs/DEMO-GUIDE.md)
+- [Exact acceptance evidence](https://github.com/seypherWork/affinityqa/blob/main/docs/JUDGE-ACCEPTANCE.md)
+
+This draft requires the owner's final approval before submission. The [official rules](https://qloo.devpost.com/rules), checked 15 October 2026, set the deadline at **30 October 2026, 23:45 EDT** (**31 October, 04:45 in Belgium**). The project began on **3 October 2026**, as declared by the owner. Required materials are in English; the hosted demo and public source are linked above.
+
+<details>
+<summary>Historical submission drafts through 14 October 2026</summary>
+
+# AffinityQA — English submission draft
+
 English working entry, 14 October 2026. Not submitted. One complete live discovery-v3 Windows/Brave journey, native download and same-session recovery are verified; provider capacity through the future judging period remains unreserved.
 
 ## Project name
@@ -214,5 +293,7 @@ This draft is for review and submits no entry. Code publication, engineering che
 - The initial Groq 403/1010 failure was diagnosed through anonymous client-header comparison. The application User-Agent fix passed 289 tests per platform in published CI; two later authenticated diagnostic captures each stopped on a second response under the former global-fingerprint rule. Those partial attempts remain preserved separately from the complete v3 run.
 - Historical 13/14 and 4/6 cultural failures remain FAIL; cultural quality remains NOT_VALIDATED and recommender release BLOCKED.
 
+
+</details>
 
 </details>

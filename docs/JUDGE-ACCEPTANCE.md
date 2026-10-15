@@ -1,5 +1,51 @@
 # Judge acceptance record
 
+## Current bounded engineering acceptance — 15 October 2026
+
+**PASS: repeatable hosted film-preference review, two consecutive cases, two native downloads and recovery of the first case in the same browser session.** This accepts the observed technical route of the diagnostic application. It does not approve a production recommender, establish human satisfaction or guarantee future provider capacity.
+
+| Requirement | Observed evidence | Boundary |
+| --- | --- | --- |
+| Source and CI | Tested runtime `32406c295fa436476e42b6a5779b635d8493bc51`; [CI 38785730767](https://github.com/seypherWork/affinityqa/actions/runs/38785730767): 544 Python tests on each of Windows and Ubuntu, types and production build | All four Linux browser commands used synthetic providers; not real-provider acceptance |
+| Hosted deployment | Render `dep-db8ht5qvcj2c73af4k2g`, same tested code, repeatable-v1 enabled, maintenance off | Existing server, disk, keys, GPT-OSS 20B, Groq Free, limits and paid hosting plan retained; auto-deploy off |
+| First new case | `20261015T184953Z-47ca8047`: VERIFIED_COMPLETE, preference PASS, 4 fresh Qloo HTTP attempts, 2 fresh Groq decisions | Sade / Nine Inch Nails, Get Out favorite and Everything Everywhere All at Once excluded for both profiles |
+| Second new case | `20261015T190345Z-a9fa8c2b`: VERIFIED_COMPLETE, preference PASS, 0 fresh Qloo HTTP attempts, 4 Qloo cache hits, 2 fresh Groq decisions | Same session and explicit inputs; cached context is not new Qloo evidence or an independent quality trial |
+| Delivery | Each of four profile results contains five unique films, no known favorite and no excluded film | Both runs' deliveries equal the same-input Qloo baseline; no improvement over Qloo is demonstrated |
+| Native downloads | Two actual browser downloads, each 6,693 bytes; hashes and identifiers below | Files physically saved and parsed on Windows; not an HTTP-only substitute |
+| Session recovery | Reload, OPEN OR RESTORE MY SESSION, then open the first completed job by its ID after the second job | Same first-job ID, plan, result and owned verification link; no cookie deletion, limit reset or new provider capture |
+| Provider accounting | Read-only scheduler audit: original failed case plus two new cases total 6 Qloo and 4 Groq HTTP attempts, all HTTP 200; four additional Qloo operations CACHED with no send | Groq reported 20,447 tokens against 29,812 reserved; no unknown outcome, provider pause, 429 or reservation overrun in this bounded trial |
+| Conservation | All 297 historical-store files, 21,044,864 bytes, retain the exact before/after inventory; all 11 original failed-case files unchanged | Rechecked after the session-restoration sequence; not a claim that 297 is the entire current service disk |
+| Availability at final check | repeatable-v1 enabled, admission not blocked, capture inactive, queue empty and no paused provider | Liveness alone does not authenticate providers; successful captures above are the real provider evidence |
+
+### Download and plan fingerprints
+
+| Case | Plan SHA-256 | Private receipt identifier carried by the public projection | Native public file SHA-256 |
+| --- | --- | --- | --- |
+| First, `20261015T184953Z-47ca8047` | `580da9e13c0acc7edae06413608797f68f13a603e90b6c15afcea8bd3a0e22ed` | `144730a045832264e769036c310dc4706c2c7604fded7a8ab63aa27d0ec57e9d` | `d7cf6372fc841917dd820292a4fa7915845f754334a13a64c224da256a22bd4b` |
+| Second, `20261015T190345Z-a9fa8c2b` | `8ed1623c9c04eaf1e89be8bb16587174b19f666d4af4f3555992c3888b25fff6` | `927c9a8d7a1d55405ce30ce52b6a8780996101827511ef1c85ee52120a36f8c9` | `fb1b3ff7d8289a206f67cf00b4af395bd685c42562b1d85b23ca8efd6819948a` |
+
+The public download is a restricted projection; its file hash differs from the private full receipt identifier. Catalog SHA-256: `79b831ee81c65f886a746026c5805ea76fb3bdbb13458142a3f57da3f2cc3b02`.
+
+The original `20261015T175324Z-4ca42b04` remains VERIFIED_PARTIAL / SchemaError after two Qloo searches and zero model calls. Its receipt remains `9b8734c95dd5aa2f5d0e276137bdc73d178e4e1e1e254b5f3e0ccf6899fbd078`. The two completed cases are additional trials. Restored saved steps reconstruct accepted work; they are not fresh HTTP attempts, hidden retries or new model decisions.
+
+### Remaining evidence boundaries
+
+- **Quality:** cultural NOT_VALIDATED, verified human participants 0. Role-play inputs are synthetic. Earlier quality failures and thresholds remain unchanged.
+- **Causality:** remote causal attribution remains INCONCLUSIVE for the separate controlled campaign; the short preference route does not run its 39-decision fault experiment.
+- **Release:** tested-recommender BLOCKED is separate from the diagnostic application's bounded technical acceptance.
+- **Capacity:** repeatable access removes lifetime application count caps, not provider rate limits. Shared free capacity, storage and operational availability can delay or stop new work. No paid model service or unlimited quota is promised.
+- **Review:** independent local review can check native files, arithmetic and retained observations; it does not repeat the providers or cryptographically attest an external service.
+- **Submission:** this record does not submit the entry. The [official rules](https://qloo.devpost.com/rules), checked 15 October, set the deadline at **30 October 2026, 23:45 EDT** (**31 October, 04:45 in Belgium**). Free judge access must continue through the end of judging, **16 November, 23:45 ET**. Future availability cannot be established in advance by today's trial.
+
+## Retained historical acceptance
+
+The following snapshots retain their original results and scope. Their old PENDING/NO-GO statements do not supersede the dated technical acceptance above; their scientific limits and failures remain valid.
+
+<details>
+<summary>Historical acceptance snapshots through 14 October 2026</summary>
+
+# Judge acceptance record
+
 ## Current bounded engineering acceptance — 14 October 2026
 
 **PASS: one complete real hosted discovery-v3 journey on Windows/Brave.** This is acceptance of the documented diagnostic application and short individual-case route, not production approval of the tested recommender or a guarantee of unrestricted future provider capacity.
@@ -177,3 +223,5 @@ The Qloo review relies on the [official caching FAQ](https://docs.qloo.com/refer
 - The minimum evidence closure passed 54 in-process selections and a separate Windows 382-file extraction on 6 October. Its Linux/remote installation was pending at that date. Later hosted Linux/restart acceptance appears above; neither historical measurements nor current replay establish new-case provider capacity.
 - The earlier constrained Linux rehearsal and initial Render build are retained as historical preparation, separate from current recorded hosting.
 - Two earlier genuine Groq diagnostics each admitted two attempts and preserved one strict authenticated packet, then stopped under the previous global-fingerprint contract. Their causal gates were NOT_EVALUATED; the later complete v3 result does not erase them. Historical cultural 13/14 and 4/6 trials retain FAIL and their original thresholds.
+
+</details>

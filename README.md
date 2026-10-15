@@ -35,23 +35,17 @@ Qloo supplies real cross-domain movie context for musical interests. That contex
 
 ## Verified engineering and live status
 
-**Tested runtime: 14 October 2026.** The hosted service runs [`2c2f28a`](https://github.com/seypherWork/affinityqa/commit/2c2f28a9866920031c84779a38af340e3a724966). Discovery v3 validates raw artist-search rows before projecting selectable musical identities, collapsing only identical musical candidates while retaining the raw responses and rejecting conflicting identities. Interrupted progress observation can recover without starting the job again.
+**Tested runtime: 15 October 2026.** The hosted service runs [`32406c2`](https://github.com/seypherWork/affinityqa/commit/32406c295fa436476e42b6a5779b635d8493bc51), with **repeatable reviewer access enabled**. A visitor can complete another case in the same ownership session. There is no lifetime application plan or execution count cap; durable queuing, storage safeguards and shared provider quotas still apply. Groq remains on its free plan.
 
-[CI run 38472962653](https://github.com/seypherWork/affinityqa/actions/runs/38472962653) passed **479 Python tests on Windows and 479 on Ubuntu**, type checking and production export. Three Linux browser regressions used synthetic providers. Their HTTP verification check is separate from the genuine native-browser acceptance below.
+[CI run 38785730767](https://github.com/seypherWork/affinityqa/actions/runs/38785730767) passed **544 Python tests on Windows and 544 on Ubuntu**, type checking and production export. All four Linux browser commands passed using synthetic providers. Those regressions are separate from the real hosted acceptance below.
 
-**One complete real hosted journey passed in Brave on Windows.** A declared engineering visitor selected Sade and Nine Inch Nails, used Get Out as a known favorite and Everything Everywhere All at Once as an exclusion for both profiles, reviewed the plan, confirmed the returned identities and obtained five eligible films per profile. Case `20261014T144251Z-c1eb0039` completed with **four Qloo requests and two Groq model attempts**. Its native JSON download was physically saved and checked; reloading and restoring the same session recovered the same completed case and plan, preference, intent and delivery fingerprints without another capture. An independent local review checked the retained observations and downloaded file.
+**Two consecutive real cases completed in one Windows/Codex browser session.** Both reviewed Sade / Nine Inch Nails with Get Out as a known favorite and Everything Everywhere All at Once excluded in both profiles. Each delivered five unique new films per profile, respecting both constraints. The first used **4 fresh Qloo HTTP attempts and 2 fresh Groq decisions**. The second reused **4 saved Qloo responses and made 2 fresh Groq decisions**. Both native JSON downloads were physically saved and verified. After a reload, restoring the same session recovered the first completed case, its plan and its saved result without a new capture. [Case identifiers, file hashes and boundaries](docs/JUDGE-ACCEPTANCE.md).
 
-This is bounded technical acceptance, not a human preference study. Both top-five lists equalled the same-input Qloo baseline. Cultural quality remains **NOT_VALIDATED**, with **zero verified human participants**. Remote causal attribution for the separate 39-decision campaign remains **INCONCLUSIVE**. A **BLOCKED** tested-recommender release is an evaluation result; it does not mean that the diagnostic application is unavailable.
+The rollout preserved all **297 files** in the historical store and all **11 files** of the original failed 15 October case, checked again after session restoration. The correction aligns the private artist-search cache with the existing versioned identity contract and makes the original partial receipt readable. It does not turn the failed case into a success, retry it or refund its consumed work.
 
-The original v2 case `20261012T230633Z-8a5793a9` remains PARTIAL after two Qloo searches and zero model calls. Its raw responses and consumed admission were preserved. The successful v3 case is a separate trial; no historical result or threshold was rewritten.
+This is bounded technical acceptance, not a preference study. Both top-five lists equalled the same-input Qloo baseline. Cultural quality remains **NOT_VALIDATED**, with **zero verified human participants**. Remote causal attribution for the separate 39-decision campaign remains **INCONCLUSIVE**. A **BLOCKED** tested-recommender release is an evaluation result; it does not mean that the diagnostic application is unavailable.
 
-Judge access is browser-based and free to the reviewer. New cases use the owner's Groq Free and Qloo capacity; application admissions do not reserve provider quota. Retained cases and recorded repairs remain inspectable when new execution is unavailable. The owner must maintain testing access through the judging period; this one-case acceptance cannot guarantee future capacity. [Detailed acceptance and limits](docs/JUDGE-ACCEPTANCE.md).
-
-The source also includes [repeatable reviewer access](docs/PUBLIC-REPEATABLE-CASES.md):
-multiple plans in the same ownership session, a durable provider-capacity queue,
-explicit recovery provenance and a separate store with read-only historical
-cases. Activating this mode is a separate deployment step. It keeps Groq Free;
-it does not promise unlimited provider capacity or change evaluation gates.
+Judge access requires no account, installation or provider key. Shared Qloo and Groq Free capacity is unreserved: new work may wait, pause or stop, while saved results and recorded repairs remain readable. There is no promise of unlimited free inference or future uptime. The owner must maintain free testing access through judging. [Repeatable access contract](docs/PUBLIC-REPEATABLE-CASES.md) · [Judge walkthrough](docs/DEMO-GUIDE.md).
 
 ## Run the source checks
 
@@ -62,6 +56,8 @@ CI used Python **3.13.16 on Windows**, **3.12.14 on Ubuntu 24.04**, Node.js **24
 ~~~powershell
 & "C:\path\to\python.exe" -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-backend.lock.txt
+.\.venv\Scripts\python.exe -m pip install --require-hashes -r requirements-repeatable.lock.txt
+.\.venv\Scripts\python.exe -m pip check
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ~~~
 
@@ -72,6 +68,8 @@ Use your installed Python 3.13 executable in the first command.
 ~~~bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements-backend.lock.txt
+.venv/bin/python -m pip install --require-hashes -r requirements-repeatable.lock.txt
+.venv/bin/python -m pip check
 .venv/bin/python -m unittest discover -s tests -v
 ~~~
 
