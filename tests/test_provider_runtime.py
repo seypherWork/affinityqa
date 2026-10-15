@@ -173,6 +173,43 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaises(ValueError): PrivateQlooCache(ROOT / 'private-cache-test')
         with self.assertRaises(ValueError): PrivateQlooCache.key({'method': 'GET'}, {'source_namespace': 'unit'})
 
+    def test_versioned_identity_cache_preserves_raw_variants_and_strict_other_contexts(self):
+        from affinityqa.search_music_candidates import CONTRACT
+        from affinityqa.errors import SchemaError
+        row={'entity_id':'00000000-0000-4000-8000-000000000001','name':'Artist','types':['urn:entity:artist']}
+        body={'results':[row,{**copy.deepcopy(row),'types':['urn:entity:person']}]}
+        request={'method':'GET','host':'https://hackathon.api.qloo.com','path':'/search',
+                 'params':{'query':'Artist','take':5,'types':'urn:entity:artist,urn:entity:person'}}
+        sample={'source':'test-double-only','request':request,'status':200,'response':body,
+                'response_sha256':fingerprint(body),'response_headers':{},'elapsed_ms':1.0,
+                'attempt':1,'live_network_request':False}
+        scope={**self.scope,'phase':'identity-search','identity_candidate_contract':CONTRACT}
+        cache=PrivateQlooCache(self.directory/'versioned-cache')
+        before=copy.deepcopy(sample)
+        accepted=cache.put(request,scope,sample,received_at='2026-10-14T20:00:00+00:00')
+        self.assertEqual(accepted['sample'],before)
+        self.assertEqual(cache.get(request,scope),accepted)
+        self.assertEqual(sample,before)
+        self.assertIsNone(cache.get(request,{**self.scope,'phase':'identity-search'}))
+        for other in ({**self.scope,'phase':'identity-search'}, {**scope,'phase':'capture'}):
+            with self.subTest(scope=other),self.assertRaises(SchemaError):
+                cache.put(request,other,sample,received_at=accepted['original_received_at'])
+        with self.assertRaises(ValueError):
+            cache.put(request,{**scope,'identity_candidate_contract':'unknown'},sample,received_at=accepted['original_received_at'])
+        ranking=copy.deepcopy(sample);ranking['request']['path']='/v2/insights'
+        ranking['response']={'success':True,'results':{'entities':copy.deepcopy(body['results'])}}
+        ranking['response_sha256']=fingerprint(ranking['response'])
+        with self.assertRaises(SchemaError):PrivateQlooCache._validate(ranking,scope)
+        for change in ('conflicting','invalid-row','too-many'):
+            invalid=copy.deepcopy(sample)
+            if change=='conflicting':invalid['response']['results'][1].update(types=['urn:entity:artist'],name='Other Artist')
+            elif change=='invalid-row':invalid['response']['results'][1]['entity_id']='invalid'
+            else:invalid['response']['results']=[copy.deepcopy(row) for _ in range(6)]
+            invalid['response_sha256']=fingerprint(invalid['response'])
+            with self.subTest(change=change),self.assertRaises(SchemaError):PrivateQlooCache._validate(invalid,scope)
+        wrong=copy.deepcopy(sample);wrong['request']['params']['take']=50
+        with self.assertRaises(ValueError):PrivateQlooCache._validate(wrong,scope)
+
     def test_qloo_timeout_and_http_errors_never_use_legacy_three_retries(self):
         for index, kwargs in enumerate(({'failure': TimeoutError(UNIT_SECRET)}, {'status': 401}, {'status': 429})):
             tool = Tool(**kwargs); client = self.client(tool); runtime = self.runtime('tool-' + str(index))

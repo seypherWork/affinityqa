@@ -181,6 +181,31 @@ class RepeatableTests(unittest.TestCase):
         self.assertEqual(third['status'],'COMPLETE',third)
         self.assertEqual((len(self.transport.calls),len(self.opener.calls)),(8,117))
 
+    def test_discovery_search_variants_survive_private_cache_and_repeat_with_fresh_models(self):
+        from test_discovery_v3_search import variant
+        self.request=identity_request();self.request['schema_version']=5
+        self.transport=DiscoveryTransport(self.request,mutation=variant);self.opener=DiscoveryOpener()
+        manager=self.manager(scheduler=self.scheduler())
+        manager.manager.qloo_cache=PrivateQlooCache(self.parent/'variant-cache')
+        token,_=manager.session();results=[]
+        for _ in range(2):
+            job=self.finish(manager,token,self.prepare(manager,token));results.append(job)
+            self.assertEqual(job['status'],'COMPLETE',job)
+            private=manager.manager.receipt(job['job_id'])
+            directory=Path(manager.manager._job(job['job_id'])['directory'])
+            # Duplicate raw UUID variants stay in evidence; only the explicit
+            # selectable musical-profile contract collapses eligible choices.
+            for sample in sorted(directory.glob('http-000[24].json')):
+                rows=json.loads(sample.read_text())['response']['results']
+                self.assertEqual(len(rows),2)
+                self.assertEqual(rows[0]['entity_id'],rows[1]['entity_id'])
+            self.assertEqual(private['verification_status'],'VERIFIED_COMPLETE')
+        self.assertEqual((len(self.transport.calls),len(self.opener.calls)),(4,4))
+        self.assertEqual(results[1]['provider_stats']['qloo']['http_attempts'],0)
+        self.assertEqual(results[1]['provider_stats']['qloo']['cache_hits'],4)
+        self.assertEqual(results[1]['provider_stats']['groq']['http_attempts'],2)
+        self.assertEqual(manager.verification(token,results[0]['job_id'])['result']['verification_status'],'VERIFIED_COMPLETE')
+
     def test_source_change_after_admission_blocks_restart_before_keys_or_send(self):
         manager=self.manager(scheduler=self.scheduler());token,_=manager.session()
         job=self.prepare(manager,token);manager.start(token,job['job_id'],job['plan_sha256']);manager.close()
@@ -221,6 +246,47 @@ class RepeatableTests(unittest.TestCase):
         with path.open('ab') as handle:handle.write(b' ')
         self.assertEqual(manager.view(token,final['job_id'])['status'],'EVIDENCE_CHANGED')
         with self.assertRaises(SchemaError):manager.verification(token,final['job_id'])
+
+    def test_partial_identity_evidence_remains_readable_without_confirming_or_resending(self):
+        from affinityqa.qloo import Response
+        for version in (4,5):
+            with self.subTest(version=version):
+                self.request=identity_request();self.request['schema_version']=version
+                base=DiscoveryTransport if version==5 else IdentityTransport
+                class IncompleteSearch(base):
+                    def send(self,path,params):
+                        result=super().send(path,params)
+                        return Response(200,{'results':[]},{}) if len(self.calls)==2 else result
+                self.transport=IncompleteSearch(self.request)
+                self.opener=DiscoveryOpener() if version==5 else OpenerFixture()
+                scheduler=self.scheduler();manager=self.manager(root=self.parent/f'partial-{version}',scheduler=scheduler)
+                token,_=manager.session();planned=self.prepare(manager,token)
+                manager.start(token,planned['job_id'],planned['plan_sha256']);manager.manager.run_once()
+                final=manager.view(token,planned['job_id'])
+                self.assertEqual(final['status'],'PARTIAL',final)
+                self.assertEqual(final['error_class'],'SchemaError')
+                verification=manager.verification(token,final['job_id'])
+                self.assertEqual(verification['result']['verification_status'],'VERIFIED_PARTIAL')
+                self.assertEqual(verification['result']['error_class'],'SchemaError')
+                self.assertEqual((len(self.transport.calls),len(self.opener.calls)),(2,0))
+                with self.assertRaises(SchemaError):
+                    manager.confirm_identities(token,final['job_id'],final['plan_sha256'],'0'*64,{'A':ID_A,'B':ID_B})
+                with self.assertRaises(SchemaError):manager.start(token,final['job_id'],final['plan_sha256'])
+                self.assertFalse(manager.manager.run_once())
+                job_root=manager.root/'jobs'/final['job_id']
+                preserved={str(p.relative_to(job_root)):hashlib.sha256(p.read_bytes()).hexdigest()
+                           for p in job_root.rglob('*') if p.is_file()}
+                manager.close();restored=self.manager(root=manager.root,scheduler=scheduler)
+                self.assertEqual(restored.view(token,final['job_id'])['status'],'PARTIAL')
+                self.assertEqual(restored.verification(token,final['job_id']),verification)
+                self.assertFalse(restored.manager.run_once())
+                for name,digest in preserved.items():self.assertEqual(hashlib.sha256((job_root/name).read_bytes()).hexdigest(),digest)
+                self.assertEqual((len(self.transport.calls),len(self.opener.calls)),(2,0))
+                receipt=next(job_root.glob('attempts/attempt-*/identity-verification.json'))
+                with receipt.open('ab') as handle:handle.write(b' ')
+                self.assertEqual(restored.view(token,final['job_id'])['status'],'EVIDENCE_CHANGED')
+                with self.assertRaises((SchemaError,OSError)):restored.verification(token,final['job_id'])
+                restored.close()
 
     def test_saved_explicit_confirmation_recovers_before_next_dispatch(self):
         self.request=identity_request();self.request['schema_version']=5

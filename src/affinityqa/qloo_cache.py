@@ -64,25 +64,41 @@ class PrivateQlooCache:
         value = json.loads(row[0])
         if fingerprint(value) != row[1] or value.get('cache_key_sha256') != key:
             raise RuntimeError('Private cached Qloo sample failed its stored integrity binding.')
-        self._validate(value['sample'])
+        self._validate(value['sample'], scope)
         return value
 
     @staticmethod
-    def _validate(sample):
+    def _validate(sample, scope=None):
         required = {'source', 'request', 'status', 'response', 'response_sha256', 'response_headers',
                     'elapsed_ms', 'attempt', 'live_network_request'}
         if (not isinstance(sample, dict) or set(sample) != required or sample['status'] != 200
                 or sample['response_sha256'] != fingerprint(sample['response']) or sample['attempt'] != 1
                 or type(sample['live_network_request']) is not bool):
             raise ValueError('Only an intact accepted first-attempt Qloo observation can be cached.')
-        parse_entities(sample['response'], insights=sample['request']['path'] == '/v2/insights',
-                       synthetic=sample['source'] == 'test-double-only')
+        from .search_music_candidates import CONTRACT, music_candidates
+        contract=scope.get('identity_candidate_contract') if isinstance(scope,dict) else None
+        if contract is not None and contract != CONTRACT:
+            raise ValueError('Unrecognized private identity-cache contract.')
+        if (contract == CONTRACT
+                and scope.get('phase') == 'identity-search' and sample['request']['path'] == '/search'):
+            params=sample['request']['params']
+            if (set(params) != {'query','take','types'} or type(params['take']) is not int or params['take'] != 5
+                    or params['types'] != 'urn:entity:artist,urn:entity:person'
+                    or not isinstance(params['query'],str) or not params['query'].strip()):
+                raise ValueError('Identity cache requires the pinned bounded musical search.')
+            # The pinned v3 search contract validates every raw row and rejects
+            # conflicting selectable profiles. Keep its raw response unchanged.
+            # This discriminator is part of the full cache key, on read and write.
+            music_candidates(sample['response'])
+        else:
+            parse_entities(sample['response'], insights=sample['request']['path'] == '/v2/insights',
+                           synthetic=sample['source'] == 'test-double-only')
 
     def put(self, request, scope, sample, *, received_at, secrets=()):
         key = self.key(request, scope)
         if sample['request'] != request or redact(sample, secrets) != sample:
             raise ValueError('Private Qloo cache refuses an unbound or unredacted sample.')
-        self._validate(sample)
+        self._validate(sample, scope)
         value = {'schema_version': 1, 'cache_key_sha256': key, 'sample': copy.deepcopy(sample),
                  'original_sample_sha256': fingerprint(sample), 'original_received_at': received_at}
         encoded = json.dumps(value, ensure_ascii=False, allow_nan=False)

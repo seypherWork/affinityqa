@@ -315,6 +315,9 @@ class RepeatableJobManager:
                'profile':request['artists'],'catalog':request['catalog'],
                'preferences':request.get('preferences'),
                'source_namespace':fingerprint(job['plan']['protocol_plan']['source_sha256'])}
+        candidate_contract=job['plan']['protocol_plan'].get('identity_candidate_contract')
+        if candidate_contract is not None:
+            scope['identity_candidate_contract']=candidate_contract
         return StorageGuardedRuntime(self.scheduler,job_id=job['job_id'],owner_id=job['owner'],qloo_cache=self.qloo_cache,
             cache_scope=scope,token_estimator=self.token_estimator,
             namespace={'request_sha256':fingerprint(job['plan']['request']),
@@ -499,7 +502,16 @@ class RepeatableJobManager:
         receipt=json.loads(job['receipt_json'])
         directory=Path(job['directory'])
         parent=directory.parent.parent
-        path=parent/('identity-verification.json' if job['status']=='AWAITING_IDENTITY_CONFIRMATION' else 'verification.json')
+        names=('identity-verification.json',) if job['status']=='AWAITING_IDENTITY_CONFIRMATION' else ('verification.json',)
+        if job['status']=='PARTIAL' and job['phase']=='identity-search':
+            # Both historical stop paths are immutable: a returned partial used
+            # the identity name; a recorded provider failure used the final name.
+            # Resolve only this closed pair, refusing missing or ambiguous files.
+            names=('identity-verification.json','verification.json')
+        paths=[safe_directory_path(parent/name) for name in names]
+        existing=[path for path in paths if path.exists()]
+        need(len(existing)==1 and existing[0].is_file(),'Missing or ambiguous captured receipt.')
+        path=existing[0]
         need(sha(path)==job['receipt_sha'] and read(path)==receipt
              and inventory(directory)==receipt['artifact_sha256'],'Captured evidence changed.')
         provenance=receipt['repeatable_contract'].get('provider_provenance')
