@@ -4,7 +4,20 @@
 
 Open [the hosted workspace](https://affinityqa-review.onrender.com/demo). A browser is sufficient; no Docker, local model or personal provider key is needed.
 
-### Recorded repair — about two minutes
+### Suggested 60-second opening — a wrong-profile incident
+
+This is a diagnostic workspace for teams building personalized agents. Musical interests provide context for movie recommendations; the application does not recommend songs or play music. The browser path requires no local installation.
+
+| Time | Action | Explain what the judge is seeing |
+| --- | --- | --- |
+| 0:00–0:15 | Open **Recorded repair**. Select **Alice Coltrane / Lil Nas X**, **Profile missing from cache key**, and a repeat requesting **Lil Nas X**. Press **Replay this incident**. | "The requested taste changed to Lil Nas X, but a cache key omitted the profile. A valid movie list can therefore carry Alice Coltrane's context." |
+| 0:15–0:30 | In **Detect**, compare requested taste, Qloo context, agent input and decision-associated profile. Open **Diagnose**. | "This controlled fault is CACHE_OMITS_PROFILE. Qloo's entity IDs and profile-bound context let us trace which interest reached the decision; a display name or valid list alone cannot establish that." |
+| 0:30–0:45 | Open **Repair** and compare before, after and healthy results. | "The supported repair binds the cache to the profile. The repaired route must match the recorded healthy reference, while legitimate cache reuse still works." |
+| 0:45–1:00 | Open **Verify** and inspect all six recovery controls. | "Diagnosis, repair, restored profile integrity, decision dispatch, healthy match and legitimate cache reuse passed. This is saved real-provider/model evidence: three recorded decisions dispatched, zero new Qloo or model calls." |
+
+This opening is a suggested presentation pace, not a measured latency guarantee. The Alice Coltrane / Lil Nas X cache replay was checked on the `ab32065` deployment on 15 October. The fault is deliberately injected into a controlled adapter; the repair is scoped to its supported routing/cache behavior. It does not establish new inference, human preference quality or arbitrary source-code repair.
+
+### Extended recorded repair — about two minutes
 
 1. Open **Recorded repair**.
 2. Choose **Mogwai / Kesha**, **Qloo context bound to wrong profile**, and **Repeat 3 · request Kesha**.
@@ -17,12 +30,12 @@ This path replays saved real-provider/model decisions. It adds no new Qloo/model
 
 ### A fresh individual case — separate provider execution
 
-Repeatable new-case access is enabled on the tested 15 October runtime. Two consecutive discovery-v3 cases passed in one Windows/Codex browser session, including both native downloads and recovery of the first case. Groq remains free; shared provider capacity can delay or pause work.
+Repeatable new-case access is enabled on runtime `ab32065`, tested on 15 October after deployment. The Portishead / Bad Bunny case completed in the existing session, with a native download and same-case recovery after a reload during provider waiting. Earlier that day, two consecutive Sade / Nine Inch Nails cases passed on `32406c2`; their dated evidence is retained in the acceptance record. Groq remains free; shared provider capacity can delay or pause work.
 
 1. Open **New individual case**, then **OPEN OR RESTORE MY SESSION**.
-2. Keep **FILM PREFERENCES** selected for the short review. Enter two musical interests and optionally mark known favorites and exclusions. The verified example used **Sade / Nine Inch Nails**, **Get Out** as a known favorite and **Everything Everywhere All at Once** as an exclusion in both profiles. These are declared inputs, not inferred personal data.
+2. Keep **FILM PREFERENCES** selected for the short review. Enter two musical interests and optionally mark known favorites and exclusions. The latest verified example used **Portishead / Bad Bunny**, **Get Out** as a known favorite and **Everything Everywhere All at Once** as an exclusion in both profiles. These are declared inputs, not inferred personal data.
 3. Press **REVIEW A NEW PLAN**. Inspect the mode, artists, declared Qloo/model budget and preferences. The short discovery protocol allows at most four Qloo requests and two model attempts; the separate causal campaign has 39 model decisions.
-4. Press **FIND ARTISTS** once. Inspect each proposed identity and choose one verified musical identity per profile. No artist is chosen automatically.
+4. Press **FIND ARTISTS** once. Inspect each proposed identity and choose one verified musical identity per profile. No artist is chosen automatically. For an ambiguous name such as Bad Bunny, verify the artist type and identity rather than selecting a homonymous person.
 5. Press **CONFIRM ARTISTS & START REVIEW** once. Follow progress. QUEUED or WAITING FOR PROVIDER CAPACITY means the durable queue is waiting for shared capacity, not that another start is needed. A displayed eligibility estimate is not a guaranteed start time. If it becomes unavailable, use **CHECK CURRENT STATUS**; a lost response does not authorize a second execution.
 6. Inspect the completed result, favorite/exclusion guards, verification and honest gate labels. Technical compliance does not establish individual satisfaction or superiority to the Qloo baseline.
 7. Press **DOWNLOAD SELECTED VERIFICATION**. Check that the JSON belongs to the selected case.
@@ -33,9 +46,11 @@ If the session is expired, capacity is exhausted, evidence changed or a provider
 
 ### Current acceptance boundary
 
-On tested runtime `32406c2`, one engineering visitor completed two consecutive cases in the same Windows/Codex browser session. Both used Sade / Nine Inch Nails, Get Out as a favorite and Everything Everywhere All at Once as an exclusion for both profiles. The first used four fresh Qloo HTTP attempts and two fresh Groq decisions; the second used four cached Qloo responses and two fresh Groq decisions. Both 6,693-byte native JSON files were physically saved and verified. Reloading and restoring recovered the first completed case, plan and saved results without starting another capture.
+On runtime `ab32065`, case `20261015T211609Z-022dda74` used Portishead / Bad Bunny with Get Out as a favorite and Everything Everywhere All at Once excluded in both profiles. It made four fresh Qloo HTTP requests and two fresh Groq decisions. The native 6,693-byte JSON file was physically saved and verified. A reload during provider waiting followed by restoration recovered the same completed case in the existing session; no new session, plan or provider capture was created for recovery.
 
-The five films per profile respected favorites and exclusions and equalled the same-input Qloo baseline. This proves the observed technical route and repeatability, not human satisfaction, improvement over Qloo, reserved provider capacity or physical iOS/Safari behavior. The original failed case and all historical files remain preserved. [Exact acceptance evidence](JUDGE-ACCEPTANCE.md).
+The five unique films per profile respected both constraints and equalled the same-input Qloo baseline. This proves the observed technical route, not human satisfaction, improvement over Qloo, reserved provider capacity or physical iOS/Safari behavior. All three recorded repair types also passed six checks each with zero new provider calls. All 792 old ordinary files and the three older repeatable cases/receipts were preserved; 80 old database rows were checked, including six permitted quota/sequence advances. [Exact acceptance evidence](JUDGE-ACCEPTANCE.md).
+
+Earlier on 15 October, runtime `32406c2` completed two consecutive Sade / Nine Inch Nails cases. The first used four fresh Qloo requests and two Groq decisions; the second used four cached Qloo responses and two fresh Groq decisions. Both native downloads and recovery of the first case passed. These retained historical trials are not counted as new executions of `ab32065`.
 
 ## Historical walkthrough and provenance
 
