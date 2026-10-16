@@ -146,3 +146,15 @@
 @media(max-width:1000px){.workflow[data-steps="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}.identityConfirm{align-items:stretch;flex-direction:column}.identityConfirm button{align-self:flex-start}}
 @media(max-width:800px){.identityProfiles{grid-template-columns:1fr}.workflow[data-steps="4"]{grid-template-columns:1fr}}
 @media(max-width:520px){.identityProfile,.confirmedIdentity,.identityConfirm{padding:14px}.identityChoice{padding:12px}.identityConfirm button{width:100%}}
+
+.movieQueryProfile{min-width:0;margin:0;border:1px solid var(--line);border-radius:10px;background:var(--white);padding:16px}
+.movieQueryProfile legend{padding:0 7px;font-size:10px;font-weight:650;letter-spacing:.04em;color:var(--plum);overflow-wrap:anywhere}
+.movieQueryProfile:disabled{opacity:.6}
+.movieQueryRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:0 0 14px}
+.root .secondaryButton{padding:10px 12px;min-height:40px;border:1px solid var(--line);border-radius:8px;background:var(--white);color:var(--plum);font:inherit;font-size:10px;font-weight:650;line-height:1.6;cursor:pointer}
+.root .secondaryButton:hover:enabled{border-color:var(--plum);background:var(--lavender)}
+.root .movieInputError{grid-column:1/-1;margin:0;padding:12px;border:1px solid #efc4cb;border-radius:8px;background:#fff4f5;color:#b42338;font-size:12px}
+.confirmedMovie{display:grid;gap:7px;padding-top:10px;border-top:1px solid var(--line)}
+.confirmedMovie strong{font-size:13px;line-height:1.5}
+.confirmedMovie code{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+@media(max-width:520px){.movieQueryProfile{padding:14px}.movieQueryRow{grid-template-columns:minmax(0,1fr)}.movieQueryRow button{justify-self:start}}

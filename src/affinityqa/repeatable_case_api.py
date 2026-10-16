@@ -6,7 +6,8 @@ from urllib.parse import urlsplit
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from .errors import SchemaError
-from .individual_api import ConfirmBody, JobId, PlanBody, StartBody
+from .individual_api import JobId, StartBody
+from .movie_case_bodies import ConfirmBody, PlanBody
 from .public_case_api import EmptyBody, cookie_name
 from .public_cases import SHA, TOKEN
 
@@ -68,8 +69,9 @@ def routes(manager,*,origin):
             try:
                 value=current.prepare(token,body.artists.model_dump(),
                     preferences=body.preferences.model_dump() if body.preferences is not None else None,
-                    confirm_identities=body.confirm_identities,discover_new_movies=body.discover_new_movies)
-            except SchemaError:raise Denial(422,'Use two distinct interests and valid, disjoint cinema preferences from this catalog.') from None
+                    confirm_identities=body.confirm_identities,discover_new_movies=body.discover_new_movies,
+                    **({'movie_queries':body.movie_queries.model_dump()} if body.movie_queries is not None else {}))
+            except SchemaError:raise Denial(422,'Use two distinct interests, valid cinema preferences and at most two movie searches per case.') from None
             return response(value,201)
         return call(action)
 
@@ -114,7 +116,8 @@ def routes(manager,*,origin):
                 raise Denial(409,'The reviewed plan or identity receipt differs.')
             if not current.capabilities(token)['execution_enabled']:raise Denial(503,'Confirmed capture is disabled; saved cases remain readable.')
             if current.health()['queued']>=current.policy['maximum_queued_jobs']:raise Denial(429,'The concurrent queue is full. Your saved selection can be admitted later.')
-            try:return response(current.confirm_identities(token,job_id,body.plan_sha256,body.identity_receipt_sha256,body.selected_entity_ids.model_dump()),202)
+            try:return response(current.confirm_identities(token,job_id,body.plan_sha256,body.identity_receipt_sha256,body.selected_entity_ids.model_dump(),
+                **({'selected_movie_entity_ids':body.selected_movie_entity_ids.model_dump()} if body.selected_movie_entity_ids is not None else {})),202)
             except SchemaError:raise Denial(409,'The saved identity choices or evidence no longer match this plan.') from None
         return call(action)
     return router

@@ -72,3 +72,10 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: web
         run: npx --yes pnpm@11.25.0 test:repeatable-backend
+      - name: Check confirmed movie input on desktop and mobile
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: |
+          npx --yes pnpm@11.25.0 test:movie-input-journey
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npx --yes pnpm@11.25.0 test:movie-input-journey -- --mobile

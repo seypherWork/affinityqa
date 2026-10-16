@@ -223,6 +223,7 @@ class RepeatableCaseManager:
                 'default_artists':copy.deepcopy(template['artists']),'catalog':copy.deepcopy(template['catalog']),
                 'catalog_sha256':fingerprint(template['catalog']),'cinema_preferences_supported':True,
                 'cinema_identity_confirmation_supported':True,'cinema_discoveries_supported':True,
+                'movie_input_search_supported':True,'maximum_movie_queries_per_case':2,
                 'minimum_model_interval_seconds':self.manager.interval,'remaining_plans':None,'remaining_executions':None,
                 'admission_mode':'repeatable-v1','jobs':jobs,'jobs_truncated':page['jobs_truncated'],
                 'next_cursor_job_id':page['next_cursor_job_id'],
@@ -254,11 +255,11 @@ class RepeatableCaseManager:
             key=self._identity(token)
             return self._history_page(key,cursor_job_id)
 
-    def prepare(self,token,artists,preferences=None,confirm_identities=False,discover_new_movies=False):
+    def prepare(self,token,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None):
         with self.lock:
             key=self._identity(token);self._can_mutate()
             try:
-                return self.manager.prepare(key,artists,preferences,confirm_identities,discover_new_movies)
+                return self.manager.prepare(key,artists,preferences,confirm_identities,discover_new_movies,movie_queries)
             except (OSError,sqlite3.Error):
                 self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
 
@@ -275,12 +276,12 @@ class RepeatableCaseManager:
             except (OSError,sqlite3.Error):
                 self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
 
-    def confirm_identities(self,token,job_id,plan_hash,identity_receipt_hash,selected_entity_ids):
+    def confirm_identities(self,token,job_id,plan_hash,identity_receipt_hash,selected_entity_ids,selected_movie_entity_ids=None):
         with self.lock:
             key=self._identity(token);new=self._owned(key,job_id);self._can_mutate()
             need(new,'Historical sealed cases are read-only.')
             self._queue_capacity()
-            try:return self.manager.confirm_identities(job_id,plan_hash,identity_receipt_hash,selected_entity_ids)
+            try:return self.manager.confirm_identities(job_id,plan_hash,identity_receipt_hash,selected_entity_ids,selected_movie_entity_ids)
             except (OSError,sqlite3.Error):
                 self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
 
@@ -294,7 +295,7 @@ class RepeatableCaseManager:
                     'provider_stats','capture_attempts','accepted_operation_reconstruction_is_new_dispatch',
                     'legacy_packets_are_original_dispatch_observations','automatic_failed_or_unknown_send_retry',
                     'verified_human_participants','cultural_quality','original_identity_receipt_sha256',
-                    'explicit_selection_sha256')
+                    'explicit_selection_sha256','explicit_movie_selection_sha256')
                 selected={k:copy.deepcopy(contract[k]) for k in safe_fields if k in contract}
                 provenance=contract.get('provider_provenance')
                 if provenance:

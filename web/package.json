@@ -8,6 +8,7 @@
     "test:recovery": "node ../tests/browser/session-recovery.cjs && node ../tests/browser/session-recovery.cjs --mobile --repeat-interruption",
     "test:case-journey": "node ../tests/browser/new-case-journey.cjs",
     "test:repeatable-journey": "node ../tests/browser/repeatable-case-journey.cjs",
+    "test:movie-input-journey": "node ../tests/browser/free-movie-input-journey.cjs",
     "test:repeatable-backend": "node ../tests/browser/repeatable-backend-journey.cjs"
   },
   "dependencies": {

@@ -79,9 +79,20 @@ class PrivateQlooCache:
         contract=scope.get('identity_candidate_contract') if isinstance(scope,dict) else None
         if contract is not None and contract != CONTRACT:
             raise ValueError('Unrecognized private identity-cache contract.')
-        if (contract == CONTRACT
-                and scope.get('phase') == 'identity-search' and sample['request']['path'] == '/search'):
-            params=sample['request']['params']
+        movie_contract=scope.get('movie_candidate_contract') if isinstance(scope,dict) else None
+        if movie_contract is not None:
+            from .cinema_movie_inputs import MOVIE_SEARCH_CONTRACT, movie_candidates
+            if movie_contract != MOVIE_SEARCH_CONTRACT:
+                raise ValueError('Unrecognized private movie-cache contract.')
+        identity_search=(contract == CONTRACT and scope.get('phase') == 'identity-search'
+                         and sample['request']['path'] == '/search')
+        params=sample['request']['params']
+        if identity_search and movie_contract is not None and params.get('types') == 'urn:entity:movie':
+            if (set(params) != {'query','take','types'} or type(params['take']) is not int or params['take'] != 5
+                    or not isinstance(params['query'],str) or not 1 <= len(params['query']) <= 200):
+                raise ValueError('Movie cache requires the pinned bounded film search.')
+            movie_candidates(sample['response'])
+        elif identity_search:
             if (set(params) != {'query','take','types'} or type(params['take']) is not int or params['take'] != 5
                     or params['types'] != 'urn:entity:artist,urn:entity:person'
                     or not isinstance(params['query'],str) or not params['query'].strip()):
