@@ -10,6 +10,14 @@ AffinityQA helps engineers catch personalization incidents that ordinary output 
 
 ## Review the product
 
+**Local source candidate, 16 October 2026:** a cinematic discovery interface guides
+the visitor through tastes, exact artist/film identities and five eligible films
+per taste scenario. An additive capability-gated protocol uses one shared Groq
+ranking response for both scenarios; older cases retain their original contract.
+The full integration experiment and recorded repair remain inspectable. This is
+not a claim of deployment, measured live speed or validated cultural quality.
+[Discovery journey and evidence boundaries](docs/FAST-TASTE-REVIEW.md).
+
 | Path | What you can inspect | Evidence boundary |
 | --- | --- | --- |
 | **Recorded repair** | Choose an incident; follow Detect, Diagnose, Repair and Verify; compare the requested profile, consumed context and healthy output | Replays a genuine captured experiment; zero new Qloo/model calls |

@@ -22,6 +22,15 @@ export function WorkspaceIcon({name}:{name:IconName}){
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 export function WorkspaceShell({children,active,title,publicMode=false,onNavigate,items=defaultItems}:{children:ReactNode;active:string;title:string;publicMode?:boolean;onNavigate?:(id:string)=>void;items?:NavItem[]}){
+  if(publicMode)return <div className="app public-cinema">
+    <a className="skip-link" href="#main-content" onClick={event=>{event.preventDefault();document.getElementById('main-content')?.focus();}}>Skip to content</a>
+    <header className="cinema-topbar"><a className="cinema-brand" href="#new" onClick={onNavigate?event=>{event.preventDefault();onNavigate('new');}:undefined} aria-label="AffinityQA home"><Mark/><span>AFFINITY<span>QA</span><small>CULTURAL INTELLIGENCE / CINEMA</small></span></a>
+      <nav className="cinema-navigation" aria-label="Main navigation">{items.map(item=><a key={item.id} href={'#'+item.id} aria-current={active===item.id?'page':undefined} onClick={onNavigate?event=>{event.preventDefault();onNavigate(item.id);}:undefined}>{item.label}</a>)}<a href="#new" onClick={event=>{event.preventDefault();onNavigate?.('new');requestAnimationFrame(()=>document.getElementById('saved-cases')?.scrollIntoView({behavior:'smooth',block:'start'}));}}>MY CASES</a></nav>
+      <span className="cinema-jury-badge"><i aria-hidden="true"/>JURY EDITION</span>
+    </header>
+    <main id="main-content" className="workspace-main cinema-main" tabIndex={-1} aria-label={title}>{children}</main>
+    <footer className="cinema-footer"><a className="cinema-footer-brand" href="#new" onClick={event=>{event.preventDefault();onNavigate?.('new');}}>AFFINITYQA <span>YOUR TASTE. TRACEABLE CHOICES.</span></a><p>Qloo context + an AI ranking. Individual taste satisfaction remains unvalidated.</p><a href="https://github.com/seypherWork/affinityqa" target="_blank" rel="noreferrer">SOURCE & METHOD ↗</a></footer>
+  </div>;
   return <div className="app workspace">
     <a className="skip-link" href="#main-content" onClick={event=>{event.preventDefault();document.getElementById('main-content')?.focus();}}>Skip to content</a>
     <aside className="workspace-rail" aria-label="Workspace">

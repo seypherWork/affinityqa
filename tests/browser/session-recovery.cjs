@@ -74,7 +74,7 @@ async function recoverThroughSavedHistory(browser, origin, mobile, openDifferent
     await page.getByText('The response is uncertain.', {exact: false}).waitFor();
     const before = {posts: posts.length, capabilitiesReads, statusReads};
     await statusControl.click();
-    await page.waitForFunction(() => [...document.querySelectorAll('button')].some(button => button.textContent === 'REVIEW A NEW PLAN' && !button.disabled));
+    await page.waitForFunction(() => [...document.querySelectorAll('button')].some(button => button.textContent.trim().startsWith('REVIEW A NEW PLAN') && !button.disabled));
     assert.ok(capabilitiesReads > before.capabilitiesReads && statusReads > before.statusReads, 'Explicit recovery must refresh capabilities and the selected case');
     assert.equal(posts.length, before.posts, 'Status recovery must not repeat any mutation');
     assert.equal(posts.filter(value => value.endsWith('/execute')).length, 1);
@@ -133,15 +133,21 @@ async function recoverPlanAndSwitchMode(browser, origin, mobile, deferRestoratio
     } else {
     await page.getByRole('button', {name: /Synthetic artist A \/ Synthetic artist B — COMPLETE/}).click();
     await page.getByRole('status').filter({hasText: /^COMPLETE$/}).waitFor();
+    await page.locator('summary').filter({hasText: /^ADVANCED \/ PROFILE INTEGRITY EXPERIMENT/}).click();
+    assert.equal(await page.getByRole('button', {name: /^PROFILE INTEGRITY/}).isEnabled(), false, 'The 39-decision mode must require explicit acknowledgement');
+    await page.getByRole('checkbox', {name: 'I understand this selects the longer 39-decision experiment, not the film-pick flow.', exact: true}).check();
     await page.getByRole('button', {name: /^PROFILE INTEGRITY/}).click();
     const workflow = page.getByRole('list', {name: 'Individual case workflow', exact: true});
-    assert.equal((await workflow.innerText()).includes('CONFIRM & REVIEW'), false, 'A completed discovery must not override the next integrity workflow');
+    assert.equal(await workflow.getByRole('listitem').count(), 3, 'The selected workflow has three explicit stages');
+    assert.equal((await workflow.innerText()).includes('CONFIRM THE MATCHES'), false, 'A completed discovery must not override the next integrity workflow');
     assert.ok((await workflow.innerText()).includes('START THE REVIEW'));
-    await page.getByText('The 39-decision integrity protocol needs at least 13.9 minutes', {exact: false}).waitFor();
+    await page.getByText('NEXT NEW PLAN: up to 39 model attempts.', {exact: false}).waitFor();
     await page.getByRole('button', {name: /Other integrity A \/ Other integrity B — COMPLETE/}).click();
     await page.locator('dd').filter({hasText: /^completed-integrity-case$/}).waitFor({state: 'attached'});
     await page.getByRole('button', {name: /^FILM PREFERENCES/}).click();
-    assert.ok((await workflow.innerText()).includes('CONFIRM & REVIEW'), 'A completed integrity result must not override the next discovery workflow');
+    assert.ok((await workflow.innerText()).includes('CONFIRM THE MATCHES'), 'A completed integrity result must not override the next discovery workflow');
+    assert.equal((await workflow.innerText()).includes('START THE REVIEW'), false);
+    await page.getByText('NEXT NEW PLAN: up to 2 model attempts.', {exact: false}).waitFor();
     }
     await page.getByRole('button', {name: 'REVIEW A NEW PLAN', exact: true}).click();
     await page.getByText('Synthetic lost plan response', {exact: true}).waitFor();
@@ -165,6 +171,74 @@ async function recoverPlanAndSwitchMode(browser, origin, mobile, deferRestoratio
   } finally {
     await page.close();
   }
+}
+
+async function preserveActiveCaseWhileReadingHistory(browser, origin, mobile) {
+  const page=await browser.newPage({viewport:mobile?{width:390,height:844}:{width:1280,height:900}});
+  const active={...job,job_id:'running-integrity-case',status:'STARTED'};
+  const historical={...job,job_id:'historical-complete-case',status:'COMPLETE',artists:{A:'Historical artist A',B:'Historical artist B'}};
+  const planned={...job,job_id:'saved-integrity-plan',status:'PLANNED',artists:{A:'Consent profile A',B:'Consent profile B'}};
+  const catalog=Array.from({length:20},(_,index)=>({entity_id:'movie-'+index,name:'Synthetic film '+index,release_year:2000+index}));
+  const posts=[],errors=[];let activeReads=0,completeActive=false;
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.route('**/*',route=>{
+    const request=route.request(),url=new URL(request.url());assert.equal(url.origin,origin,'External browser request forbidden');
+    const json=body=>route.fulfill({json:body});if(request.method()==='POST')posts.push(url.pathname);
+    if(url.pathname==='/healthz')return json({new_cases_configured:true});
+    if(url.pathname==='/api/demo/summary')return json({schema_version:1,status:'UNAVAILABLE',pairs:[]});
+    if(url.pathname==='/api/demo/cases/session')return json({schema_version:1,csrf_token:'c'.repeat(64),expires_utc:'2099-01-01T00:00:00Z'});
+    if(url.pathname==='/api/demo/cases/capabilities')return json({...capabilities,remaining_plans:null,remaining_executions:null,admission_mode:'repeatable-v1',default_artists:artists,catalog,cinema_preferences_supported:true,cinema_identity_confirmation_supported:true,cinema_discoveries_supported:true,jobs:[active,historical,planned].map(({job_id,status,artists})=>({job_id,status,artists}))});
+    if(url.pathname==='/api/demo/cases/jobs/'+active.job_id){activeReads++;return json({...active,status:completeActive?'COMPLETE':'STARTED',saved_model_packets:completeActive?39:activeReads-1});}
+    if(url.pathname==='/api/demo/cases/jobs/'+historical.job_id)return json(historical);
+    if(url.pathname==='/api/demo/cases/jobs/'+planned.job_id)return json(planned);
+    if(url.pathname.startsWith('/api/'))throw Error('Unexpected mutation or API read: '+url.pathname);
+    return route.continue();
+  });
+  try{
+    await page.goto(origin+'/demo#new');await page.getByRole('button',{name:'OPEN OR RESTORE MY SESSION',exact:true}).click();
+    await page.getByRole('button',{name:/Consent profile A \/ Consent profile B — PLANNED/}).click();
+    const start=page.getByRole('button',{name:'START THIS REVIEWED CLOUD PLAN',exact:true});
+    assert.equal(await start.isEnabled(),false,'A saved 39-decision plan also requires acknowledgement when film mode is available');
+    await page.locator('summary').filter({hasText:/^ADVANCED \/ PROFILE INTEGRITY EXPERIMENT/}).click();
+    await page.getByRole('checkbox',{name:'I understand this selects the longer 39-decision experiment, not the film-pick flow.',exact:true}).check();
+    assert.equal(await start.isEnabled(),true,'Consent permits reviewing the saved plan but does not execute it');
+    await page.getByRole('button',{name:/Synthetic artist A \/ Synthetic artist B — STARTED/}).click();
+    await page.getByRole('status').filter({hasText:/^STARTED$/}).waitFor();
+    const beforeHistory=activeReads;
+    await page.getByRole('button',{name:/Historical artist A \/ Historical artist B — COMPLETE/}).click();
+    await page.locator('dd').filter({hasText:/^historical-complete-case$/}).waitFor({state:'attached'});
+    const runningNotice=page.getByRole('complementary',{name:'Running case kept in progress',exact:true});
+    await runningNotice.waitFor();
+    assert.equal(await page.getByRole('button',{name:'REVIEW A NEW PLAN',exact:true}).isEnabled(),false,'Inspecting history must not admit overlapping work');
+    const beforeBackgroundRead=activeReads;
+    await page.waitForFunction(({minimum})=>{const text=document.querySelector('[aria-label="Running case kept in progress"]')?.textContent??'';const saved=text.match(/(\d+)\/39 model packets saved/);return !!saved&&Number(saved[1])>=minimum;},{minimum:beforeBackgroundRead},{timeout:8000});
+    assert.ok(activeReads>beforeBackgroundRead&&activeReads>beforeHistory,'The original active ID must keep polling while historical evidence is selected');
+    assert.equal(await page.locator('dd').filter({hasText:/^historical-complete-case$/}).count(),1,'Background polling must not steal the historical selection');
+    assert.deepEqual(posts,['/api/demo/cases/session'],'Reading history and observing progress must not execute work');
+    const postsBeforeReload=posts.length;
+    await page.reload();
+    await page.getByRole('button',{name:'OPEN OR RESTORE MY SESSION',exact:true}).click();
+    await page.locator('dd').filter({hasText:/^historical-complete-case$/}).waitFor({state:'attached'});
+    await runningNotice.waitFor();
+    assert.equal(await page.getByRole('button',{name:'REVIEW A NEW PLAN',exact:true}).isEnabled(),false,'Reloading a selected historical case must restore the owned active companion and keep new work blocked');
+    const beforeRestoredPoll=activeReads;
+    await page.waitForFunction(({minimum})=>{const text=document.querySelector('[aria-label="Running case kept in progress"]')?.textContent??'';const saved=text.match(/(\d+)\/39 model packets saved/);return !!saved&&Number(saved[1])>=minimum;},{minimum:beforeRestoredPoll},{timeout:8000});
+    assert.ok(activeReads>beforeRestoredPoll,'The owned active case must resume polling after reload while historical evidence stays selected');
+    assert.equal(await page.locator('dd').filter({hasText:/^historical-complete-case$/}).count(),1);
+    assert.deepEqual(posts.slice(postsBeforeReload),['/api/demo/cases/session'],'Reopening ownership may post the session once; companion restoration must use GETs and never execute or confirm work');
+    await page.getByRole('button',{name:'RETURN TO RUNNING CASE',exact:true}).click();
+    await page.locator('dd').filter({hasText:/^running-integrity-case$/}).waitFor({state:'attached'});
+    await page.getByRole('status').filter({hasText:/^STARTED$/}).waitFor();
+    await page.getByRole('button',{name:/Historical artist A \/ Historical artist B — COMPLETE/}).click();
+    await page.locator('dd').filter({hasText:/^historical-complete-case$/}).waitFor({state:'attached'});
+    completeActive=true;
+    await runningNotice.waitFor({state:'hidden',timeout:8000});
+    await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(button=>button.textContent.trim().startsWith('REVIEW A NEW PLAN')&&!button.disabled));
+    assert.equal(await page.locator('dd').filter({hasText:/^historical-complete-case$/}).count(),1,'Completing the background case must not open or replace the selected historical case');
+    assert.deepEqual(posts,['/api/demo/cases/session','/api/demo/cases/session']);assert.deepEqual(errors,[]);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
+    console.log(JSON.stringify({result:'PASS',scenario:'saved advanced consent and active polling preserved across historical inspection and reload; terminal background does not replace selection',viewport:mobile?'mobile':'desktop',active_reads:activeReads,session_posts:2,execution_posts:0,provider_calls:0}));
+  }finally{await page.close();}
 }
 
 async function main() {
@@ -236,6 +310,7 @@ async function main() {
     await recoverThroughSavedHistory(browser, `http://127.0.0.1:${server.address().port}`, mobile, true);
     await recoverPlanAndSwitchMode(browser, `http://127.0.0.1:${server.address().port}`, mobile);
     await recoverPlanAndSwitchMode(browser, `http://127.0.0.1:${server.address().port}`, mobile, true);
+    await preserveActiveCaseWhileReadingHistory(browser, `http://127.0.0.1:${server.address().port}`, mobile);
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

@@ -79,3 +79,16 @@ jobs:
           npx --yes pnpm@11.25.0 test:movie-input-journey
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npx --yes pnpm@11.25.0 test:movie-input-journey -- --mobile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check shared-call capability, empty inputs, film confirmation and preserved cases
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: |
+          node ../tests/browser/free-movie-input-journey.cjs --paired
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node ../tests/browser/free-movie-input-journey.cjs --paired --mobile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check shared-call browser with actual backend and synthetic providers
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: node ../tests/browser/repeatable-backend-journey.cjs --paired

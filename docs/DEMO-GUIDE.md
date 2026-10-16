@@ -1,5 +1,10 @@
 # AffinityQA — reviewer walkthrough
 
+**16 October local source candidate:** the new discovery-first interface and the
+capability-gated shared model pass are described in [the taste journey](FAST-TASTE-REVIEW.md).
+This guide's dated hosted acceptances remain historical records; they are not a
+claim that the new candidate is deployed or has passed a live speed test.
+
 ## Start here — jury click path
 
 Open [the hosted workspace](https://affinityqa-review.onrender.com/demo). A browser is sufficient; no Docker, local model or personal provider key is needed.

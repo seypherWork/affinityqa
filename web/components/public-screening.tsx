@@ -4,6 +4,7 @@ import {WorkspaceShell} from './workspace-shell';
 import modeStyles from './screening-mode.module.css';
 import styles from './causal-screening.module.css';
 import {IndividualScreening} from './individual-screening';
+import {CinemaSignalArtwork} from './cinema-art';
 
 type Film={position:number;title:string;year:number};
 type Trace={requested_profile_sha256:string;transmitted_profile_sha256:string;tool_profile_sha256:string;output_profile_sha256:string;cache_hit:boolean};
@@ -21,17 +22,17 @@ function Films({label,rows,artist}:{label:string;rows:Film[];artist:string}){ret
 function Binding({title,trace,identity}:{title:string;trace:Trace;identity:Identity}){return <section className={styles.binding} aria-label={title}><h3>{title}</h3><ol>{boundaries.map(([key,label])=><li key={key} data-mismatch={trace[key]!==trace.requested_profile_sha256}><span>{label}</span><strong>{identity[key]}</strong>{trace[key]!==trace.requested_profile_sha256&&<small>Different from requested profile</small>}</li>)}</ol></section>}
 function TraceView({title,trace,identity}:{title:string;trace:Trace;identity:Identity}){return <details className={styles.trace}><summary>{title}<span>Inspect verified names & profile fingerprints ↗</span></summary><dl>{boundaries.map(([key,label])=><div key={key}><dt>{label}</dt><dd><strong>{identity[key]}</strong><details><summary>Profile fingerprint</summary><code>{trace[key]}</code></details></dd></div>)}<div><dt>Cache reused</dt><dd>{trace.cache_hit?'Yes':'No'}</dd></div></dl></details>}
 
-const publicItems=[{id:'recorded',label:'Recorded repair',icon:'recorded' as const},{id:'new',label:'New individual case',icon:'new' as const}];
+const publicItems=[{id:'new',label:'DISCOVER FILMS',icon:'new' as const},{id:'recorded',label:'DIAGNOSIS & EVIDENCE',icon:'recorded' as const}];
 
 export function PublicScreening(){
-  const [mode,setMode]=useState<'recorded'|'new'>('recorded');
+  const [mode,setMode]=useState<'recorded'|'new'>('new');
   const [summary,setSummary]=useState<Summary|null>(null),[error,setError]=useState(''),[refresh,setRefresh]=useState(0);
   const [pairIndex,setPairIndex]=useState(0),[fault,setFault]=useState('cache-omits-profile'),[repeat,setRepeat]=useState(1),[stage,setStage]=useState<typeof stages[number]>('Detect');
   const [result,setResult]=useState<Replay|null>(null),[busy,setBusy]=useState(false);const active=useRef<AbortController|null>(null);
   useEffect(()=>{const controller=new AbortController();setError('');setSummary(null);fetch('/api/demo/summary',{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw Error('The recorded demo is unavailable. Please try again.');const data=await r.json();if(data.schema_version!==1||!Array.isArray(data.pairs))throw Error('Unverified demo format.');setSummary(data);}).catch(e=>{if(e.name!=='AbortError')setError(e.message)});return()=>controller.abort()},[refresh]);
   useEffect(()=>()=>active.current?.abort(),[]);
   useEffect(()=>{
-    const syncMode=()=>setMode(window.location.hash==='#new'?'new':'recorded');
+    const syncMode=()=>setMode(window.location.hash==='#recorded'?'recorded':'new');
     syncMode();
     window.addEventListener('hashchange',syncMode);
     return()=>window.removeEventListener('hashchange',syncMode);
@@ -48,10 +49,8 @@ export function PublicScreening(){
     try{const response=await fetch('/api/demo/replay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pair_id:pair.pair_id,fault,repeat}),signal:controller.signal});const value=await response.json();if(!response.ok)throw Error(response.status===429?'The demo is busy. Please try again shortly.':'Recorded evidence could not be verified. No result approved.');if(value.source!=='recorded-local-llm-replay'||value.new_model_calls!==0||value.new_qloo_calls!==0||value.run_id!==summary?.run_id||value.pair_id!==pair.pair_id||value.fault!==fault||value.repeat!==repeat||value.requested_artist!==(repeat===2?pair.artists.A:pair.artists.B)||!['PASS','FAIL'].includes(value.status)||!value.checks||Object.keys(value.checks).length!==checkNames.length||checkNames.some(key=>typeof value.checks[key]!=='boolean'))throw Error('The replay response could not be verified.');if(!controller.signal.aborted)setResult(value)}catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:'Replay failed.')}finally{if(!controller.signal.aborted)setBusy(false)}
   }
   return <WorkspaceShell publicMode active={mode} title={mode==='recorded'?'RECORDED REPAIR':'NEW INDIVIDUAL CASE'} items={publicItems} onNavigate={navigateMode}>
-    <div className={modeStyles.modeCards} role="group" aria-label="Choose review mode">
-      <button type="button" className={modeStyles.modeCard} aria-pressed={mode==='recorded'} onClick={()=>navigateMode('recorded')}><span className={modeStyles.modeNumber}>01</span><span><strong>EXPLORE A RECORDED REPAIR</strong><small>Saved evidence · 0 new model or Qloo calls</small></span><span className={modeStyles.modeBadge}>RECORDED</span></button>
-      <button type="button" className={modeStyles.modeCard} aria-pressed={mode==='new'} onClick={()=>navigateMode('new')}><span className={modeStyles.modeNumber}>02</span><span><strong>CREATE AN INDIVIDUAL CASE</strong><small>Review a plan first · two or 39 model decisions, depending on the review</small></span><span className={modeStyles.modeBadge}>NEW CALLS</span></button>
-    </div>
+    <section className="cinema-hero" aria-labelledby="cinema-hero-title"><div className="cinema-hero-copy"><span className="cinema-kicker"><i/>MUSIC MEETS THE MOVING IMAGE</span><h1 id="cinema-hero-title">YOUR TASTE.<br/><span>A NEW FRAME.</span></h1><p>The music you love. The films that stay with you.<br/>Find five films for each of two tastes, with a trail you can inspect.</p><div className="cinema-hero-actions"><button type="button" onClick={()=>{navigateMode('new');requestAnimationFrame(()=>document.getElementById('individual-title')?.scrollIntoView({behavior:'smooth',block:'start'}));}}>BUILD MY FILM PICKS <span aria-hidden="true">↗</span></button><button type="button" onClick={()=>navigateMode('recorded')}>VIEW DIAGNOSIS & EVIDENCE <span aria-hidden="true">→</span></button></div><div className="cinema-hero-facts"><span>20-FILM OUTPUT CATALOG</span><span>YOUR OWN FAVORITE FILM INPUTS</span><span>CONFIRM BEFORE AI RANKING</span></div></div><CinemaSignalArtwork/></section>
+    <div className="cinema-mode-nav" role="group" aria-label="Choose review mode"><button type="button" aria-pressed={mode==='new'} onClick={()=>navigateMode('new')}>01 / MAKE IT PERSONAL <span>New case · review the budget before calls</span></button><button type="button" aria-pressed={mode==='recorded'} onClick={()=>navigateMode('recorded')}>02 / SEE THE PROOF <span>Recorded repair · no new provider calls</span></button></div>
     <div className={modeStyles.modePanel} hidden={mode!=='new'}><IndividualScreening publicMode/></div>
     <div className={modeStyles.modePanel} hidden={mode!=='recorded'}><section className={styles.root+' '+styles.recordedRoot} aria-labelledby="public-demo-title"><header className={styles.header}><div><span className={styles.label}>RECORDED PERSONALIZATION / INTEGRATION REPAIR</span><h1 id="public-demo-title">RECORDED PROFILE REPAIR</h1></div><p>Inspect a profile, cache or tool-routing incident using saved decisions. Follow the requested interest through the fault, correction and verification.</p></header>
     <div className={styles.gates} aria-label="Separate acceptance gates"><div><span>Causal integrity</span><strong data-pass={summary?.causal_gate==='PASS'?true:summary?.causal_gate==='FAIL'?false:undefined} data-state={summary?.causal_gate??'Loading'}>{summary?.causal_gate??'Loading'}</strong></div><div><span>Cultural quality</span><strong data-state={summary?.cultural_gate??'NOT_VALIDATED'}>{summary?.cultural_gate??'NOT_VALIDATED'}</strong></div><div><span>Tested agent release</span><strong data-state={summary?.release_gate??'BLOCKED'}>{summary?.release_gate??'BLOCKED'}</strong></div></div>

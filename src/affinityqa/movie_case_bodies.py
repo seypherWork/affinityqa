@@ -1,7 +1,7 @@
 """Additive HTTP bodies for confirmed movie inputs on repeatable cases only."""
 from typing import Annotated
 
-from pydantic import Field
+from pydantic import Field, StrictBool
 
 from .individual_api import StrictBody, PlanBody as LegacyPlanBody, ConfirmBody as LegacyConfirmBody
 
@@ -22,6 +22,7 @@ class MovieSelections(StrictBody):
 
 class PlanBody(LegacyPlanBody):
     movie_queries: MovieQueries | None = None
+    fast_pair_review: StrictBool = False
 
 
 class ConfirmBody(LegacyConfirmBody):

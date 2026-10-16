@@ -224,6 +224,7 @@ class RepeatableCaseManager:
                 'catalog_sha256':fingerprint(template['catalog']),'cinema_preferences_supported':True,
                 'cinema_identity_confirmation_supported':True,'cinema_discoveries_supported':True,
                 'movie_input_search_supported':True,'maximum_movie_queries_per_case':2,
+                'fast_pair_review_supported':True,
                 'minimum_model_interval_seconds':self.manager.interval,'remaining_plans':None,'remaining_executions':None,
                 'admission_mode':'repeatable-v1','jobs':jobs,'jobs_truncated':page['jobs_truncated'],
                 'next_cursor_job_id':page['next_cursor_job_id'],
@@ -255,11 +256,11 @@ class RepeatableCaseManager:
             key=self._identity(token)
             return self._history_page(key,cursor_job_id)
 
-    def prepare(self,token,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None):
+    def prepare(self,token,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None,fast_pair_review=False):
         with self.lock:
             key=self._identity(token);self._can_mutate()
             try:
-                return self.manager.prepare(key,artists,preferences,confirm_identities,discover_new_movies,movie_queries)
+                return self.manager.prepare(key,artists,preferences,confirm_identities,discover_new_movies,movie_queries,fast_pair_review)
             except (OSError,sqlite3.Error):
                 self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
 

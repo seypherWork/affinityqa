@@ -70,7 +70,8 @@ def routes(manager,*,origin):
                 value=current.prepare(token,body.artists.model_dump(),
                     preferences=body.preferences.model_dump() if body.preferences is not None else None,
                     confirm_identities=body.confirm_identities,discover_new_movies=body.discover_new_movies,
-                    **({'movie_queries':body.movie_queries.model_dump()} if body.movie_queries is not None else {}))
+                    **({'movie_queries':body.movie_queries.model_dump()} if body.movie_queries is not None else {}),
+                    **({'fast_pair_review':True} if body.fast_pair_review else {}))
             except SchemaError:raise Denial(422,'Use two distinct interests, valid cinema preferences and at most two movie searches per case.') from None
             return response(value,201)
         return call(action)

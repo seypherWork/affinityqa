@@ -60,6 +60,7 @@ async function main() {
     const cap = await capResponse.json();
     assert.equal(cap.simulation_only, true);
     assert.equal(cap.jobs.length, 0);
+    await page.locator('summary').filter({hasText: /^OPTIONAL \/ FINE-TUNE THE 20-FILM CATALOG/}).click();
     for (const label of ['A', 'B']) {
       await page.locator('summary').filter({hasText: new RegExp('^PROFILE ' + label)}).click();
       await page.getByLabel(`Profile ${label}: ${cap.catalog[0].name}`, {exact: true}).selectOption('favorite');

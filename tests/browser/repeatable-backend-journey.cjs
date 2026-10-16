@@ -8,6 +8,7 @@ const {createRequire} = require('node:module');
 const {chromium} = createRequire(path.resolve(__dirname, '../../web/package.json'))('playwright');
 
 async function main() {
+  const paired=process.argv.includes('--paired');
   const args = ['-B', path.join(__dirname, 'serve_repeatable_cases.py'), '--exit-after-seconds', '60'];
   if (process.env.AFFINITYQA_TEST_WEB_ROOT) args.push('--web-root', process.env.AFFINITYQA_TEST_WEB_ROOT);
   const child = spawn(process.env.AFFINITYQA_TEST_PYTHON || 'python', args, {stdio: ['ignore', 'pipe', 'pipe']});
@@ -35,8 +36,14 @@ async function main() {
     const pageErrors=[],posts=[];
     page.on('pageerror',error=>pageErrors.push(error.message));
     page.on('request',request=>{if(request.method()==='POST')posts.push(new URL(request.url()).pathname);});
-    await page.route('**/*',route=>{
+    await page.route('**/*',async route=>{
       assert.equal(new URL(route.request().url()).origin,url,'No external browser traffic');
+      // Default preserves the legacy two-decision integration control. The paired
+      // invocation exercises the advertised capability against the same real backend.
+      if(!paired&&new URL(route.request().url()).pathname==='/api/demo/cases/capabilities'){
+        const response=await route.fetch();const capability=await response.json();
+        return route.fulfill({response,json:{...capability,fast_pair_review_supported:false}});
+      }
       return route.continue();
     });
     await page.goto(url+'/demo#new');
@@ -46,6 +53,7 @@ async function main() {
     assert.equal(initial.admission_mode,'repeatable-v1');
     assert.equal(initial.simulation_only,true);
     assert.equal(initial.remaining_executions,null);
+    await page.locator('summary').filter({hasText:/^OPTIONAL \/ FINE-TUNE THE 20-FILM CATALOG/}).click();
     for(const label of ['A','B']) {
       await page.locator('summary').filter({hasText:new RegExp('^PROFILE '+label)}).click();
       await page.getByLabel(`Profile ${label}: ${initial.catalog[0].name}`,{exact:true}).selectOption('favorite');
@@ -70,6 +78,11 @@ async function main() {
       assert.ok(row,'Each explicit plan creates one different owned job');
       jobs.push(row.job_id);
       const job=await(await page.request.get(url+'/api/demo/cases/jobs/'+row.job_id)).json();
+      assert.equal(job.case_protocol,paired?'cinema-paired-discovery-v1':'cinema-confirmed-discovery-v3');
+      assert.equal(job.maximum_model_decisions,paired?1:2);
+      assert.equal(job.saved_model_packets,paired?1:2);
+      if(paired){assert.equal(job.result.shared_model_calls,1);assert.equal(job.result.correlated_projections,2);assert.equal(job.result.independent_model_decisions,false);}
+      else assert.notEqual(job.fast_pair_review,true,'The legacy control must not silently opt into shared inference');
       assert.equal(job.result.verification_status,'VERIFIED_COMPLETE');
       assert.equal(job.result.cultural_gate,'NOT_VALIDATED');
       assert.equal(job.result.provenance,'SIMULATION_ONLY');
@@ -106,8 +119,8 @@ async function main() {
     const state=output.split('\n').flatMap(line=>{try{return[JSON.parse(line)];}catch{return[];}}).find(v=>'synthetic_model_calls' in v);
     assert.ok(state,'Graceful fixture shutdown must report its actual counters');
     assert.equal(state.real_provider_calls,0);
-    assert.equal(state.synthetic_model_calls,4);
-    console.log(JSON.stringify({result:'PASS',scenario:'actual repeatable backend and built browser, two same-owner cases',
+    assert.equal(state.synthetic_model_calls,paired?2:4);
+    console.log(JSON.stringify({result:'PASS',scenario:'actual repeatable backend and built browser, two same-owner cases',review_mode:paired?'ONE_SHARED_PASS_TWO_CORRELATED_PROJECTIONS':'LEGACY_TWO_MODEL_DECISIONS',
       verified_owned_jobs:jobs.length,verification_http_attachments:receipts.length,
       selected_http_attachment_sha256:receiptHashes,native_download:'NOT_TESTED',...state}));
   } catch(error) {

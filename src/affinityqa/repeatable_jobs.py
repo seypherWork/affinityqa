@@ -24,8 +24,11 @@ HELPERS = ('repeatable_cases.py','repeatable_jobs.py','repeatable_capture.py',
 
 def movie_confirmation(request, receipt, selected_movie_entity_ids):
     """Resolve only server-verified choices; posted names and years are never accepted."""
-    if request['schema_version'] == 6:
-        from .cinema_discovery_v4_verify import selection_movies
+    if request['schema_version'] in (6,7):
+        if request['schema_version'] == 7:
+            from .fast_pair_verify import selection_movies
+        else:
+            from .cinema_discovery_v4_verify import selection_movies
         need(selected_movie_entity_ids is not None, 'Every movie search requires an explicit selection.')
         return selection_movies(receipt, selected_movie_entity_ids)
     need(selected_movie_entity_ids is None, 'This historical request has no movie searches.')
@@ -33,7 +36,7 @@ def movie_confirmation(request, receipt, selected_movie_entity_ids):
 
 
 def validate_movie_confirmation(request, receipt, choice):
-    if request['schema_version'] == 6:
+    if request['schema_version'] in (6,7):
         need(set(choice) == {'schema_version','identity_receipt_sha256','identity_receipt',
                             'selected_entity_ids','chosen_identities','selected_movie_entity_ids','chosen_movie_inputs'}
              and type(choice['schema_version']) is int and choice['schema_version'] == 2,
@@ -234,13 +237,13 @@ class RepeatableJobManager:
                             'reconciled_terminal_unsent_reservations':cancelled,
                             'automatic_retry':False})
 
-    def request_for(self,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None):
-        return request_for(self.template,artists,preferences,confirm_identities,discover_new_movies,movie_queries)
+    def request_for(self,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None,fast_pair_review=False):
+        return request_for(self.template,artists,preferences,confirm_identities,discover_new_movies,movie_queries,fast_pair_review)
 
-    def prepare(self,owner,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None):
+    def prepare(self,owner,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None,fast_pair_review=False):
         with self.lock:
             need(not self.closed and not self._admissions_blocked(),'Repeatable admissions are suspended; owner inspection required.')
-            request=self.request_for(artists,preferences,confirm_identities,discover_new_movies,movie_queries)
+            request=self.request_for(artists,preferences,confirm_identities,discover_new_movies,movie_queries,fast_pair_review)
             job_id=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')+'-'+uuid4().hex[:8]
             parent=self.root/job_id;parent.mkdir(mode=0o700)
             attempts=parent/'attempts';attempts.mkdir(mode=0o700)
@@ -285,7 +288,7 @@ class RepeatableJobManager:
             need(job['plan']['source_sha256']==sha(Path(__file__))
                  and job['plan']['capture_source_sha256']==sha(Path(__file__).with_name('repeatable_capture.py')),
                  'Repeatable execution source changed.')
-            phase='identity-search' if job['plan']['request']['schema_version'] in (4,5,6) else 'capture'
+            phase='identity-search' if job['plan']['request']['schema_version'] in (4,5,6,7) else 'capture'
             now=self._epoch()
             with self.store.transaction() as db:
                 db.execute("UPDATE jobs SET status='QUEUED',phase=?,not_before=? WHERE job_id=?",(phase,now,job_id))
@@ -437,7 +440,7 @@ class RepeatableJobManager:
             self._validate_sources(job)
             request=job['plan']['request']
             confirmation=json.loads(job['confirmation_json']) if job['confirmation_json'] else None
-            if request['schema_version'] == 6 and phase != 'identity-search':
+            if request['schema_version'] in (6,7) and phase != 'identity-search':
                 need(confirmation is not None and read(self.root/job_id/'identity-confirmation.json') == confirmation,
                      'Saved movie confirmation differs from its durable checkpoint.')
                 need(confirmation['identity_receipt_sha256'] == job['receipt_sha']
@@ -623,13 +626,15 @@ class RepeatableJobManager:
                 'admission_mode':'repeatable-v1','queue_status':job['status'] if job['status'] in ACTIVE else None,
                 'queue_position':position,'not_before':timestamp(job['not_before']) if job['not_before'] else None,
                 'provider_stats':provider_stats,'read_only':False,'legacy_case':False}
-            if request['schema_version'] == 6:
+            if request['schema_version'] in (6,7):
                 value['movie_queries']=copy.deepcopy(request['movie_queries'])
+            if request['schema_version'] == 7:
+                value.update(fast_pair_review=True,minimum_model_interval_seconds=0,decision_scope='one-shared-call-two-correlated-projections')
             if job['diagnostic']!='{}':value['request_diagnostic']=json.loads(job['diagnostic'])
             if job['directory'] and Path(job['directory']).is_dir():
                 directory=Path(job['directory'])
                 value['saved_provider_samples']=len(list(directory.glob('http-*.json')))
-                value['saved_model_packets']=len(list(directory.glob('causal-execution-*.json')))+len(list(directory.glob('discovery-execution-*.json')))
+                value['saved_model_packets']=len(list(directory.glob('causal-execution-*.json')))+len(list(directory.glob('discovery-execution-*.json')))+len(list(directory.glob('pair-execution-*.json')))
                 if job['status']=='WAITING_PROVIDER_CAPACITY' and (directory/'individual-report.json').is_file():
                     report=read(directory/'individual-report.json')
                     value['progress']={'verification_status':'PENDING','cultural_gate':'NOT_VALIDATED',
@@ -643,14 +648,15 @@ class RepeatableJobManager:
                     if job['status']=='AWAITING_IDENTITY_CONFIRMATION':
                         value.update(identity_candidates=receipt['identity_candidates'],identity_queries=receipt['identity_queries'],
                                      identity_receipt_sha256=job['receipt_sha'])
-                        if request['schema_version'] == 6:
+                        if request['schema_version'] in (6,7):
                             value['movie_candidates']=copy.deepcopy(receipt['movie_candidates'])
                     else:
                         fields=('verification_status','provenance','status','causal_gate','integration_gate','backend_comparability',
                           'behavioral_gate','cultural_gate','release_gate','verified_model_packets','verified_provider_samples',
                           'model_attempts','qloo_attempts','observed_recoveries_by_fault','summary','external_service_attested',
                           'error_class','preference_gate','cinema_results','chosen_identities','repeatable_contract',
-                          'chosen_movie_inputs','movie_queries','movie_input_gate')
+                          'chosen_movie_inputs','movie_queries','movie_input_gate','shared_model_calls','correlated_projections',
+                           'independent_model_decisions','decision_scope')
                         value['result']={k:copy.deepcopy(receipt[k]) for k in fields if k in receipt}
                         value.update(receipt_sha256=job['receipt_sha'],saved_provider_samples=receipt['verified_provider_samples'],
                                      saved_model_packets=receipt['verified_model_packets'])

@@ -25,7 +25,9 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path[:0]=[str(ROOT/'src'),str(ROOT/'tests')]
 import uvicorn
 from affinityqa.cinema_discovery_agent import DiscoveryMovieAgent
+from affinityqa.cinema_discovery_v4_agent import DiscoveryMovieAgent as MovieInputAgent
 from affinityqa.cinema_preferences import CinemaMovieAgent
+from affinityqa.fast_pair_agent import FastPairMovieAgent
 from affinityqa.groq_agent import GroqToolContextMovieAgent
 from affinityqa.provider_runtime import PinnedHarmonyTokenEstimator
 from affinityqa.provider_scheduler import ProviderScheduler, GROQ_FREE_CONSERVATIVE, QuotaWindow
@@ -36,6 +38,7 @@ from affinityqa.repeatable_cases import RepeatableCaseManager
 from test_cinema_identity_capture import identity_request, ID_A, ID_B
 from test_discovery_agent import Opener as DiscoveryOpener
 from test_groq_agent import OpenerFixture, UNIT_SECRET, UNIT_QLOO_SECRET
+from test_fast_pair import PairOpenerFixture
 
 
 def loopback(host):
@@ -112,7 +115,7 @@ def main():
     monotonic_start=time.monotonic();epoch=datetime(2026,10,14,20,tzinfo=timezone.utc).timestamp()
     def clock():return epoch+(time.monotonic()-monotonic_start)*args.quota_clock_scale
     def now():return datetime.fromtimestamp(clock(),timezone.utc)
-    discovery_opener=DiscoveryOpener();legacy_opener=OpenerFixture()
+    discovery_opener=DiscoveryOpener();legacy_opener=OpenerFixture();pair_opener=PairOpenerFixture()
     with ExitStack() as stack:
         try:
             network_guards(stack)
@@ -132,8 +135,8 @@ def main():
             transport=SyntheticTransport(current_request)
             def engine():
                 version=current_request()['schema_version']
-                cls=DiscoveryMovieAgent if version==5 else CinemaMovieAgent if version in (3,4) else GroqToolContextMovieAgent
-                opener=discovery_opener if version==5 else legacy_opener
+                cls=FastPairMovieAgent if version==7 else MovieInputAgent if version==6 else DiscoveryMovieAgent if version==5 else CinemaMovieAgent if version in (3,4) else GroqToolContextMovieAgent
+                opener=pair_opener if version==7 else discovery_opener if version in (5,6) else legacy_opener
                 return cls(UNIT_SECRET,forbidden_secrets=(UNIT_QLOO_SECRET,),_test_opener=opener)
             service=RepeatableCaseManager(parent/'repeatable',template,origin=origin,
                 minimum_model_interval_seconds=0.0,execution_enabled=True,
@@ -162,7 +165,8 @@ def main():
                         with suppress(asyncio.CancelledError):await task
                         await asyncio.to_thread(service.manager.close)
                         shutdown_summary.update(provenance='SIMULATION_ONLY',synthetic_qloo_calls=len(transport.calls),
-                            synthetic_model_calls=len(discovery_opener.calls)+len(legacy_opener.calls),
+                            synthetic_model_calls=len(pair_opener.calls)+len(discovery_opener.calls)+len(legacy_opener.calls),
+                            synthetic_shared_pair_model_calls=len(pair_opener.calls),
                             synthetic_discovery_model_calls=len(discovery_opener.calls),
                             synthetic_causal_or_cinema_model_calls=len(legacy_opener.calls),
                             session_records=service.store.one('SELECT COUNT(*) AS n FROM sessions')['n'],

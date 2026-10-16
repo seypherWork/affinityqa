@@ -18,7 +18,7 @@ export function CinemaMovieQueryEditor({queries,artists,maximum,disabled,onChang
   function update(profile:'A'|'B',index:number,text:string){onChange({...queries,[profile]:queries[profile].map((value,slot)=>slot===index?text:value)})}
   return <section className={styles.preferences} aria-labelledby="movie-input-query-title">
     <div className={styles.sectionHeading}><h2 id="movie-input-query-title">ADD A FILM YOU ALREADY LIKE</h2><span>Optional · {count}/{maximum} searches across both profiles</span></div>
-    <p>Know a film outside this catalog? Enter its title, then confirm the matching title and year after the reviewed search. Your confirmed films guide Qloo and the model; recommendations still come from the twenty-film catalog. Typing makes no provider calls.</p>
+    <p>A film you love is a useful starting point. Enter its title; you’ll confirm the exact film and year before the AI ranks the twenty-film catalog.</p>
     <div className={styles.preferenceProfiles}>{profiles.map(profile=><fieldset className={styles.movieQueryProfile} disabled={disabled} key={profile}>
       <legend>PROFILE {profile} · {artists[profile]||'Choose an artist'}</legend>
       {queries[profile].map((query,index)=><div className={styles.movieQueryRow} key={index}>
@@ -28,7 +28,7 @@ export function CinemaMovieQueryEditor({queries,artists,maximum,disabled,onChang
       {!queries[profile].length&&<p>No extra film selected for this profile.</p>}
       <button type="button" className={styles.secondaryButton} disabled={disabled||count>=maximum} onClick={()=>onChange({...queries,[profile]:[...queries[profile],'']})}>ADD FILM TO PROFILE {profile}</button>
     </fieldset>)}</div>
-    <p className={styles.small}>Each entered title adds at most one Qloo search to this case. No movie is selected automatically. These are your taste inputs, not participant ratings or a cultural-quality validation.</p>
+    <p className={styles.small}>Up to two titles across both tastes. No searches while typing; each title adds at most one Qloo search when you start the reviewed plan.</p>
   </section>;
 }
 

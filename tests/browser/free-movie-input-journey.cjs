@@ -8,6 +8,7 @@ const {createHash}=require('node:crypto');
 const {createRequire}=require('node:module');
 const {chromium}=createRequire(path.resolve(__dirname,'../../web/package.json'))('playwright');
 const root=path.resolve(__dirname,'../../web/out');
+const pairedMode=process.argv.includes('--paired');
 const artists={A:'Synthetic artist A',B:'Synthetic artist B'};
 const catalog=Array.from({length:20},(_,i)=>({entity_id:`catalog-film-${i}`,name:`Synthetic catalog film ${i}`,release_year:1980+i}));
 const artistIds={A:{entity_id:'artist-A',name:artists.A,type:'urn:entity:artist'},B:{entity_id:'artist-B',name:artists.B,type:'urn:entity:artist'}};
@@ -45,7 +46,7 @@ async function main(){
     const context=await browser.newContext({acceptDownloads:true,viewport:process.argv.includes('--mobile')?{width:390,height:844}:{width:1280,height:900}});
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
     const capture=async name=>{if(!process.env.AFFINITYQA_TEST_SCREENSHOT_DIR)return;const directory=path.resolve(process.env.AFFINITYQA_TEST_SCREENSHOT_DIR);fs.mkdirSync(directory,{recursive:true});fs.writeFileSync(path.join(directory,name+'.png'),await page.screenshot({fullPage:true}),{flag:'wx'});};
-    const capabilities=()=>({configured:true,execution_enabled:true,simulation_only:true,admission_mode:'repeatable-v1',remaining_plans:null,remaining_executions:null,operator_mode:'groq',model:'synthetic',catalog,default_artists:artists,cinema_preferences_supported:true,cinema_identity_confirmation_supported:true,cinema_discoveries_supported:true,...(capabilityEnabled?{movie_input_search_supported:true,maximum_movie_queries_per_case:2}:{}),jobs:[...jobs.values()].map(({job_id,status,artists})=>({job_id,status,artists}))});
+    const capabilities=()=>({configured:true,execution_enabled:true,simulation_only:true,admission_mode:'repeatable-v1',remaining_plans:null,remaining_executions:null,operator_mode:'groq',model:'synthetic',catalog,default_artists:artists,cinema_preferences_supported:true,cinema_identity_confirmation_supported:true,cinema_discoveries_supported:true,...(capabilityEnabled?{movie_input_search_supported:true,maximum_movie_queries_per_case:2,...(pairedMode?{fast_pair_review_supported:true}:{})}:{}),jobs:[...jobs.values()].map(({job_id,status,artists})=>({job_id,status,artists}))});
     await context.route(url=>!/^\/api\/demo\/cases\/jobs\/[^/]+\/verification$/.test(url.pathname),async route=>{
       const req=route.request(),url=new URL(req.url());assert.equal(url.origin,origin,'External browser requests forbidden');
       const json=body=>route.fulfill({json:clone(body)});
@@ -58,6 +59,8 @@ async function main(){
         const body=req.postDataJSON();const count=(body.movie_queries?.A.length??0)+(body.movie_queries?.B.length??0);assert.ok(count<=2);
         const job={...makeJob(`movie-case-${jobs.size}`),preferences:body.preferences};
         if(count)Object.assign(job,{case_protocol:'cinema-confirmed-discovery-v4',movie_queries:body.movie_queries,maximum_qloo_requests:4+count});
+        if(capabilityEnabled&&pairedMode){assert.equal(body.fast_pair_review,true);assert.deepEqual(Object.keys(body.movie_queries).sort(),['A','B']);Object.assign(job,{case_protocol:'cinema-paired-discovery-v1',movie_queries:body.movie_queries,maximum_model_decisions:1});}
+        else assert.equal(Object.hasOwn(body,'fast_pair_review'),false,'Older capabilities must not receive the new flag');
         jobs.set(job.job_id,job);return json(job);
       }
       const match=url.pathname.match(/^\/api\/demo\/cases\/jobs\/([^/]+)(?:\/(execute|confirm-identities))?$/);
@@ -71,7 +74,7 @@ async function main(){
           if(job.movie_queries){assert.deepEqual(Object.keys(body.selected_movie_entity_ids).sort(),['A','B']);
             job.chosen_movie_inputs=Object.fromEntries(['A','B'].map(profile=>{const selected=body.selected_movie_entity_ids[profile];assert.equal(selected.length,job.movie_queries[profile].length);assert.equal(new Set(selected).size,selected.length);return [profile,selected.map((id,slot)=>{const movie=job.movie_candidates[profile][slot].find(value=>value.entity_id===id);assert.ok(movie&&Number.isInteger(movie.release_year));return movie;})];}));
           }else assert.equal(Object.hasOwn(body,'selected_movie_entity_ids'),false);
-          confirmations++;Object.assign(job,{status:'COMPLETE',chosen_identities:artistIds,saved_provider_samples:job.maximum_qloo_requests,saved_model_packets:2,result:verifiedResult()});return json(job);
+          confirmations++;Object.assign(job,{status:'COMPLETE',chosen_identities:artistIds,saved_provider_samples:job.maximum_qloo_requests,saved_model_packets:job.maximum_model_decisions,result:{...verifiedResult(),model_attempts:job.maximum_model_decisions}});return json(job);
         }return json(job);
       }
       if(url.pathname.startsWith('/api/'))throw Error('Unexpected API request '+url.pathname);return route.continue();
@@ -79,6 +82,7 @@ async function main(){
     const openSession=async()=>{await page.getByRole('button',{name:'OPEN OR RESTORE MY SESSION',exact:true}).click();await page.getByRole('heading',{name:'YOUR MUSICAL INTERESTS',exact:true}).waitFor();};
     const plan=async()=>{await page.getByRole('button',{name:'REVIEW A NEW PLAN',exact:true}).click();await page.getByRole('status').filter({hasText:/^PLANNED$/}).waitFor();};
     const chooseArtists=async()=>{for(const profile of ['A','B'])await page.getByRole('group',{name:'PROFILE '+profile,exact:true}).getByRole('radio').check();};
+    const openConfirmedInputs=async()=>{await page.locator('summary').filter({hasText:'YOUR CONFIRMED TASTE INPUTS'}).click();};
     await page.goto(origin+'/demo#new');await openSession();
     assert.equal(await page.getByRole('heading',{name:'ADD A FILM YOU ALREADY LIKE',exact:true}).count(),0,'Older servers hide the feature');
     await plan();assert.equal(Object.hasOwn(posts.at(-1).body,'movie_queries'),false,'Zero-query legacy payload stays unchanged');
@@ -109,10 +113,10 @@ async function main(){
     await confirm.click();await page.getByRole('status').filter({hasText:/^COMPLETE$/}).waitFor();
     const completed=[...jobs.values()].find(job=>job.chosen_movie_inputs);assert.ok(completed);
     assert.deepEqual(posts.at(-1).body.selected_movie_entity_ids,{A:['film-gladiator-2000'],B:['film-thing-1982']});
-    await page.getByRole('heading',{name:'CONFIRMED FILM INPUTS',exact:true}).waitFor();await page.getByText('Gladiator (2000)',{exact:true}).waitFor();await capture('02-confirmed-films-and-results');
+    await openConfirmedInputs();await page.getByRole('heading',{name:'CONFIRMED FILM INPUTS',exact:true}).waitFor();await page.getByText('Gladiator (2000)',{exact:true}).waitFor();await capture('02-confirmed-films-and-results');
     const downloadPromise=page.waitForEvent('download');await page.getByRole('link',{name:'DOWNLOAD SELECTED VERIFICATION',exact:true}).click();
     const download=await downloadPromise;assert.equal(new URL(download.url()).origin,origin);const stream=await download.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);const receiptBytes=Buffer.concat(chunks),receipt=JSON.parse(receiptBytes.toString('utf8'));assert.equal(receipt.job_id,completed.job_id);assert.deepEqual(receipt.chosen_movie_inputs,completed.chosen_movie_inputs);
-    const beforeRestore=posts.filter(post=>!post.path.endsWith('/session')).length;await page.reload();await openSession();await page.getByRole('heading',{name:'CONFIRMED FILM INPUTS',exact:true}).waitFor();assert.equal(posts.filter(post=>!post.path.endsWith('/session')).length,beforeRestore,'Restoring a selected movie case uses reads only');
+    const beforeRestore=posts.filter(post=>!post.path.endsWith('/session')).length;await page.reload();await openSession();await openConfirmedInputs();await page.getByRole('heading',{name:'CONFIRMED FILM INPUTS',exact:true}).waitFor();assert.equal(posts.filter(post=>!post.path.endsWith('/session')).length,beforeRestore,'Restoring a selected movie case uses reads only');
     // A same-profile duplicate is blocked even if two different queries returned it.
     await page.getByRole('button',{name:'ADD FILM TO PROFILE A',exact:true}).click();await page.getByLabel('Profile A film title 1',{exact:true}).fill('Gladiator');
     await page.getByRole('button',{name:'ADD FILM TO PROFILE A',exact:true}).click();await page.getByLabel('Profile A film title 2',{exact:true}).fill('Gladiator 2000');await plan();await page.getByRole('button',{name:'FIND ARTISTS & FILMS',exact:true}).click();await chooseArtists();
@@ -121,8 +125,26 @@ async function main(){
     await page.getByRole('group',{name:'MOVIE PROFILE A · QUERY 2',exact:true}).getByRole('radio',{name:/Gladiator \(1992\)/}).check();assert.equal(await confirm.isEnabled(),true);
     // Editing after a search removes its identity choices without erasing saved cases.
     const savedCount=jobs.size;await page.getByLabel('Profile A film title 1',{exact:true}).fill('No matching film');assert.equal(await page.getByRole('heading',{name:'CONFIRM YOUR FILMS',exact:true}).count(),0);assert.equal(jobs.size,savedCount);await page.getByRole('button',{name:'Remove profile A film query 2',exact:true}).click();await plan();await page.getByRole('button',{name:'FIND ARTISTS & FILMS',exact:true}).click();await chooseArtists();await page.getByText('No film matches were saved for this query.',{exact:false}).waitFor();assert.equal(await confirm.isEnabled(),false);await capture('03-no-film-match');
-    assert.equal(createHash('sha256').update(JSON.stringify(jobs.get(historical.job_id))).digest('hex'),historicalHash,'Historical case bytes stay unchanged');assert.equal(confirmations,1);assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
-    console.log(JSON.stringify({result:'PASS',scenario:'movie query cap, legacy payload, normalized plan, edit invalidation, explicit title/year confirmation, duplicate and unknown-year rejection, native receipt, restoration, no-match and historical preservation',viewport:process.argv.includes('--mobile')?'mobile':'desktop',completed_synthetic_cases:1,synthetic_confirmations:confirmations,real_provider_calls:0,historical_case_sha256:historicalHash,downloaded_receipt_sha256:createHash('sha256').update(receiptBytes).digest('hex'),scope:'FRONTEND_WITH_SYNTHETIC_API_ONLY'}));
+    if(pairedMode){
+      // The same additive protocol also supports an explicit empty movie-query pair.
+      await page.reload();await openSession();await plan();
+      assert.deepEqual(posts.at(-1).body.movie_queries,{A:[],B:[]});
+      await page.getByText('One shared AI pass ranks the two taste scenarios; this is not two independent model evaluations.',{exact:false}).waitFor();
+      await page.getByRole('button',{name:'FIND ARTISTS',exact:true}).click();await chooseArtists();
+      await page.getByRole('button',{name:'CONFIRM ARTISTS & START REVIEW',exact:true}).click();
+      await page.getByRole('status').filter({hasText:/^COMPLETE$/}).waitFor();
+      assert.deepEqual(posts.at(-1).body.selected_movie_entity_ids,{A:[],B:[]});
+      const noMovieJob=[...jobs.values()].at(-1);assert.equal(noMovieJob.maximum_model_decisions,1);assert.equal(noMovieJob.saved_model_packets,1);
+      const recommendations=page.locator('section').filter({has:page.getByRole('heading',{name:'NEW FILM DISCOVERIES',exact:true})}).last();
+      assert.equal(await recommendations.getByRole('heading',{level:4}).count(),10,'Five visible film cards for each taste scenario');
+      const beforeViews=posts.length;
+      await page.getByRole('button',{name:/^02 \/ SEE THE PROOF/}).click();
+      await page.getByRole('button',{name:/^01 \/ MAKE IT PERSONAL/}).click();
+      await page.getByRole('status').filter({hasText:/^COMPLETE$/}).waitFor();assert.equal(posts.length,beforeViews,'Switching views retains the selected case and performs no mutation');
+      await capture('04-shared-pass-two-tastes');
+    }
+    assert.equal(createHash('sha256').update(JSON.stringify(jobs.get(historical.job_id))).digest('hex'),historicalHash,'Historical case bytes stay unchanged');assert.equal(confirmations,pairedMode?2:1);assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
+    console.log(JSON.stringify({result:'PASS',scenario:'movie query cap, legacy payload, normalized plan, edit invalidation, explicit title/year confirmation, duplicate and unknown-year rejection, native receipt, restoration, no-match and historical preservation',paired_capability:pairedMode,viewport:process.argv.includes('--mobile')?'mobile':'desktop',completed_synthetic_cases:confirmations,synthetic_confirmations:confirmations,real_provider_calls:0,historical_case_sha256:historicalHash,downloaded_receipt_sha256:createHash('sha256').update(receiptBytes).digest('hex'),scope:'FRONTEND_WITH_SYNTHETIC_API_ONLY'}));
   }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 }
 main().catch(error=>{console.error(error.stack||error.message);process.exitCode=1;});

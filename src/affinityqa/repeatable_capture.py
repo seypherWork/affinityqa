@@ -31,10 +31,14 @@ def protocol(request):
         from .cinema_discovery_v4_capture import prepare_plan, search_identities, capture_confirmed
         from .cinema_discovery_v4_verify import verify_discovery_search, verify_confirmed_discoveries
         return prepare_plan, capture_confirmed, verify_confirmed_discoveries, search_identities, verify_discovery_search
+    if version == 7:
+        from .fast_pair_capture import prepare_plan, search_identities, capture_confirmed
+        from .fast_pair_verify import verify_discovery_search, verify_confirmed_discoveries
+        return prepare_plan, capture_confirmed, verify_confirmed_discoveries, search_identities, verify_discovery_search
     need(False, 'Unsupported repeatable request version.')
 
 
-def request_for(template, artists, preferences=None, confirm_identities=False, discover_new_movies=False, movie_queries=None):
+def request_for(template, artists, preferences=None, confirm_identities=False, discover_new_movies=False, movie_queries=None, fast_pair_review=False):
     need(type(confirm_identities) is bool and type(discover_new_movies) is bool, 'Explicit mode booleans required.')
     need(not discover_new_movies or confirm_identities, 'Discoveries require explicit identity confirmation.')
     need(not confirm_identities or preferences is not None, 'Identity confirmation requires cinema preferences.')
@@ -48,6 +52,11 @@ def request_for(template, artists, preferences=None, confirm_identities=False, d
              'Movie searches require confirmed discovery preferences.')
         version = 6
         request['movie_queries'] = copy.deepcopy(movie_queries)
+    need(type(fast_pair_review) is bool, 'Explicit fast pair boolean required.')
+    if fast_pair_review:
+        need(preferences is not None and confirm_identities and discover_new_movies, 'Fast pair requires confirmed discovery preferences.')
+        from .fast_pair import validate_request as paired
+        return paired({**request,'schema_version':7,'movie_queries':copy.deepcopy(movie_queries) if movie_queries is not None else {'A':[],'B':[]}})
     request['schema_version'] = version
     validators = {}
     from .individual_remote_capture import validate_request
@@ -87,7 +96,12 @@ def execute_stage(request, output, settings, remote_key, *, stage, interval, ada
     if reviewed_protocol_plan is not None:
         # Only the explicitly versioned output relocation differs. Execution
         # contracts and sources may not drift while a paused case is resumed.
-        semantic = lambda value: {k:v for k,v in value.items() if k not in ('plan_sha256','output_directory')}
+        def semantic(value):
+            result = {k:v for k,v in value.items() if k not in ('plan_sha256','output_directory')}
+            if request['schema_version'] == 7:
+                result['identity_plan'] = {k:v for k,v in value['identity_plan'].items()
+                                           if k not in ('plan_sha256','output_directory')}
+            return result
         need(fingerprint(semantic(plan)) == fingerprint(semantic(reviewed_protocol_plan)),
              'Reviewed protocol source or operator changed before the next dispatch.')
     if search is not None:
@@ -105,7 +119,7 @@ def execute_stage(request, output, settings, remote_key, *, stage, interval, ada
         need(receipt['identity_candidates'] == original['identity_candidates']
              and receipt['identity_queries'] == original['identity_queries'],
              'Reconstructed identities differ from the explicitly selected observations.')
-        if request['schema_version'] == 6:
+        if request['schema_version'] in (6,7):
             need(receipt['movie_candidates'] == original['movie_candidates']
                  and receipt['movie_queries'] == original['movie_queries'],
                  'Reconstructed movie choices differ from the explicitly confirmed observations.')
@@ -113,7 +127,7 @@ def execute_stage(request, output, settings, remote_key, *, stage, interval, ada
             report, directory = capture(directory, confirmation['selected_entity_ids'], receipt,
                 settings, remote_key, _test_adapters=adapters,
                 **({'selected_movie_entity_ids':confirmation['selected_movie_entity_ids']}
-                   if request['schema_version'] == 6 else {}))
+                   if request['schema_version'] in (6,7) else {}))
         check_storage_report(report)
         return directory, verifier(directory)
     with runtime.activate(namespace='capture') if runtime else nullcontext():
