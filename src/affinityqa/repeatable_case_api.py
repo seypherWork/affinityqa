@@ -1,15 +1,28 @@
 """Same-origin owned case HTTP contract for repeatable-v1 and read-only legacy access."""
 from datetime import datetime
+from typing import Annotated
 import hmac
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from pydantic import Field
 from .errors import SchemaError
-from .individual_api import JobId, StartBody
-from .movie_case_bodies import ConfirmBody, PlanBody
+from .individual_api import JobId, StartBody, StrictBody
+from .movie_case_bodies import ConfirmBody, PlanBody, MovieId, MovieQuery
 from .public_case_api import EmptyBody, cookie_name
 from .public_cases import SHA, TOKEN
+
+
+class OpenMoviePlanBody(StrictBody):
+    movie_query: MovieQuery
+    intent_text: Annotated[str, Field(max_length=600)] = ''
+    excluded_entity_ids: Annotated[list[MovieId], Field(max_length=15)] = Field(default_factory=list)
+
+
+class OpenMovieConfirmBody(StartBody):
+    identity_receipt_sha256: Annotated[str, Field(pattern=r'^[a-f0-9]{64}$')]
+    selected_movie_entity_id: MovieId
 
 
 def routes(manager,*,origin):
@@ -82,6 +95,21 @@ def routes(manager,*,origin):
             current,token=access(request);return response(current.view(token,job_id))
         return call(action)
 
+    @router.post('/open-movies/plans',status_code=201)
+    def open_movie_plan(request:Request,body:OpenMoviePlanBody):
+        def action():
+            current,token=access(request,True)
+            try:return response(current.prepare_open_movie(token,body.movie_query,body.intent_text,body.excluded_entity_ids),201)
+            except SchemaError:raise Denial(422,'Use a film title, a bounded preference and valid film exclusions.') from None
+        return call(action)
+
+    @router.get('/open-movies/jobs/older-than/{cursor_job_id}')
+    def open_movie_history(request:Request,cursor_job_id:JobId):
+        def action():
+            current,token=access(request)
+            return response(current.open_movie_history(token,cursor_job_id))
+        return call(action)
+
     @router.get('/jobs/older-than/{cursor_job_id}')
     def history(request:Request,cursor_job_id:JobId):
         def action():
@@ -112,7 +140,7 @@ def routes(manager,*,origin):
     def confirm(request:Request,job_id:JobId,body:ConfirmBody):
         def action():
             current,token=access(request,True);view=current.view(token,job_id)
-            if view.get('read_only') or view['status']!='AWAITING_IDENTITY_CONFIRMATION':raise Denial(409,'This saved identity selection cannot be admitted again.')
+            if view.get('read_only') or view.get('open_movie_discovery') or view['status']!='AWAITING_IDENTITY_CONFIRMATION':raise Denial(409,'This saved identity selection cannot be admitted again.')
             if view['plan_sha256']!=body.plan_sha256 or view.get('identity_receipt_sha256')!=body.identity_receipt_sha256:
                 raise Denial(409,'The reviewed plan or identity receipt differs.')
             if not current.capabilities(token)['execution_enabled']:raise Denial(503,'Confirmed capture is disabled; saved cases remain readable.')
@@ -120,6 +148,20 @@ def routes(manager,*,origin):
             try:return response(current.confirm_identities(token,job_id,body.plan_sha256,body.identity_receipt_sha256,body.selected_entity_ids.model_dump(),
                 **({'selected_movie_entity_ids':body.selected_movie_entity_ids.model_dump()} if body.selected_movie_entity_ids is not None else {})),202)
             except SchemaError:raise Denial(409,'The saved identity choices or evidence no longer match this plan.') from None
+        return call(action)
+
+    @router.post('/jobs/{job_id}/confirm-movie',status_code=202)
+    def confirm_movie(request:Request,job_id:JobId,body:OpenMovieConfirmBody):
+        def action():
+            current,token=access(request,True);view=current.view(token,job_id)
+            if view.get('read_only') or not view.get('open_movie_discovery') or view['status']!='AWAITING_IDENTITY_CONFIRMATION':
+                raise Denial(409,'This saved movie selection cannot be admitted again.')
+            if view['plan_sha256']!=body.plan_sha256 or view.get('identity_receipt_sha256')!=body.identity_receipt_sha256:
+                raise Denial(409,'The reviewed plan or movie receipt differs.')
+            if not current.capabilities(token)['execution_enabled']:raise Denial(503,'Confirmed capture is disabled; saved cases remain readable.')
+            if current.health()['queued']>=current.policy['maximum_queued_jobs']:raise Denial(429,'The concurrent queue is full. Your saved selection can be admitted later.')
+            try:return response(current.confirm_movie(token,job_id,body.plan_sha256,body.identity_receipt_sha256,body.selected_movie_entity_id),202)
+            except SchemaError:raise Denial(409,'The saved film choice or evidence no longer matches this plan.') from None
         return call(action)
     return router
 

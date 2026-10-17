@@ -14,12 +14,33 @@ import builtins
 from .individual_capture import safe_directory_path, execution_lease, sha
 from .individual_jobs import JOB_ID, IndividualJobManager, need, read, write
 from .individual_verify import inventory
-from .repeatable_capture import request_for, prepare_protocol, execute_stage, outer_receipt, protocol
+from .repeatable_capture import request_for, open_movie_request, prepare_protocol, execute_stage, outer_receipt, protocol
 
 ACTIVE = ('QUEUED','WAITING_PROVIDER_CAPACITY','RUNNING','VERIFYING')
 HELPERS = ('repeatable_cases.py','repeatable_jobs.py','repeatable_capture.py',
            'repeatable_case_config.py','repeatable_case_api.py','provider_runtime.py',
            'provider_scheduler.py','qloo_cache.py','movie_case_bodies.py')
+
+
+def open_movie_confirmation(receipt, selected_movie_entity_id):
+    """A title/year selection must resolve to exactly one verified search candidate."""
+    from .cinema_movie_inputs import movie_identity
+    need(receipt.get('verification_status') == 'VERIFIED_IDENTITY_SEARCH', 'Verified movie search required.')
+    candidates = receipt.get('movie_candidates')
+    need(isinstance(candidates, list) and 1 <= len(candidates) <= 5, 'Bounded movie candidates required.')
+    chosen = [movie_identity(candidate) for candidate in candidates
+              if candidate.get('entity_id') == selected_movie_entity_id]
+    need(len(chosen) == 1, 'Choose one verified title and year.')
+    return chosen[0]
+
+
+def validate_open_movie_confirmation(receipt, choice):
+    need(set(choice) == {'schema_version', 'identity_receipt_sha256', 'identity_receipt',
+                        'selected_movie_entity_id', 'chosen_movie_input'}
+         and type(choice['schema_version']) is int and choice['schema_version'] == 3,
+         'Closed open-movie confirmation version3 required.')
+    need(choice['chosen_movie_input'] == open_movie_confirmation(receipt, choice['selected_movie_entity_id']),
+         'Saved movie selection differs from verified title and year.')
 
 
 def movie_confirmation(request, receipt, selected_movie_entity_ids):
@@ -206,11 +227,15 @@ class RepeatableJobManager:
             path=self.root/row['job_id']/'identity-confirmation.json'
             if not path.exists():continue
             job=self._job(row['job_id']);choice=read(path);receipt=self._receipt(job)
-            from .cinema_identity_verify import selection_profiles
-            need(choice['identity_receipt_sha256']==job['receipt_sha'] and choice['identity_receipt']==receipt
-                 and choice['chosen_identities']==selection_profiles(receipt,choice['selected_entity_ids']),
+            need(choice['identity_receipt_sha256']==job['receipt_sha'] and choice['identity_receipt']==receipt,
                  'Uncommitted identity selection differs from saved evidence.')
-            validate_movie_confirmation(job['plan']['request'],receipt,choice)
+            if job['plan']['request']['schema_version'] == 8:
+                validate_open_movie_confirmation(receipt, choice)
+            else:
+                from .cinema_identity_verify import selection_profiles
+                need(choice['chosen_identities']==selection_profiles(receipt,choice['selected_entity_ids']),
+                     'Uncommitted artist selection differs from saved evidence.')
+                validate_movie_confirmation(job['plan']['request'],receipt,choice)
             now=self._epoch()
             with self.store.transaction() as db:
                 db.execute("UPDATE jobs SET status='QUEUED',phase='capture',not_before=?,confirmation_json=? WHERE job_id=?",
@@ -241,9 +266,15 @@ class RepeatableJobManager:
         return request_for(self.template,artists,preferences,confirm_identities,discover_new_movies,movie_queries,fast_pair_review)
 
     def prepare(self,owner,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None,fast_pair_review=False):
+        request=self.request_for(artists,preferences,confirm_identities,discover_new_movies,movie_queries,fast_pair_review)
+        return self._prepare_request(owner, request)
+
+    def prepare_open_movie(self, owner, movie_query, intent_text='', excluded_entity_ids=None):
+        return self._prepare_request(owner, open_movie_request(self.template, movie_query, intent_text, excluded_entity_ids))
+
+    def _prepare_request(self, owner, request):
         with self.lock:
             need(not self.closed and not self._admissions_blocked(),'Repeatable admissions are suspended; owner inspection required.')
-            request=self.request_for(artists,preferences,confirm_identities,discover_new_movies,movie_queries,fast_pair_review)
             job_id=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')+'-'+uuid4().hex[:8]
             parent=self.root/job_id;parent.mkdir(mode=0o700)
             attempts=parent/'attempts';attempts.mkdir(mode=0o700)
@@ -288,7 +319,7 @@ class RepeatableJobManager:
             need(job['plan']['source_sha256']==sha(Path(__file__))
                  and job['plan']['capture_source_sha256']==sha(Path(__file__).with_name('repeatable_capture.py')),
                  'Repeatable execution source changed.')
-            phase='identity-search' if job['plan']['request']['schema_version'] in (4,5,6,7) else 'capture'
+            phase='identity-search' if job['plan']['request']['schema_version'] in (4,5,6,7,8) else 'capture'
             now=self._epoch()
             with self.store.transaction() as db:
                 db.execute("UPDATE jobs SET status='QUEUED',phase=?,not_before=? WHERE job_id=?",(phase,now,job_id))
@@ -303,6 +334,15 @@ class RepeatableJobManager:
              'Repeatable helper source or tokenizer assets changed before the next dispatch.')
         current=copy.deepcopy(self.token_estimator.manifest) if self.token_estimator else {'method':'conservative-byte-upper-bound-v1'}
         need(job['plan']['token_estimation']==current,'Reviewed token estimation method changed before the next dispatch.')
+
+    def current_execution_bindings(self):
+        return {'helper_bindings':helper_bindings(),
+                'token_estimation':copy.deepcopy(self.token_estimator.manifest) if self.token_estimator else
+                    {'method':'conservative-byte-upper-bound-v1'}}
+
+    def execution_source_compatible(self,plan,current=None):
+        current=self.current_execution_bindings() if current is None else current
+        return all(plan.get(key)==value for key,value in current.items())
 
     def _ensure_worker(self):
         with self.condition:
@@ -356,6 +396,18 @@ class RepeatableJobManager:
                 manager._check_dispatch_storage()
                 return super().model_rank(*args,**kwargs)
         request=job['plan']['request']
+        if request['schema_version'] == 8:
+            confirmation=json.loads(job['confirmation_json']) if job['confirmation_json'] else None
+            scope={'movie_query':request['movie_query'],'intent_text':request['intent_text'],
+                   'excluded_entity_ids':request['excluded_entity_ids'],
+                   'selected_movie_entity_id':confirmation['selected_movie_entity_id'] if confirmation else None,
+                   'source_namespace':fingerprint(job['plan']['protocol_plan']['source_sha256'])}
+            # The musical/fixed-catalog cache has a different validation contract.
+            # Accepted operations still reconstruct through the shared durable dispatcher.
+            return StorageGuardedRuntime(self.scheduler,job_id=job['job_id'],owner_id=job['owner'],qloo_cache=None,
+                cache_scope=scope,token_estimator=self.token_estimator,
+                namespace={'request_sha256':fingerprint(request),
+                           'source_sha256':fingerprint(job['plan']['protocol_plan']['source_sha256'])})
         selected=json.loads(job['confirmation_json'])['selected_entity_ids'] if job['confirmation_json'] else None
         scope={'identity':{'queries':request['artists'],'selected_entity_ids':selected},
                'profile':request['artists'],'catalog':request['catalog'],
@@ -440,6 +492,13 @@ class RepeatableJobManager:
             self._validate_sources(job)
             request=job['plan']['request']
             confirmation=json.loads(job['confirmation_json']) if job['confirmation_json'] else None
+            if request['schema_version'] == 8 and phase != 'identity-search':
+                need(confirmation is not None and read(self.root/job_id/'identity-confirmation.json') == confirmation,
+                     'Saved movie confirmation differs from its durable checkpoint.')
+                need(confirmation['identity_receipt_sha256'] == job['receipt_sha']
+                     and confirmation['identity_receipt'] == json.loads(job['receipt_json']),
+                     'Saved movie confirmation no longer matches the original search receipt.')
+                validate_open_movie_confirmation(confirmation['identity_receipt'], confirmation)
             if request['schema_version'] in (6,7) and phase != 'identity-search':
                 need(confirmation is not None and read(self.root/job_id/'identity-confirmation.json') == confirmation,
                      'Saved movie confirmation differs from its durable checkpoint.')
@@ -538,6 +597,7 @@ class RepeatableJobManager:
     def confirm_identities(self,job_id,plan_hash,identity_receipt_hash,selected_entity_ids,selected_movie_entity_ids=None):
         with self.condition:
             job=self._job(job_id)
+            need(job['plan']['request']['schema_version'] != 8, 'Use the explicit single-movie confirmation contract.')
             need(self.enabled and not self.closed and not self._admissions_blocked() and job['status']=='AWAITING_IDENTITY_CONFIRMATION',
                  'Identity confirmation is single use.')
             self._validate_sources(job)
@@ -561,6 +621,31 @@ class RepeatableJobManager:
                            (now,encoded(confirmation),job_id))
                 db.execute("INSERT INTO queue(job_id,phase,eligible) VALUES(?,'capture',?)",(job_id,now))
                 self.store.event(db,job_id,'QUEUED',{'explicit_identity_confirmation':True})
+            if self.autostart:self._ensure_worker()
+            self.condition.notify_all()
+            return self.view(job_id)
+
+    def confirm_movie(self, job_id, plan_hash, identity_receipt_hash, selected_movie_entity_id):
+        with self.condition:
+            job=self._job(job_id)
+            need(job['plan']['request']['schema_version'] == 8 and self.enabled and not self.closed
+                 and not self._admissions_blocked() and job['status']=='AWAITING_IDENTITY_CONFIRMATION',
+                 'Movie confirmation is single use.')
+            self._validate_sources(job)
+            need(job['plan']['plan_sha256']==plan_hash and job['receipt_sha']==identity_receipt_hash,
+                 'Reviewed movie receipt differs.')
+            receipt=self.identity_receipt(job_id)
+            confirmation={'schema_version':3,'identity_receipt_sha256':identity_receipt_hash,
+                          'identity_receipt':receipt,'selected_movie_entity_id':selected_movie_entity_id,
+                          'chosen_movie_input':open_movie_confirmation(receipt,selected_movie_entity_id)}
+            validate_open_movie_confirmation(receipt,confirmation)
+            write(self.root/job_id/'identity-confirmation.json',confirmation)
+            now=self._epoch()
+            with self.store.transaction() as db:
+                db.execute("UPDATE jobs SET status='QUEUED',phase='capture',not_before=?,confirmation_json=? WHERE job_id=?",
+                           (now,encoded(confirmation),job_id))
+                db.execute("INSERT INTO queue(job_id,phase,eligible) VALUES(?,'capture',?)",(job_id,now))
+                self.store.event(db,job_id,'QUEUED',{'explicit_movie_confirmation':True})
             if self.autostart:self._ensure_worker()
             self.condition.notify_all()
             return self.view(job_id)
@@ -615,9 +700,9 @@ class RepeatableJobManager:
             if queue:
                 position=self.store.one('SELECT COUNT(*) AS n FROM queue WHERE seq<=?',(queue['seq'],))['n']
             value={'job_id':job_id,'status':job['status'],'created_utc':job['created'],
-                'artists':copy.deepcopy(request['artists']),'preferences':copy.deepcopy(request.get('preferences')),
+                'preferences':copy.deepcopy(request.get('preferences')),
                 'model':request['model']['name'],'operator_mode':'groq','model_load_requests':0,'model_metadata_requests':0,
-                'plan_sha256':plan['plan_sha256'],'catalog_sha256':fingerprint(request['catalog']),
+                'plan_sha256':plan['plan_sha256'],
                 'maximum_qloo_requests':protocol['maximum_qloo_requests'],'maximum_model_decisions':protocol['maximum_model_decisions'],
                 'case_protocol':protocol['protocol_version'],'declared_faults':len(protocol['faults']),
                 'simulation_only':self.adapters is not None,'cultural_gate':'NOT_VALIDATED','release_gate':'BLOCKED',
@@ -626,6 +711,14 @@ class RepeatableJobManager:
                 'admission_mode':'repeatable-v1','queue_status':job['status'] if job['status'] in ACTIVE else None,
                 'queue_position':position,'not_before':timestamp(job['not_before']) if job['not_before'] else None,
                 'provider_stats':provider_stats,'read_only':False,'legacy_case':False}
+            if request['schema_version'] == 8:
+                value.update(open_movie_discovery=True,movie_query=request['movie_query'],intent_text=request['intent_text'],
+                             decision_scope='one-confirmed-film-one-candidate-pool-one-model-call')
+            else:
+                value.update(artists=copy.deepcopy(request['artists']),catalog_sha256=fingerprint(request['catalog']))
+            if job['status'] in ('PLANNED','AWAITING_IDENTITY_CONFIRMATION') and not self.execution_source_compatible(plan):
+                value.update(read_only=True,continuity_reason='EXECUTION_SOURCE_CHANGED',
+                    continuity_notice='This retained plan belongs to an earlier execution source. Its evidence is readable; prepare a new plan to execute the current version.')
             if request['schema_version'] in (6,7):
                 value['movie_queries']=copy.deepcopy(request['movie_queries'])
             if request['schema_version'] == 7:
@@ -634,7 +727,8 @@ class RepeatableJobManager:
             if job['directory'] and Path(job['directory']).is_dir():
                 directory=Path(job['directory'])
                 value['saved_provider_samples']=len(list(directory.glob('http-*.json')))
-                value['saved_model_packets']=len(list(directory.glob('causal-execution-*.json')))+len(list(directory.glob('discovery-execution-*.json')))+len(list(directory.glob('pair-execution-*.json')))
+                value['saved_model_packets']=sum(len(list(directory.glob(pattern))) for pattern in (
+                    'causal-execution-*.json','discovery-execution-*.json','pair-execution-*.json','open-movie-execution-*.json'))
                 if job['status']=='WAITING_PROVIDER_CAPACITY' and (directory/'individual-report.json').is_file():
                     report=read(directory/'individual-report.json')
                     value['progress']={'verification_status':'PENDING','cultural_gate':'NOT_VALIDATED',
@@ -646,8 +740,11 @@ class RepeatableJobManager:
                     receipt=self._receipt(job)
                     value['simulation_only']=receipt.get('provenance')=='SIMULATION_ONLY'
                     if job['status']=='AWAITING_IDENTITY_CONFIRMATION':
-                        value.update(identity_candidates=receipt['identity_candidates'],identity_queries=receipt['identity_queries'],
-                                     identity_receipt_sha256=job['receipt_sha'])
+                        value['identity_receipt_sha256']=job['receipt_sha']
+                        if request['schema_version'] == 8:
+                            value.update(movie_candidates=copy.deepcopy(receipt['movie_candidates']),movie_query=receipt['movie_query'])
+                        else:
+                            value.update(identity_candidates=receipt['identity_candidates'],identity_queries=receipt['identity_queries'])
                         if request['schema_version'] in (6,7):
                             value['movie_candidates']=copy.deepcopy(receipt['movie_candidates'])
                     else:
@@ -656,7 +753,8 @@ class RepeatableJobManager:
                           'model_attempts','qloo_attempts','observed_recoveries_by_fault','summary','external_service_attested',
                           'error_class','preference_gate','cinema_results','chosen_identities','repeatable_contract',
                           'chosen_movie_inputs','movie_queries','movie_input_gate','shared_model_calls','correlated_projections',
-                           'independent_model_decisions','decision_scope')
+                           'independent_model_decisions','decision_scope','open_movie_results','chosen_movie_input',
+                           'movie_query','intent_text')
                         value['result']={k:copy.deepcopy(receipt[k]) for k in fields if k in receipt}
                         value.update(receipt_sha256=job['receipt_sha'],saved_provider_samples=receipt['verified_provider_samples'],
                                      saved_model_packets=receipt['verified_model_packets'])

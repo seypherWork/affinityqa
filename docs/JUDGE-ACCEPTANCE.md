@@ -1,5 +1,97 @@
 # Judge acceptance record
 
+## Additive open-film protocol: local acceptance, 17 October 2026
+
+This source candidate adds a separate movie-led route with a new Qloo pool per
+case. It has not been deployed or accepted in a real hosted browser yet. The
+existing hosted acceptance below belongs to the retained musical-comparison route.
+
+- Engineering: 625 Python tests, frontend types and production export passed
+  locally on Windows. Actual local backend/browser journeys with synthetic
+  providers passed on desktop and mobile, including native JSON downloads,
+  reload/restore, lost-plan response recovery without repost and mode retention.
+  The retained musical browser route also passed with two owned cases.
+- Real local capture: John Wick (2014) and Scary Movie (2000), each twenty actual
+  candidates and five delivered movies; their candidate pools share no UUIDs.
+  Total four fresh Qloo requests and two fresh Groq sends.
+- Quota continuity: Scary Movie's original model operation remained unsent/PENDING
+  under local TPM admission. After a separately approved continuation, two Qloo
+  observations were reconstructed without fresh requests and the pending Groq
+  operation completed. The original partial files and first five accepted
+  operation rows remained unchanged; no consumed/unknown request was retried.
+- Boundary: both delivered rankings equal their respective Qloo baseline. This is
+  technical compatibility, not demonstrated model improvement, human preference
+  quality or validation of every interpretation. Human participants remain zero.
+- Preservation: the 291-file source used in these trials remains frozen. Original
+  historical release files and the published service were not modified by them.
+
+The separate local reports retain hashes and raw evidence privately; provider
+snapshots and credentials are excluded from this public source. Independent review
+checked the source, Unicode Windows regression, incompatible-plan read-only
+handling and real receipts. [Protocol details](OPEN-FILM-DISCOVERY.md).
+
+## Existing hosted acceptance
+
+## Current bounded engineering acceptance — 17 October 2026
+
+**PASS for the observed hosted discovery journeys, physical downloads and session
+restoration.** This is scoped technical acceptance of the diagnostic application,
+not universal absence of defects, a production recommender or human satisfaction.
+
+| Requirement | Observed evidence | Boundary |
+| --- | --- | --- |
+| Source and CI | Runtime `1bb98f8ad912d402555bfaf5e8a1fc4c40fe3af8`; [CI 38973760142](https://github.com/seypherWork/affinityqa/actions/runs/38973760142) passed Python checks, types and production export on Windows and Ubuntu; seven Linux browser command steps passed | Synthetic browser providers; Windows browser steps skipped |
+| Hosted deployment | `dep-db9nt2ks728c73cclbh0` LIVE at 13:58:03 UTC; all 279 deployed source files checked | Same service, disk, keys, GPT-OSS 20B, Groq Free and paid hosting plan; maintenance disabled and auto-deploy off |
+| Favorite-film case | `20261017T140032Z-53f08abc`: Sade + Gladiator (2000), Nine Inch Nails + The Matrix (1999), explicitly confirmed identities; COMPLETE with five eligible films per scenario | Six fresh Qloo requests, one shared Groq response; no cache hit, sent failure, UNKNOWN or retry |
+| Abbreviated identity search | `20261017T144457Z-baa5b82c`: query Matrix returned The Matrix (1999) first, canonical ID `c6046119-7760-4733-b84e-374e029b14dc`, matching the prior full-title result | Three fresh Qloo searches (two artists and one film), zero Groq calls, no automatic selection. Retained at AWAITING_IDENTITY_CONFIRMATION; not another completed recommendation |
+| Artists-only case | `20261017T140215Z-0986cbf4`: same session, Sade / Nine Inch Nails without additional film seeds; COMPLETE with five eligible films per scenario | Four fresh Qloo requests and one shared Groq response; no cache hit, sent failure, UNKNOWN or retry |
+| Timing | Confirmation admission to COMPLETE: 9.030 and 6.492 server seconds, no provider-capacity wait in these two trials | Excludes human selection, page loading and browser observation delays; not a future latency guarantee |
+| Delivery | Each of four lists has five unique eligible films; confirmed film inputs reached both Qloo context and the agent input in the film-seed case | All four deliveries matched their respective same-input Qloo baselines; no ranking improvement demonstrated |
+| Native download and recovery | Both JSON files physically saved and verified on Windows; reload and session restoration recovered both cases | Restricted public projections, not raw provider captures or external-service cryptographic attestation |
+| Preservation | Exact pre/post-deployment store comparison passed. After both trials all pre-existing ordinary files and case rows were intact; 70 new files belong to the two new cases | Six changed operational rows separately checked: four sequence rows and two Groq quota observations. No blanket exception for database changes |
+| Existing advanced job | `20261016T210307Z-d919022c` completed naturally at 23:42:42 UTC on 16 October, with 39 model decisions and four Qloo requests; retained unchanged | A historical separate experiment, not extra current short-path trials |
+
+### Native public file fingerprints
+
+| Case | Bytes | SHA-256 |
+| --- | --- | --- |
+| `20261017T140032Z-53f08abc` | 7,603 | `0ce529c6bb6d3056588066299e7f7defcc80348d01b320686e85968d0b43d9ad` |
+| `20261017T140215Z-0986cbf4` | 7,110 | `52b632806ac5fa1242cdf8f6d83173a4de7d16908a748a1bbb350b47dfa0024d` |
+
+Their private receipt identifiers carried by the public projections are
+`2783087db9065724277b91e4f4012d2cbfbe65f4b865c60c1375aeaff1a22559`
+and `ba5dfc4cc4820e05c1e5165cc6561a846c4494fa07c4086cb5c1ae3637a097a6`.
+A download hash differs from a private receipt identifier because their contents differ.
+
+### Remaining boundaries
+
+- One shared model response produces two correlated projections, not independent evaluations.
+- The output universe remains twenty films. External film searches are positive
+  seeds with explicit title/year confirmation. The separate Matrix check establishes
+  that specific missing-article search, not general abbreviation or typo coverage.
+- Cultural quality: NOT_VALIDATED; verified human participants: 0. Role-play
+  scenarios remain synthetic; historical quality failures retain their scores and thresholds.
+- Remote causal attribution for the separate 39-decision campaign: INCONCLUSIVE.
+  The tested-recommender release remains BLOCKED, separate from application availability.
+- Groq Free remains finite and shared. New work may queue, pause or stop. Saved
+  cases and recorded replay do not establish fresh inference or future uptime.
+- The owner must maintain free judge access through judging. The official rules
+  checked on 17 October set the deadline at 30 October 2026, 23:45 EDT
+  (31 October, 04:45 in Belgium), with judging ending 16 November, 23:45 ET.
+- Devpost showed the existing single AffinityQA entry as SUBMITTED, 5/5 steps, on
+  17 October. This documentation preparation does not alter or resubmit that entry.
+
+## Historical acceptance records
+
+The complete previous record follows unchanged. Its older "current", PENDING and
+NO-GO labels refer to those dated versions. Their failures and scientific limits
+are retained; they do not become new trials of the current runtime.
+
+<details>
+<summary>Acceptance snapshot through 15 October 2026 and its older records</summary>
+
+# Judge acceptance record
+
 ## Current bounded engineering acceptance — 15 October 2026, after 21:11 UTC
 
 **PASS: the corrected hosted application completed one new real film-preference journey, a native verification download and recovery in the existing session. All three recorded repairs also passed.** This accepts the observed diagnostic route, not a production recommender, human satisfaction or unrestricted future provider capacity.
@@ -270,5 +362,8 @@ The Qloo review relies on the [official caching FAQ](https://docs.qloo.com/refer
 - Two earlier genuine Groq diagnostics each admitted two attempts and preserved one strict authenticated packet, then stopped under the previous global-fingerprint contract. Their causal gates were NOT_EVALUATED; the later complete v3 result does not erase them. Historical cultural 13/14 and 4/6 trials retain FAIL and their original thresholds.
 
 </details>
+
+</details>
+
 
 </details>

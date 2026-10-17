@@ -1,5 +1,79 @@
 # AffinityQA — reviewer walkthrough
 
+**Current hosted interface: `1bb98f8`, verified 17 October 2026.**
+Open [the hosted workspace](https://affinityqa-review.onrender.com/demo) in a browser.
+No account, Docker, local model or personal API key is required.
+
+The local source also contains a capability-gated **START WITH A FILM** extension.
+It is separate from the hosted acceptance below. Two real local provider captures
+completed; the new route's hosted-browser acceptance remains pending.
+See [its contract and results](OPEN-FILM-DISCOVERY.md).
+
+## Discover films
+
+1. Open **DISCOVER FILMS**, then open or restore your private visitor session.
+   Enter two musical interests. Optionally search up to two favorite films across
+   the two scenarios. Outputs come from the disclosed twenty-film catalog.
+2. Review the plan, then use **FIND ARTISTS** or **FIND ARTISTS & FILMS** once.
+   Explicitly choose each intended artist and each film by its returned title and
+   year. Typing alone sends no provider request. No identity is silently guessed.
+3. Confirm once to obtain context and one shared Groq ranking response. Inspect
+   five eligible films per scenario; **WHY THESE INPUTS?** exposes the raw model
+   order, same-input Qloo baseline and constraints.
+4. Download the selected verification JSON. Reload, restore the same session and
+   open a saved case. This reads retained work without executing it again.
+
+QUEUED or waiting for provider capacity means shared capacity is pending. Read
+the saved status rather than starting again after an uncertain response. Do not
+clear cookies, reset admissions or silently repeat a sent failure.
+
+The two 17 October real cases used 6 Qloo + 1 Groq and 4 Qloo + 1 Groq respectively.
+Server confirmation admission to COMPLETE took 9.030 and 6.492 seconds, with no
+provider-capacity wait in these trials. This excludes human selection, page loads
+and browser observation delays. It is not a future end-to-end latency guarantee.
+
+An additional real identity-only check typed **Matrix** and returned
+**The Matrix (1999)** first, with the same canonical identity as the full-title
+search. It used three Qloo searches and zero Groq calls, stopping before
+confirmation. Other abbreviations, spelling errors and languages were not
+established by this check.
+
+## Diagnosis and evidence
+
+Open **DIAGNOSIS & EVIDENCE** for the recorded path. Choose a captured incident;
+follow **Detect**, **Diagnose**, **Repair** and **Verify**. Compare the requested
+profile, consumed Qloo context, faulty output, repaired output and healthy reference.
+The six checks concern the supported routing/cache repair. Recorded replay makes
+zero new Qloo or model calls and does not establish new provider readiness.
+
+The full 39-decision controlled experiment is a separate advanced option with its
+own reviewed plan and waiting time. It is not the short film-discovery route.
+
+## Read the scope of each result
+
+Two scenarios share one model observation, rather than constituting independent
+evaluations or participants. All four latest film lists equalled their Qloo
+baselines. External favorite-film inputs are positive seeds; they do not expand
+the twenty-film output catalog. The application recommends films, not songs.
+
+Cultural quality remains NOT_VALIDATED with zero verified human participants;
+remote causal attribution for the historical 39-decision campaign is INCONCLUSIVE.
+The tested-recommender BLOCKED gate is separate from the diagnostic application's
+bounded technical acceptance. Groq Free quotas remain shared and finite.
+
+[Current acceptance and native file hashes](JUDGE-ACCEPTANCE.md) ·
+[Shared-pass contract](FAST-TASTE-REVIEW.md)
+
+## Historical guides
+
+The following original guide is retained unchanged. Earlier references to
+"current", runtime versions, buttons and budgets belong to their stated dates.
+
+<details>
+<summary>Guide snapshot through 16 October 2026, including earlier hosted journeys</summary>
+
+# AffinityQA — reviewer walkthrough
+
 **16 October local source candidate:** the new discovery-first interface and the
 capability-gated shared model pass are described in [the taste journey](FAST-TASTE-REVIEW.md).
 This guide's dated hosted acceptances remain historical records; they are not a
@@ -159,3 +233,6 @@ See [JUDGE-ACCEPTANCE.md](JUDGE-ACCEPTANCE.md) and [PUBLIC-NEW-CASES.md](PUBLIC-
 - Earlier published source `20d6abfe489eff5ae361d8c45a92bf14d4133de9` passed 285 tests per platform. The subsequent User-Agent source `69102a29aa68f4ecea77f7861636ece9a2e7b69f` passed 289 per platform. Those are historical revisions, not current totals.
 - The former 65-second pacing example had a 2,470-second spacing lower bound. The reviewed current plan uses 22 seconds; neither example establishes universal quota entitlement or a latency guarantee.
 - The private Windows v9 installation and earlier transport/partial captures remain preserved separately. Their existence does not alter cultural FAIL gates or authorize public provider-data redistribution.
+
+
+</details>

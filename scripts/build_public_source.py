@@ -22,7 +22,8 @@ TESTS=('test_causal_agent.py','test_causal_runner.py','test_causal_evaluator.py'
        'test_discovery_slots.py','test_discovery_failure_evidence.py','test_identity_diagnostics.py','test_discovery_v3_search.py',
        'test_repeatable_cases.py','test_repeatable_case_api.py','test_provider_scheduler.py','test_provider_runtime.py',
        'test_provider_safety_fences.py','test_repeatable_public_integration.py',
-       'test_movie_inputs.py','test_discovery_v4.py','test_movie_case_api.py','test_fast_pair.py')
+       'test_movie_inputs.py','test_discovery_v4.py','test_movie_case_api.py','test_fast_pair.py',
+       'test_open_movie_discovery.py','test_open_movie_discovery_capture.py','test_open_movie_repeatable.py')
 DRIVERS=('affinityqa.py','run_causal_repair.py','continue_causal_validation.py',
          'resume_causal_identity.py','verify_causal_repair.py','build_public_source.py',
          'serve_public_demo.py','verify_public_demo.py','capture_individual_pair.py',
@@ -43,7 +44,8 @@ EXACT=('.gitattributes','pyproject.toml','requirements-backend.lock.txt','requir
        'docs/JUDGE-ACCEPTANCE.md','docs/SUBMISSION-DRAFT.md',
        'tests/browser/session-recovery.cjs','tests/browser/new-case-journey.cjs','tests/browser/repeatable-case-journey.cjs','tests/browser/serve_synthetic_cases.py',
        'tests/browser/repeatable-backend-journey.cjs','tests/browser/serve_repeatable_cases.py',
-       'tests/browser/free-movie-input-journey.cjs','docs/CONFIRMED-MOVIE-INPUTS.md','docs/FAST-TASTE-REVIEW.md',
+       'tests/browser/free-movie-input-journey.cjs','tests/browser/open-movie-backend-journey.cjs',
+       'tests/browser/serve_open_movie_cases.py','docs/CONFIRMED-MOVIE-INPUTS.md','docs/FAST-TASTE-REVIEW.md','docs/OPEN-FILM-DISCOVERY.md',
        'docs/PUBLIC-REPEATABLE-CASES.md',
        'docs/CLOUD-ENGINEERING-REVIEW.md','docs/IDENTITY-SEARCH-DIAGNOSTICS.md','docs/DISCOVERY-V3-SEARCH.md',
        'render.yaml','deployment/README.md','deployment/build_render.py',

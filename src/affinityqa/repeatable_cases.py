@@ -214,7 +214,8 @@ class RepeatableCaseManager:
         with self.lock:
             key=self._identity(token);template=self.manager.template
             page=self._history_page(key)
-            jobs=page['jobs']
+            jobs=[job for job in page['jobs'] if not job.get('open_movie_discovery')]
+            movie_jobs=[job for job in page['jobs'] if job.get('open_movie_discovery')]
             if self.legacy:jobs+=self.legacy.jobs(key)
             health=self.health()
             return {'schema_version':1,'configured':True,'execution_enabled':health['execution_enabled'] and not self._mutations_blocked,
@@ -225,6 +226,9 @@ class RepeatableCaseManager:
                 'cinema_identity_confirmation_supported':True,'cinema_discoveries_supported':True,
                 'movie_input_search_supported':True,'maximum_movie_queries_per_case':2,
                 'fast_pair_review_supported':True,
+                'open_movie_discovery_supported':True,'open_movie_jobs':movie_jobs,
+                'open_movie_jobs_truncated':page['jobs_truncated'],
+                'open_movie_next_cursor_job_id':page['next_cursor_job_id'],
                 'minimum_model_interval_seconds':self.manager.interval,'remaining_plans':None,'remaining_executions':None,
                 'admission_mode':'repeatable-v1','jobs':jobs,'jobs_truncated':page['jobs_truncated'],
                 'next_cursor_job_id':page['next_cursor_job_id'],
@@ -244,9 +248,17 @@ class RepeatableCaseManager:
             ' ORDER BY created DESC,job_id DESC LIMIT ?',(*args,HISTORY_PAGE_SIZE+1))
         more=len(rows)>HISTORY_PAGE_SIZE
         displayed=rows[:HISTORY_PAGE_SIZE]
-        jobs=[{'job_id':row['job_id'],'status':row['status'],
-               'artists':copy.deepcopy(json.loads(row['plan_json'])['request']['artists']),
-               'legacy_case':False,'read_only':False} for row in displayed]
+        bindings=self.manager.current_execution_bindings()
+        jobs=[]
+        for row in displayed:
+            plan=json.loads(row['plan_json']);request=plan['request']
+            incompatible=row['status'] in ('PLANNED','AWAITING_IDENTITY_CONFIRMATION') and not self.manager.execution_source_compatible(plan,bindings)
+            item={'job_id':row['job_id'],'status':row['status'],'legacy_case':False,'read_only':incompatible}
+            if incompatible:item['continuity_reason']='EXECUTION_SOURCE_CHANGED'
+            if request.get('schema_version') == 8:
+                item.update(open_movie_discovery=True,movie_query=request['movie_query'],intent_text=request['intent_text'])
+            else:item['artists']=copy.deepcopy(request['artists'])
+            jobs.append(item)
         return {'schema_version':1,'jobs':jobs,'jobs_truncated':more,
                 'next_cursor_job_id':displayed[-1]['job_id'] if more else None}
 
@@ -254,7 +266,15 @@ class RepeatableCaseManager:
         """Seek an owner-bound retained page without admitting or touching a job."""
         with self.lock:
             key=self._identity(token)
-            return self._history_page(key,cursor_job_id)
+            page=self._history_page(key,cursor_job_id)
+            page['jobs']=[job for job in page['jobs'] if not job.get('open_movie_discovery')]
+            return page
+
+    def open_movie_history(self,token,cursor_job_id):
+        with self.lock:
+            page=self._history_page(self._identity(token),cursor_job_id)
+            page['jobs']=[job for job in page['jobs'] if job.get('open_movie_discovery')]
+            return page
 
     def prepare(self,token,artists,preferences=None,confirm_identities=False,discover_new_movies=False,movie_queries=None,fast_pair_review=False):
         with self.lock:
@@ -267,6 +287,13 @@ class RepeatableCaseManager:
     def _queue_capacity(self):
         need(self.manager.health()['queued']<self.policy['maximum_queued_jobs'],
              'Concurrent queue is full; saved plans and evidence are retained.')
+
+    def prepare_open_movie(self,token,movie_query,intent_text='',excluded_entity_ids=None):
+        with self.lock:
+            key=self._identity(token);self._can_mutate()
+            try:return self.manager.prepare_open_movie(key,movie_query,intent_text,excluded_entity_ids)
+            except (OSError,sqlite3.Error):
+                self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
 
     def start(self,token,job_id,plan_hash):
         with self.lock:
@@ -304,6 +331,15 @@ class RepeatableCaseManager:
                                     provider_receipt_set_sha256=provenance['receipt_set_sha256'])
                 result['result']['repeatable_contract']=selected
             return result
+
+    def confirm_movie(self,token,job_id,plan_hash,identity_receipt_hash,selected_movie_entity_id):
+        with self.lock:
+            key=self._identity(token);new=self._owned(key,job_id);self._can_mutate()
+            need(new,'Historical sealed cases are read-only.')
+            self._queue_capacity()
+            try:return self.manager.confirm_movie(job_id,plan_hash,identity_receipt_hash,selected_movie_entity_id)
+            except (OSError,sqlite3.Error):
+                self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
 
     def verification(self,token,job_id):
         with self.lock:

@@ -1,9 +1,16 @@
 # Taste discovery and the shared model pass
 
-This source candidate introduces a cinematic discovery interface and an additive
-paired-ranking protocol. It is not a claim that this candidate is deployed, that
-a fresh hosted trial has passed, or that the model responds instantly. Historical
-acceptance remains dated in [the acceptance record](JUDGE-ACCEPTANCE.md).
+This page describes the retained musical-comparison protocol. The additive
+[open film-discovery protocol](OPEN-FILM-DISCOVERY.md) retrieves a new pool per
+confirmed film; it does not change the historical fixed-catalog experiment.
+
+The cinematic discovery interface and additive paired-ranking protocol are deployed
+as `1bb98f8`, verified 17 October 2026. Two real cases completed with native
+downloads and same-session restoration: 6 Qloo + 1 Groq and 4 Qloo + 1 Groq.
+Their confirmation-admission-to-COMPLETE server intervals were 9.030 and 6.492
+seconds without provider-capacity waiting. These exclude human selection, page
+loads and browser observation delays; they are not a future latency guarantee.
+See [dated acceptance and boundaries](JUDGE-ACCEPTANCE.md).
 
 ## Reviewer journey
 
@@ -52,10 +59,23 @@ reserve the complete conservative input/output token budget before dispatch and
 must not assume a prompt-cache hit. Fresh work may queue. Saved cases remain saved
 cases and recorded repairs remain recorded repairs.
 
-Groq stays on the free plan. No new model, subscription, server or credential is
-introduced by this source change. Offline synthetic tests prove contracts and
-failure handling; they do not prove live provider compatibility, latency or
-recommendation quality. Cultural quality remains `NOT_VALIDATED`.
+Groq stays on the free plan. No new model, subscription, server or credential was
+introduced by this protocol. Offline synthetic tests prove contracts and failure
+handling; the two separately documented hosted trials supply bounded real-provider
+evidence. Neither establishes future availability or recommendation quality. All
+four delivered lists matched their same-input Qloo baselines. Cultural quality
+remains `NOT_VALIDATED`, with zero verified human participants.
+
+## Observed abbreviated-query check
+
+On 17 October, an additional identity-only case searched **Matrix** and
+returned **The Matrix (1999)** as its first candidate, with the same canonical
+Qloo ID as the previous full-title search. Three fresh Qloo requests covered
+two artists and that film; zero Groq requests ran. No identity was selected
+automatically. The retained case stops at AWAITING_IDENTITY_CONFIRMATION,
+rather than representing another completed recommendation. This establishes
+that specific missing-article example, not general spelling, translation or
+partial-title coverage.
 
 ## Visual references and assets
 

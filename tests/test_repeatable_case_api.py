@@ -113,7 +113,8 @@ class RepeatableApiTests(unittest.TestCase):
             for index in range(425):
                 job_id=f'20260101T120000Z-{index:08x}'
                 created='2026-11-02T12:00:00.000+00:00' if index<17 else '2026-11-01T12:00:00.000+00:00'
-                plan={'request':{'artists':{'A':'Synthetic history A','B':f'Synthetic history B {index}'}}}
+                plan={**self.manager.manager.current_execution_bindings(),
+                      'request':{'artists':{'A':'Synthetic history A','B':f'Synthetic history B {index}'}}}
                 db.execute('INSERT INTO jobs(job_id,owner,created,plan_json,envelope_sha,status) VALUES(?,?,?,?,?,?)',
                     (job_id,owner,created,json.dumps(plan),'0'*64,'PLANNED'))
             foreign_id='20260101T120000Z-fffffff0'

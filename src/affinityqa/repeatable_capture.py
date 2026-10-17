@@ -35,6 +35,10 @@ def protocol(request):
         from .fast_pair_capture import prepare_plan, search_identities, capture_confirmed
         from .fast_pair_verify import verify_discovery_search, verify_confirmed_discoveries
         return prepare_plan, capture_confirmed, verify_confirmed_discoveries, search_identities, verify_discovery_search
+    if version == 8:
+        from .open_movie_discovery_capture import prepare_plan, search_identities, capture_confirmed
+        from .open_movie_discovery_verify import verify_identity_search, verify_discoveries
+        return prepare_plan, capture_confirmed, verify_discoveries, search_identities, verify_identity_search
     need(False, 'Unsupported repeatable request version.')
 
 
@@ -72,6 +76,13 @@ def request_for(template, artists, preferences=None, confirm_identities=False, d
 
 def prepare_protocol(request, output, interval):
     return protocol(request)[0](request, output, minimum_model_interval_seconds=interval)
+
+
+def open_movie_request(template, movie_query, intent_text='', excluded_entity_ids=None):
+    from .open_movie_discovery import validate_request
+    return validate_request({'schema_version':8, 'movie_query':movie_query,
+        'intent_text':intent_text, 'excluded_entity_ids':copy.deepcopy([] if excluded_entity_ids is None else excluded_entity_ids),
+        'model':copy.deepcopy(template['model'])})
 
 
 def check_storage_report(report):
@@ -116,6 +127,15 @@ def execute_stage(request, output, settings, remote_key, *, stage, interval, ada
             return directory, receipt
         need(confirmation is not None, 'Explicit saved identity confirmation required.')
         original = confirmation['identity_receipt']
+        if request['schema_version'] == 8:
+            need(receipt['movie_candidates'] == original['movie_candidates']
+                 and receipt['movie_query'] == original['movie_query'],
+                 'Reconstructed film search differs from the explicitly confirmed observation.')
+            with runtime.activate(namespace='capture') if runtime else nullcontext():
+                report, directory = capture(directory, confirmation['selected_movie_entity_id'], receipt,
+                    settings, remote_key, _test_adapters=adapters)
+            check_storage_report(report)
+            return directory, verifier(directory)
         need(receipt['identity_candidates'] == original['identity_candidates']
              and receipt['identity_queries'] == original['identity_queries'],
              'Reconstructed identities differ from the explicitly selected observations.')
@@ -152,7 +172,10 @@ def outer_receipt(receipt, *, plan_hash, provider_stats, attempts, confirmation=
     }
     if confirmation:
         result['repeatable_contract']['original_identity_receipt_sha256'] = confirmation['identity_receipt_sha256']
-        result['repeatable_contract']['explicit_selection_sha256'] = fingerprint(confirmation['selected_entity_ids'])
+        if 'selected_entity_ids' in confirmation:
+            result['repeatable_contract']['explicit_selection_sha256'] = fingerprint(confirmation['selected_entity_ids'])
+        if 'selected_movie_entity_id' in confirmation:
+            result['repeatable_contract']['explicit_movie_selection_sha256'] = fingerprint(confirmation['selected_movie_entity_id'])
         if 'selected_movie_entity_ids' in confirmation:
             result['repeatable_contract']['explicit_movie_selection_sha256'] = fingerprint(confirmation['selected_movie_entity_ids'])
     return result

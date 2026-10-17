@@ -323,6 +323,7 @@ def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
                 return JSONResponse({'status': 'alive', 'capture_configured': capture is not None,
                     'execution': 'recorded-replay-and-repeatable-cases' if capture is not None else 'repeatable-cases',
                     'new_cases_configured': True,
+                    'open_movie_discovery_configured': True,
                     'remote_execution_configured': case_manager.manager.enabled,
                     **case_manager.health(),
                     'provider_readiness': 'NOT_CHECKED_BY_LIVENESS'}, headers={'Cache-Control': 'no-store'})

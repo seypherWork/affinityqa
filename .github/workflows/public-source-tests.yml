@@ -92,3 +92,11 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: web
         run: node ../tests/browser/repeatable-backend-journey.cjs --paired
+      - name: Check open-film discovery, native download and response-loss recovery on desktop and mobile
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: |
+          node ../tests/browser/open-movie-backend-journey.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node ../tests/browser/open-movie-backend-journey.cjs --mobile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
