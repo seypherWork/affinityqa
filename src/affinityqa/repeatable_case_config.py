@@ -54,8 +54,8 @@ def configure_repeatable_cases(config_file,storage,*,origin,execution_enabled=Fa
     config=read_configuration(config_file)
     need(storage is not None and Path(storage).is_absolute(),'Explicit absolute NEW persistent storage root required.')
     root=safe_directory_path(Path(storage))
-    from .provider_runtime import PinnedHarmonyTokenEstimator
-    estimator=PinnedHarmonyTokenEstimator(Path(__file__).resolve().parents[2]/'assets/tokenizers/o200k_base.tiktoken')
+    from .wide_cinema_tokens import WideHarmonyTokenEstimator
+    estimator=WideHarmonyTokenEstimator(Path(__file__).resolve().parents[2]/'assets/tokenizers/o200k_base.tiktoken')
     # Root creation/binding is handled by the manager; scheduler starts only after
     # the new policy has been validated and written in this separate store.
     settings_loader=remote_loader=None

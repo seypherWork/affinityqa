@@ -228,6 +228,7 @@ class RepeatableTests(unittest.TestCase):
 
     def test_configured_dispatcher_reconciles_terminal_pending_before_worker_activation(self):
         from affinityqa.repeatable_case_config import configure_repeatable_cases
+        from affinityqa.wide_cinema_tokens import WideHarmonyTokenEstimator
         from affinityqa.repeatable_cases import repeatable_policy
         from affinityqa.provider_scheduler import ProviderDeferred
         from affinityqa.individual_jobs import write
@@ -240,6 +241,8 @@ class RepeatableTests(unittest.TestCase):
         root=self.parent/'configured'
         manager,_=configure_repeatable_cases(path,root,origin=ORIGIN)
         self.addCleanup(manager.close)
+        self.assertIsInstance(manager.manager.token_estimator,WideHarmonyTokenEstimator)
+        self.assertEqual(manager.manager.token_estimator.manifest['maximum_completion_tokens'],2048)
         token,_=manager.session();job=manager.prepare(token,self.request['artists'])
         scheduler=manager.manager.scheduler;owner=manager._identity(token)
         first=dict(job_id=job['job_id'],owner_id=owner,stage='accepted-before-crash',
@@ -258,6 +261,7 @@ class RepeatableTests(unittest.TestCase):
         manager.close()
         restored,_=configure_repeatable_cases(path,root,origin=ORIGIN)
         self.addCleanup(restored.close)
+        self.assertIsInstance(restored.manager.token_estimator,WideHarmonyTokenEstimator)
         self.assertEqual(restored.manager.scheduler.lookup(**waiting)['state'],'CANCELLED')
         self.assertEqual(restored.manager.scheduler.lookup(**first),accepted)
         self.assertEqual(restored.view(token,job['job_id'])['status'],'FAILED')

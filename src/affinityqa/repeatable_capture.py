@@ -39,6 +39,10 @@ def protocol(request):
         from .open_movie_discovery_capture import prepare_plan, search_identities, capture_confirmed
         from .open_movie_discovery_verify import verify_identity_search, verify_discoveries
         return prepare_plan, capture_confirmed, verify_discoveries, search_identities, verify_identity_search
+    if version == 9:
+        from .wide_cinema_capture import prepare_plan, search_identities, capture_confirmed
+        from .wide_cinema_verify import verify_identity_search, verify_discoveries
+        return prepare_plan, capture_confirmed, verify_discoveries, search_identities, verify_identity_search
     need(False, 'Unsupported repeatable request version.')
 
 
@@ -85,6 +89,14 @@ def open_movie_request(template, movie_query, intent_text='', excluded_entity_id
         'model':copy.deepcopy(template['model'])})
 
 
+def wide_cinema_request(template, mode, seed_query, favorite_movie_query=None, intent_text='', excluded_entity_ids=None):
+    from .wide_cinema_discovery import validate_request
+    return validate_request({'schema_version':9,'mode':mode,'seed_query':seed_query,
+        'favorite_movie_query':favorite_movie_query,'intent_text':intent_text,
+        'excluded_entity_ids':copy.deepcopy([] if excluded_entity_ids is None else excluded_entity_ids),
+        'model':copy.deepcopy(template['model'])})
+
+
 def check_storage_report(report):
     failure_type=getattr(builtins,report.get('error_class') or '',None)
     if isinstance(failure_type,type) and issubclass(failure_type,OSError):
@@ -127,6 +139,14 @@ def execute_stage(request, output, settings, remote_key, *, stage, interval, ada
             return directory, receipt
         need(confirmation is not None, 'Explicit saved identity confirmation required.')
         original = confirmation['identity_receipt']
+        if request['schema_version'] == 9:
+            need(all(receipt[k] == original[k] for k in ('mode','seed_query','favorite_movie_query','seed_candidates','favorite_movie_candidates')),
+                 'Reconstructed wide identity slots differ from their explicit confirmation.')
+            with runtime.activate(namespace='capture') if runtime else nullcontext():
+                report, directory = capture(directory,confirmation['selected_seed_entity_id'],receipt,settings,remote_key,
+                    selected_favorite_movie_entity_id=confirmation['selected_favorite_movie_entity_id'],_test_adapters=adapters)
+            check_storage_report(report)
+            return directory,verifier(directory)
         if request['schema_version'] == 8:
             need(receipt['movie_candidates'] == original['movie_candidates']
                  and receipt['movie_query'] == original['movie_query'],
@@ -178,4 +198,7 @@ def outer_receipt(receipt, *, plan_hash, provider_stats, attempts, confirmation=
             result['repeatable_contract']['explicit_movie_selection_sha256'] = fingerprint(confirmation['selected_movie_entity_id'])
         if 'selected_movie_entity_ids' in confirmation:
             result['repeatable_contract']['explicit_movie_selection_sha256'] = fingerprint(confirmation['selected_movie_entity_ids'])
+        if 'selected_seed_entity_id' in confirmation:
+            result['repeatable_contract']['explicit_wide_selection_sha256'] = fingerprint({k:confirmation[k]
+                for k in ('selected_seed_entity_id','selected_favorite_movie_entity_id')})
     return result

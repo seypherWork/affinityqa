@@ -80,6 +80,7 @@ class RepeatablePublicIntegrationTests(unittest.TestCase):
             self.assertEqual(started.status_code, 503)
             health = client.get('/healthz').json()
             self.assertEqual(health['admission_mode'], 'repeatable-v1')
+            self.assertTrue(health['wide_cinema_discovery_configured'])
             self.assertEqual(health['queued'], 0)
             self.assertFalse(health['capture_active'])
             self.assertEqual(health['provider_readiness'], 'NOT_CHECKED_BY_LIVENESS')

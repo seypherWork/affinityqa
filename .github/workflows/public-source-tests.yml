@@ -100,3 +100,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node ../tests/browser/open-movie-backend-journey.cjs --mobile
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check wide film discovery, bound posters and restored history on desktop and mobile
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: |
+          node ../tests/browser/wide-cinema-journey.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node ../tests/browser/wide-cinema-journey.cjs --mobile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

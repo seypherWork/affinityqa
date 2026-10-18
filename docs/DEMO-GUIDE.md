@@ -1,5 +1,101 @@
 # AffinityQA — reviewer walkthrough
 
+**18 October 2026: locally accepted v10 interface; release consolidation only.**
+The integrated discovery interface below is the locally checked version. A new
+Render deployment and public CI run for this consolidation have not been
+verified. The [earlier hosted workspace](https://affinityqa-review.onrender.com/demo)
+still ran revision `abf9840` when the owner checked its health and revision on
+18 October. Its dated 17 October browser acceptance remains a separate record;
+it may show the older workflow. Local use needs the owner's running service;
+reviewers never provide their own API keys.
+
+## Start with the diagnostic evidence
+
+Open **DIAGNOSIS & EVIDENCE**, select a captured incident, then follow **Detect**,
+**Diagnose**, **Repair** and **Verify**. Compare the requested profile, the Qloo
+context actually consumed, the faulty output, the supported repair and the
+healthy reference. Use **Replay this incident** to execute the retained pipeline
+with saved decisions; this makes zero new Qloo or model calls.
+
+The three controlled faults are a cache key missing profile identity, a stale
+profile sent to the agent and a tool context bound to the wrong profile. Their
+verifiers check the declared routing/cache recovery; they do not establish
+arbitrary code repair, external-service attestation or human movie preferences.
+The full 39-decision experiment is a separate advanced path with its own budget
+and inconclusive remote causal result, not a required short demonstration.
+
+## Discover five films in the integrated interface
+
+1. Open **DISCOVER** and **OPEN OR RESTORE MY SESSION**. Choose **START WITH A
+   FILM** or **START WITH AN ARTIST**. Enter one starting point; artist mode may
+   also include one known favorite film. Add a direction only if wanted.
+2. Use **REVIEW MY DISCOVERY PLAN**. Opening a session, typing and reviewing a
+   plan make no Qloo or model requests. Read the request limits before using
+   **FIND MY FILM**, **FIND MY ARTIST** or **FIND MY ARTIST & FAVORITE FILM**.
+3. Explicitly choose the intended returned identity. An exact full-name music
+   artist appears first when present. **Other matches & collaborations** keeps
+   person profiles and alternative matches selectable. Nothing is preselected;
+   a restored previous choice still needs confirmation. For films, check title
+   and year. Then use **CONFIRM & DISCOVER FIVE** once.
+4. Inspect five cards drawn from the actual retrieved pool of up to 100 films.
+   AI ranks eligible indices; the server reconstructs film identities. The text
+   under each card is literal Qloo metadata with an accessible Spanish/English
+   label, or a fixed no-plot fallback. It is not a model-written explanation.
+   Posters are observed presentation assets and can have an unavailable-image
+   fallback. Use **HOW THESE WERE CHOSEN** to inspect the ordering and pool.
+5. Use **DOWNLOAD DISCOVERY VERIFICATION**. Open **SAVED**, reload and restore
+   the same session to inspect the completed case. Reading or downloading saved
+   work does not request a new recommendation. Original historical downloads
+   remain unchanged by the current top-level source-description display.
+
+The application outputs films, including when the input is a musical artist.
+It does not output artists or songs. Optional direction goes to the model, not
+to an undocumented Qloo free-text parameter; source descriptions stay off the
+model input. Ordinary cards hide internal identifiers, which remain available
+in the explicit inspection details.
+
+Saved cases belong to their host and ownership session. Local acceptance cases
+remain local; the Render service keeps a separate history. This release
+preparation does not migrate or merge those stores, and deployment must preserve
+the existing hosted cases and sessions.
+
+If work waits for capacity or reports an uncertain response, check its saved
+status. Do not repeat a sent failure, clear ownership cookies or reset consumed
+work to hide it. Shared Groq Free/Qloo limits and storage safeguards remain;
+there is no guaranteed latency or unreserved unlimited capacity.
+
+## What the 18 October local check established
+
+One new Eminem v10 case completed with three Qloo requests and one Groq Free
+selection. It retained 100 candidate films and delivered **8 Mile**, **Get Rich
+or Die Tryin'**, **Notorious**, **Coach Carter** and **American Gangster**. All
+five descriptions were independently matched to literal Spanish Qloo values;
+the five matching posters loaded, the native download was saved and checked,
+and the same case restored after reloading. All 14 earlier cases were retained.
+The preceding v9 title-echo rejection remains PARTIAL, with its charges and
+evidence unchanged. No new native Massive Attack v10 success is claimed.
+
+The frozen source passed 723 Windows tests, production export and synthetic
+desktop/mobile browser checks. Those results do not establish CI or Render
+acceptance of this release preparation. Cultural quality remains NOT_VALIDATED
+with zero verified human preference participants. Qloo metadata can itself be
+inaccurate: this verifies faithful source display, not general movie truth or
+individual satisfaction.
+
+[Dated local acceptance record](LOCAL-ACCEPTANCE-20261018.md) ·
+[v10 contract and evidence limits](WIDE-CINEMA-DISCOVERY.md) ·
+[Historical hosted acceptance](JUDGE-ACCEPTANCE.md)
+
+## Historical guides
+
+Earlier guides are preserved below. References to "current", twenty-film
+catalogs, two-profile shared passes, buttons and timing belong to their dates.
+
+<details>
+<summary>Hosted guide snapshot — 17 October 2026</summary>
+
+# AffinityQA — reviewer walkthrough
+
 **Current hosted interface: `1bb98f8`, verified 17 October 2026.**
 Open [the hosted workspace](https://affinityqa-review.onrender.com/demo) in a browser.
 No account, Docker, local model or personal API key is required.
@@ -64,7 +160,9 @@ bounded technical acceptance. Groq Free quotas remain shared and finite.
 [Current acceptance and native file hashes](JUDGE-ACCEPTANCE.md) ·
 [Shared-pass contract](FAST-TASTE-REVIEW.md)
 
-## Historical guides
+</details>
+
+## Earlier guide snapshots
 
 The following original guide is retained unchanged. Earlier references to
 "current", runtime versions, buttons and budgets belong to their stated dates.

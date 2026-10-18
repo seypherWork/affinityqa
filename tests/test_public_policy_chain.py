@@ -2,6 +2,7 @@
 import errno
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -197,22 +198,87 @@ finally:f.doCleanups()
 
     def test_no_replace_and_failure_after_publish_keep_full_record_and_staging(self):
         root,info=self.old_store();p=propose(root);before=self.inventory(root)
-        real_fsync=__import__('os').fsync;calls=[]
-        def fail_second(fd):
-            calls.append(fd)
-            if len(calls)==2:raise OSError(errno.ENOSPC,'injected after publish')
+        real_fsync=os.fsync
+        def fail_after_publication(fd):
+            if (root/p['marker_name']).exists():
+                raise OSError(errno.ENOSPC,'injected after publish')
             return real_fsync(fd)
-        # On Windows the second flush is the complete published file. POSIX
-        # flushes staging directories first; publication may not yet have begun.
-        with patch('os.fsync',side_effect=fail_second):
+        # Inject at the observable publication boundary, independently of how
+        # many preparatory files/directories each platform must flush.
+        with patch('os.fsync',side_effect=fail_after_publication):
             with self.assertRaises(OSError):execute(root,p['proposal_sha256'])
         self.assertTrue(all(sha(root/name)==digest for name,digest in before.items()))
-        if (root/p['marker_name']).exists():
-            self.assertEqual(read(root/p['marker_name']),p['marker'])
-        self.assertTrue(list(root.parent.glob('.affinityqa-continuation-*')))
+        final=root/p['marker_name']
+        self.assertTrue(final.is_file(),'The injected failure must occur after publication.')
+        self.assertEqual(read(final),p['marker'])
+        stages=list(root.parent.glob('.affinityqa-continuation-*'))
+        self.assertTrue(stages)
+        self.assertTrue(any((stage/'record.json').read_bytes()==final.read_bytes() for stage in stages))
         from affinityqa.public_policy_continuation import _publish
         existing=root/'existing-immutable.json';existing.write_bytes(b'preserved')
         with self.assertRaises(FileExistsError):_publish(root,existing.name,p['marker'])
         self.assertEqual(existing.read_bytes(),b'preserved')
+
+    @unittest.skipUnless(os.name=='nt','Native Windows no-replace publication contract')
+    def test_windows_publisher_retains_staging_without_hardlink(self):
+        from affinityqa.public_policy_continuation import _publish
+        root=self.fixture.parent/'publication';root.mkdir()
+        value={'synthetic_continuation':True}
+        with patch('os.link',side_effect=AssertionError('Windows publication must not require a hardlink')):
+            receipt=_publish(root,'new.json',value)
+        stage=Path(receipt['staging'])
+        self.assertEqual(read(root/'new.json'),value)
+        self.assertEqual((stage/'record.json').read_bytes(),(root/'new.json').read_bytes())
+        self.assertFalse((stage/'publish.json').exists())
+        self.assertIn('exclusive-rename',receipt['durability_method'])
+        self.assertFalse(receipt['power_loss_tested'])
+
+    @unittest.skipUnless(os.name=='nt','Native Windows no-replace publication contract')
+    def test_windows_publish_race_never_replaces_competing_destination(self):
+        from affinityqa.public_policy_continuation import _publish
+        root=self.fixture.parent/'publication';root.mkdir()
+        value={'synthetic_continuation':True};destination=root/'new.json'
+        real_rename=os.rename
+        def compete(source,target):
+            with destination.open('xb') as handle:handle.write(b'competing immutable record')
+            return real_rename(source,target)
+        with patch('os.rename',side_effect=compete) as rename,patch('os.link') as link:
+            with self.assertRaises(FileExistsError):_publish(root,destination.name,value)
+        rename.assert_called_once();link.assert_not_called()
+        self.assertEqual(destination.read_bytes(),b'competing immutable record')
+        stage=next(root.parent.glob('.affinityqa-continuation-*'))
+        self.assertEqual(read(stage/'record.json'),value)
+        self.assertEqual((stage/'publish.json').read_bytes(),(stage/'record.json').read_bytes())
+
+    @unittest.skipUnless(os.name=='nt','Native Windows no-replace publication contract')
+    def test_windows_publish_second_copy_flush_failure_never_creates_final(self):
+        from affinityqa.public_policy_continuation import _publish
+        root=self.fixture.parent/'publication';root.mkdir()
+        value={'synthetic_continuation':True};real_fsync=os.fsync
+        def fail_publishing_copy(fd):
+            staged=list(root.parent.glob('.affinityqa-continuation-*/publish.json'))
+            if staged and os.fstat(fd).st_ino==staged[0].stat().st_ino:
+                raise OSError(errno.ENOSPC,'injected while sealing publication copy')
+            return real_fsync(fd)
+        with patch('os.fsync',side_effect=fail_publishing_copy),patch('os.rename') as rename,patch('os.link') as link:
+            with self.assertRaises(OSError):_publish(root,'new.json',value)
+        rename.assert_not_called();link.assert_not_called()
+        self.assertFalse((root/'new.json').exists())
+        stage=next(root.parent.glob('.affinityqa-continuation-*'))
+        self.assertEqual(read(stage/'record.json'),value)
+        self.assertEqual(read(stage/'publish.json'),value)
+
+    @unittest.skipUnless(os.name=='nt','Native Windows no-replace publication contract')
+    def test_windows_publish_rename_permission_failure_keeps_both_staged_files(self):
+        from affinityqa.public_policy_continuation import _publish
+        root=self.fixture.parent/'publication';root.mkdir()
+        value={'synthetic_continuation':True}
+        with patch('os.rename',side_effect=PermissionError(errno.EACCES,'injected rename denial')) as rename,patch('os.link') as link:
+            with self.assertRaises(PermissionError):_publish(root,'new.json',value)
+        rename.assert_called_once();link.assert_not_called()
+        self.assertFalse((root/'new.json').exists())
+        stage=next(root.parent.glob('.affinityqa-continuation-*'))
+        self.assertEqual(read(stage/'record.json'),value)
+        self.assertEqual((stage/'publish.json').read_bytes(),(stage/'record.json').read_bytes())
 
 if __name__=='__main__':unittest.main()

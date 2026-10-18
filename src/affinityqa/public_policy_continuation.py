@@ -151,7 +151,7 @@ def propose(root):
 
 
 def _flush_directory(path):
-    if os.name=='nt':return  # Windows flushes published-file metadata below.
+    if os.name=='nt':return  # Published files are flushed below; no directory-flush claim.
     fd=os.open(path,os.O_RDONLY|getattr(os,'O_DIRECTORY',0))
     try:os.fsync(fd)
     finally:os.close(fd)
@@ -170,7 +170,21 @@ def _publish(root,name,value):
     need(payload.read_bytes()==data and payload.stat().st_dev==root.stat().st_dev,'Staging differs or filesystem not shared.')
     _flush_directory(stage);_flush_directory(root.parent)
     destination=safe_directory_path(root/name)
-    os.link(payload,destination)  # atomic no-replace; never hardlink an original
+    publication='exclusive-link'
+    if os.name=='nt':
+        # Windows rename rejects an existing destination. A separate sealed
+        # copy lets the retained staging record survive both success and failure.
+        publishing=stage/'publish.json'
+        fd=os.open(publishing,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_BINARY',0),0o600)
+        with os.fdopen(fd,'wb') as stream:
+            need(stream.write(data)==len(data),'Publication copy write incomplete.')
+            stream.flush();os.fsync(stream.fileno())
+        need(publishing.read_bytes()==data and publishing.stat().st_dev==root.stat().st_dev,
+             'Publication copy differs or filesystem not shared.')
+        os.rename(publishing,destination)  # native Windows no-replace; no exception fallback
+        publication='exclusive-rename'
+    else:
+        os.link(payload,destination)  # POSIX atomic no-replace; never hardlink an original
     # NTFS caches file metadata too. Flush with a write-capable handle, without
     # writing any bytes after publication. POSIX also flushes the directory.
     fd=os.open(destination,os.O_RDWR|getattr(os,'O_BINARY',0)|getattr(os,'O_NOFOLLOW',0))
@@ -179,8 +193,8 @@ def _publish(root,name,value):
     _flush_directory(root)
     need(destination.read_bytes()==data,'Published continuation differs; inspect it.')
     return {'staging':str(stage),'published_record_sha256':sha(destination),
-            'durability_method':'sealed-file-fsync+exclusive-link+published-file-fsync'+
-                ('+directory-fsync' if os.name!='nt' else '+Windows-file-metadata-flush'),'power_loss_tested':False}
+            'durability_method':'sealed-file-fsync+'+publication+'+published-file-fsync'+
+                ('+directory-fsync' if os.name!='nt' else '+Windows-file-fsync'),'power_loss_tested':False}
 
 
 def execute(root,expected_proposal_sha256):

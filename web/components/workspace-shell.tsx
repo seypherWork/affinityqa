@@ -21,15 +21,19 @@ export function WorkspaceIcon({name}:{name:IconName}){
   };
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
-export function WorkspaceShell({children,active,title,publicMode=false,onNavigate,items=defaultItems}:{children:ReactNode;active:string;title:string;publicMode?:boolean;onNavigate?:(id:string)=>void;items?:NavItem[]}){
+export function WorkspaceShell({children,active,title,publicMode=false,onNavigate,items=defaultItems,homeId='new',savedCasesTarget='saved-cases'}:{children:ReactNode;active:string;title:string;publicMode?:boolean;onNavigate?:(id:string)=>void;items?:NavItem[];homeId?:string;savedCasesTarget?:string}){
+  function showDiscovery(view:'discover'|'history'){
+    onNavigate?.(homeId);
+    if(homeId==='wide')window.dispatchEvent(new CustomEvent('affinityqa:wide-view',{detail:view}));
+    if(view==='history')requestAnimationFrame(()=>document.getElementById(savedCasesTarget)?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}));
+  }
   if(publicMode)return <div className="app public-cinema">
     <a className="skip-link" href="#main-content" onClick={event=>{event.preventDefault();document.getElementById('main-content')?.focus();}}>Skip to content</a>
-    <header className="cinema-topbar"><a className="cinema-brand" href="#new" onClick={onNavigate?event=>{event.preventDefault();onNavigate('new');}:undefined} aria-label="AffinityQA home"><Mark/><span>AFFINITY<span>QA</span><small>CULTURAL INTELLIGENCE / CINEMA</small></span></a>
-      <nav className="cinema-navigation" aria-label="Main navigation">{items.map(item=><a key={item.id} href={'#'+item.id} aria-current={active===item.id?'page':undefined} onClick={onNavigate?event=>{event.preventDefault();onNavigate(item.id);}:undefined}>{item.label}</a>)}<a href="#new" onClick={event=>{event.preventDefault();onNavigate?.('new');requestAnimationFrame(()=>document.getElementById('saved-cases')?.scrollIntoView({behavior:'smooth',block:'start'}));}}>MY CASES</a></nav>
-      <span className="cinema-jury-badge"><i aria-hidden="true"/>JURY EDITION</span>
+    <header className="cinema-topbar"><a className="cinema-brand" href={'#'+homeId} onClick={onNavigate?event=>{event.preventDefault();showDiscovery('discover');}:undefined} aria-label="AffinityQA home"><svg viewBox="0 0 32 32" className="cinema-logo" aria-hidden="true"><rect x="3" y="7" width="16" height="18" rx="3" fill="none" stroke="currentColor" strokeWidth="2" opacity=".55"/><rect x="13" y="7" width="16" height="18" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><rect x="13" y="7" width="6" height="18" rx="1" fill="var(--plum)"/></svg><span>AFFINITY<span>QA</span></span></a>
+      <nav className="cinema-navigation" aria-label="Main navigation"><div className="cinema-primary-navigation"><a href={'#'+homeId} aria-label={items.find(item=>item.id===homeId)?.label??'Discover'} aria-current={active===homeId?'page':undefined} onClick={event=>{event.preventDefault();showDiscovery('discover');}}>DISCOVER</a><a href={'#'+homeId} onClick={event=>{event.preventDefault();showDiscovery('history');}}>SAVED</a></div><div className="cinema-legacy-navigation"><span>Previous &amp; evidence</span>{items.filter(item=>item.id!==homeId).map(item=><a key={item.id} href={'#'+item.id} aria-current={active===item.id?'page':undefined} onClick={onNavigate?event=>{event.preventDefault();onNavigate(item.id);}:undefined}>{item.label}</a>)}</div></nav>
     </header>
     <main id="main-content" className="workspace-main cinema-main" tabIndex={-1} aria-label={title}>{children}</main>
-    <footer className="cinema-footer"><a className="cinema-footer-brand" href="#new" onClick={event=>{event.preventDefault();onNavigate?.('new');}}>AFFINITYQA <span>YOUR TASTE. TRACEABLE CHOICES.</span></a><p>Qloo context + an AI ranking. Individual taste satisfaction remains unvalidated.</p><a href="https://github.com/seypherWork/affinityqa" target="_blank" rel="noreferrer">SOURCE & METHOD ↗</a></footer>
+    <footer className="cinema-footer"><p>Film data and images, when available, are supplied by Qloo. Taste fit has not been validated with independent people.</p><a href="https://github.com/seypherWork/affinityqa" target="_blank" rel="noreferrer">SOURCE &amp; METHOD ↗</a></footer>
   </div>;
   return <div className="app workspace">
     <a className="skip-link" href="#main-content" onClick={event=>{event.preventDefault();document.getElementById('main-content')?.focus();}}>Skip to content</a>

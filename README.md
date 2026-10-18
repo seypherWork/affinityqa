@@ -6,34 +6,50 @@
 
 AffinityQA helps engineers catch personalization incidents that ordinary output checks miss. It follows an explicit musical interest through Qloo context, an agent's request routing and its cache, diagnoses the supported fault, applies a repair and checks the recovery against a healthy reference.
 
-[Open the hosted workspace](https://affinityqa-review.onrender.com/demo) · [Judge walkthrough](docs/DEMO-GUIDE.md) · [Engineering review](docs/CLOUD-ENGINEERING-REVIEW.md) · [Acceptance record](docs/JUDGE-ACCEPTANCE.md)
+[Earlier hosted workspace](https://affinityqa-review.onrender.com/demo) · [Judge walkthrough](docs/DEMO-GUIDE.md) · [Engineering review](docs/CLOUD-ENGINEERING-REVIEW.md) · [Acceptance record](docs/JUDGE-ACCEPTANCE.md)
 
 ## Review the product
 
-**Local extension tested, 17 October:** the separate **START WITH A FILM**
-route confirms one film title and year, retrieves a new Qloo candidate pool for
-that case and makes one Groq ranking with individual model interpretations.
-Its output is not restricted to the comparative twenty-film task. Two real local
-captures completed with Qloo and Groq Free: John Wick (2014) and Scary Movie (2000),
-twenty candidates per case, forty distinct candidates in total. They used four
-Qloo requests and two Groq sends altogether. A local quota wait interrupted the
-second case before its model send; it completed from saved Qloo observations with
-no extra Qloo requests. Both orders matched their Qloo baselines. This establishes
-bounded technical compatibility, not preference improvement or hosted availability
-of this new route. [Contract and limits](docs/OPEN-FILM-DISCOVERY.md).
+**Film discovery:** in the integrated discovery interface, start with one film,
+or one artist and an optional known favorite film. Review the plan, explicitly
+confirm the identity, add an optional direction and inspect five films from the
+actual Qloo pool of up to one hundred candidates. This route has no fixed
+twenty-film whitelist and does not output artists or songs.
 
-**Deployed discovery interface, verified 17 October 2026:** enter musical interests,
-optionally search favorite films, confirm exact identities and inspect five films
-per taste scenario. One shared Groq response ranks both scenarios; older cases
-retain their original contracts. The full integration experiment and recorded
-repair remain inspectable. [Journey and evidence boundaries](docs/FAST-TASTE-REVIEW.md).
+Exact full-name artist results appear first. A person profile with the same name
+and other matches remain available under **Other matches & collaborations**;
+nothing is selected or submitted automatically. Film choices show their year.
+Technical identifiers stay in the inspection details, outside ordinary cards.
+
+One Groq Free selection on `openai/gpt-oss-20b` returns only five unique eligible
+catalog indices. The server reconstructs each film's canonical identity. Cards
+use a literal description from that film's captured Qloo metadata: Spanish when
+available, otherwise labelled English, or a fixed notice without plot details.
+Groq supplies no explanation prose. Source fidelity does not establish that the
+metadata is true or that a recommendation fits an individual's taste.
+
+Observed Qloo film images are bound to the saved identities; unavailable images
+have a visible fallback. Your direction guides selection within the retrieved
+pool and is sent to the model, not as an undocumented Qloo query. Descriptions
+stay off the model wire. [Selection, source descriptions, images and limits](docs/WIDE-CINEMA-DISCOVERY.md).
+
+**Previous comparisons** retains earlier music-to-film comparisons and their
+original contracts. **Diagnosis & evidence** retains the full integration
+experiment and recorded repairs. The earlier single-film twenty-candidate
+protocol remains documented for audit in [OPEN-FILM-DISCOVERY.md](docs/OPEN-FILM-DISCOVERY.md).
+Source availability does not establish deployment of a new route; the dated
+acceptance record distinguishes local tests, hosted observations and simulations.
 
 | Path | What you can inspect | Evidence boundary |
 | --- | --- | --- |
 | **Diagnosis & evidence** | Choose an incident; follow Detect, Diagnose, Repair and Verify; compare the requested profile, consumed context and healthy output | Replays a genuine captured experiment; zero new Qloo/model calls |
-| **Discover films** | Open a private visitor session; review musical interests and film preferences; confirm artist and film identities; inspect results and the selected verification | Uses the owner's providers when enabled; review the displayed plan and limits before starting |
+| **Film discovery** | Open a private visitor session; start with a film or artist; confirm identities; inspect five results, observed film images and the selected verification | Uses the owner's providers when enabled; up to 100 retrieved candidates, one model selection, shared free-provider limits |
+| **Previous comparisons** | Read earlier cases and their original comparisons | Historical twenty-film tasks retain their original evidence and boundaries |
 
-The hosted workspace needs a browser. Judges do not install Docker, run a local model or supply API keys. Start with the recorded repair; the [walkthrough](docs/DEMO-GUIDE.md) gives the short click path and the separate fresh-case path.
+The recorded diagnosis remains the engineering core: inspect the profile chain,
+the supported repair and the independent recovery checks. Discovery provides a
+separate, inspectable film journey. The [walkthrough](docs/DEMO-GUIDE.md) gives both
+paths and distinguishes the local interface from the earlier hosted release.
 
 ## The integration problem
 
@@ -51,9 +67,49 @@ Repairs affect the supported adapter and session/cache configuration. They are c
 
 Qloo supplies real cross-domain movie context for musical interests. That context is consumed by the tested agent, so its identity and routing boundary can be tested. Movie preferences remain explicit user inputs; Qloo affinities are not individual ground truth.
 
+## Latest local acceptance — 18 October 2026
+
+**The v10 interface was accepted locally; this release consolidation is not yet
+verified on Render or in a new public CI run.** The owner checked the public
+service on 18 October: it still runs the earlier `abf9840` revision. That health
+and revision check is separate from the dated 17 October browser acceptance;
+neither establishes deployment of this v10 release consolidation.
+
+| Check | Observed local result | Boundary |
+| --- | --- | --- |
+| Engineering | 723 Windows tests passed with zero failures, errors or skips; frontend production export, desktop/mobile synthetic browser checks, source package and wheel passed. | Applies to the frozen locally tested source. No new hosted/CI acceptance of this consolidation. |
+| Fresh v10 case | One explicitly confirmed Eminem artist case completed from 100 Qloo film candidates, using three Qloo requests and one Groq Free selection. | An operator-driven technical test with empty direction; not a human preference study or broad seed-reliability proof. |
+| Identity and descriptions | All five model objects contained only an index. Canonical film identities were reconstructed server-side; all five displayed descriptions matched literal Spanish Qloo values. | Independent checks establish source binding, not external truth or cultural fit. |
+| Presentation and retention | Five matching posters loaded; the native download was saved and checked; reloading restored the same completed case. All 14 earlier cases and their evidence were retained. | Restore/read/download did not create another inference. The earlier v9 title-echo failure remains PARTIAL. |
+
+The local result was **8 Mile**, **Get Rich or Die Tryin'**, **Notorious**,
+**Coach Carter** and **American Gangster**. The separately retained Fighting
+case now displays its source-bound Qloo description, while its original model
+prose and verification download stay archived unchanged.
+
+[Dated local acceptance record](docs/LOCAL-ACCEPTANCE-20261018.md) ·
+[Historical hosted acceptance](docs/JUDGE-ACCEPTANCE.md).
+
+Local acceptance cases stay local. The hosted service has its own retained
+history; this consolidation does not migrate, merge or replace either host's
+case store. A deployment must preserve the hosted history and ownership.
+
+Cultural quality remains **NOT_VALIDATED**, with **zero verified human preference
+participants**. The separate historical 39-decision remote campaign remains
+**INCONCLUSIVE**. The controlled diagnostic application does not repair arbitrary
+programs or certify movie taste. Shared provider quotas, storage safeguards and
+failed/unknown-send controls still apply; no automatic retry, unlimited free
+inference or future uptime is promised.
+
+<details>
+<summary>Historical hosted acceptance — 17 October 2026</summary>
+
+The dated text below is preserved from the earlier source. Its deployment,
+navigation, request counts and CI observations belong to that version.
+
 ## Verified engineering and live status
 
-**Hosted runtime `1bb98f8`, checked 17 October 2026.** The cinematic discovery
+**Earlier hosted acceptance on `1bb98f8`, checked 17 October 2026.** The cinematic discovery
 interface and shared model pass are deployed. Two real cases completed in one
 ownership session; their native downloads and same-session recovery passed.
 All earlier cases, original evidence and the existing hosting plan were retained.
@@ -81,6 +137,7 @@ limits or uncertainty. New work can wait, pause or stop. Recorded repairs and
 saved cases remain separate evidence paths; no unlimited free inference or
 future uptime is promised. [Access contract](docs/PUBLIC-REPEATABLE-CASES.md).
 
+</details>
 
 <details>
 <summary>Historical hosted status through 15 October 2026</summary>
@@ -108,7 +165,7 @@ Judge access requires no account, installation or provider key. Shared Qloo and 
 
 ## Run the source checks
 
-CI used Python **3.13.16 on Windows**, **3.12.14 on Ubuntu 24.04**, Node.js **24.19.0** and pnpm **11.25.0**.
+The earlier hosted CI used Python **3.13.16 on Windows**, **3.12.14 on Ubuntu 24.04**, Node.js **24.19.0** and pnpm **11.25.0**.
 
 **Windows · PowerShell**
 
@@ -142,7 +199,7 @@ npx --yes pnpm@11.25.0 build
 cd ..
 ~~~
 
-Dependency installation requires registry access. [Full source setup](docs/PUBLIC-CODE-QUICKSTART.md) covers the local preview. Without matching owner-supplied recorded evidence, that preview reports UNAVAILABLE; public source contains no fabricated replacement results, provider captures or credentials. The hosted link is the judge entry point.
+Dependency installation requires registry access. [Full source setup](docs/PUBLIC-CODE-QUICKSTART.md) covers the local preview. Without matching owner-supplied recorded evidence, that preview reports UNAVAILABLE; public source contains no fabricated replacement results, provider captures or credentials. The hosted link is an earlier release; a new deployment needs its own verification.
 
 For synthetic browser regressions on Linux, after the web build:
 

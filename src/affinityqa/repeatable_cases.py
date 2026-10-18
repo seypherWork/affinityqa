@@ -10,6 +10,7 @@ import json
 from threading import RLock
 
 from .evidence import fingerprint
+from .errors import SchemaError
 from .individual_capture import safe_directory_path, sha, validate_capture_paths
 from .individual_jobs import IndividualJobManager, JOB_ID, TRANSITIONS, need, read, write
 from .public_cases import TOKEN, SHA, utc
@@ -214,8 +215,9 @@ class RepeatableCaseManager:
         with self.lock:
             key=self._identity(token);template=self.manager.template
             page=self._history_page(key)
-            jobs=[job for job in page['jobs'] if not job.get('open_movie_discovery')]
+            jobs=[job for job in page['jobs'] if not job.get('open_movie_discovery') and not job.get('wide_cinema_discovery')]
             movie_jobs=[job for job in page['jobs'] if job.get('open_movie_discovery')]
+            wide_jobs=[job for job in page['jobs'] if job.get('wide_cinema_discovery')]
             if self.legacy:jobs+=self.legacy.jobs(key)
             health=self.health()
             return {'schema_version':1,'configured':True,'execution_enabled':health['execution_enabled'] and not self._mutations_blocked,
@@ -229,6 +231,8 @@ class RepeatableCaseManager:
                 'open_movie_discovery_supported':True,'open_movie_jobs':movie_jobs,
                 'open_movie_jobs_truncated':page['jobs_truncated'],
                 'open_movie_next_cursor_job_id':page['next_cursor_job_id'],
+                'wide_cinema_discovery_supported':True,'wide_cinema_jobs':wide_jobs,
+                'wide_cinema_jobs_truncated':page['jobs_truncated'],'wide_cinema_next_cursor_job_id':page['next_cursor_job_id'],
                 'minimum_model_interval_seconds':self.manager.interval,'remaining_plans':None,'remaining_executions':None,
                 'admission_mode':'repeatable-v1','jobs':jobs,'jobs_truncated':page['jobs_truncated'],
                 'next_cursor_job_id':page['next_cursor_job_id'],
@@ -255,7 +259,10 @@ class RepeatableCaseManager:
             incompatible=row['status'] in ('PLANNED','AWAITING_IDENTITY_CONFIRMATION') and not self.manager.execution_source_compatible(plan,bindings)
             item={'job_id':row['job_id'],'status':row['status'],'legacy_case':False,'read_only':incompatible}
             if incompatible:item['continuity_reason']='EXECUTION_SOURCE_CHANGED'
-            if request.get('schema_version') == 8:
+            if request.get('schema_version') == 9:
+                item.update(wide_cinema_discovery=True,discovery_mode=request['mode'],seed_query=request['seed_query'],
+                    favorite_movie_query=request['favorite_movie_query'],intent_text=request['intent_text'])
+            elif request.get('schema_version') == 8:
                 item.update(open_movie_discovery=True,movie_query=request['movie_query'],intent_text=request['intent_text'])
             else:item['artists']=copy.deepcopy(request['artists'])
             jobs.append(item)
@@ -267,7 +274,7 @@ class RepeatableCaseManager:
         with self.lock:
             key=self._identity(token)
             page=self._history_page(key,cursor_job_id)
-            page['jobs']=[job for job in page['jobs'] if not job.get('open_movie_discovery')]
+            page['jobs']=[job for job in page['jobs'] if not job.get('open_movie_discovery') and not job.get('wide_cinema_discovery')]
             return page
 
     def open_movie_history(self,token,cursor_job_id):
@@ -281,6 +288,19 @@ class RepeatableCaseManager:
             key=self._identity(token);self._can_mutate()
             try:
                 return self.manager.prepare(key,artists,preferences,confirm_identities,discover_new_movies,movie_queries,fast_pair_review)
+            except (OSError,sqlite3.Error):
+                self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
+
+    def wide_cinema_history(self,token,cursor_job_id=None):
+        with self.lock:
+            page=self._history_page(self._identity(token),cursor_job_id)
+            return {'schema_version':1,'wide_cinema_jobs':[job for job in page['jobs'] if job.get('wide_cinema_discovery')],
+                'wide_cinema_jobs_truncated':page['jobs_truncated'],'wide_cinema_next_cursor_job_id':page['next_cursor_job_id']}
+
+    def prepare_wide_cinema(self,token,mode,seed_query,favorite_movie_query=None,intent_text='',excluded_entity_ids=None):
+        with self.lock:
+            key=self._identity(token);self._can_mutate()
+            try:return self.manager.prepare_wide_cinema(key,mode,seed_query,favorite_movie_query,intent_text,excluded_entity_ids)
             except (OSError,sqlite3.Error):
                 self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
 
@@ -317,13 +337,25 @@ class RepeatableCaseManager:
         with self.lock:
             key=self._identity(token);new=self._owned(key,job_id)
             result=self.manager.view(job_id) if new else self.legacy.view(key,job_id)
+            if new and result.get('wide_cinema_discovery') is True and result.get('status')=='COMPLETE' and result.get('receipt_sha256'):
+                from .wide_cinema_grounding import display_for_receipt,CURRENT_NOTICE
+                try:
+                    original=self.manager.receipt(job_id)
+                    directory=Path(self.manager._job(job_id)['directory'])
+                    display=display_for_receipt(directory,original,result['receipt_sha256'])
+                    if display['protocol_version']=='qloo-wide-cinema-discovery-v10':
+                        display['legacy_original_archived']=False;display['notice']=CURRENT_NOTICE
+                        display['binding_sha256']=fingerprint({k:v for k,v in display.items() if k!='binding_sha256'})
+                    result['wide_cinema_display']=display
+                except (OSError,ValueError,KeyError,TypeError,SchemaError):
+                    result['wide_cinema_display']=None
             contract=(result.get('result') or {}).get('repeatable_contract')
             if contract is not None:
                 safe_fields=('schema_version','admission_mode','reviewed_plan_sha256','capture_plan_sha256',
                     'provider_stats','capture_attempts','accepted_operation_reconstruction_is_new_dispatch',
                     'legacy_packets_are_original_dispatch_observations','automatic_failed_or_unknown_send_retry',
                     'verified_human_participants','cultural_quality','original_identity_receipt_sha256',
-                    'explicit_selection_sha256','explicit_movie_selection_sha256')
+                    'explicit_selection_sha256','explicit_movie_selection_sha256','explicit_wide_selection_sha256')
                 selected={k:copy.deepcopy(contract[k]) for k in safe_fields if k in contract}
                 provenance=contract.get('provider_provenance')
                 if provenance:
@@ -349,6 +381,14 @@ class RepeatableCaseManager:
             return {'schema_version':1,'job_id':job_id,'plan_sha256':view['plan_sha256'],
                     'receipt_sha256':view['receipt_sha256'],'result':copy.deepcopy(view['result']),
                     'notice':'Selected case summary; private inventory and provider envelopes are excluded. Local integrity is not external or cultural attestation.'}
+
+    def confirm_wide(self,token,job_id,plan_hash,identity_receipt_hash,selected_seed_entity_id,selected_favorite_movie_entity_id=None):
+        with self.lock:
+            key=self._identity(token);new=self._owned(key,job_id);self._can_mutate()
+            need(new,'Historical sealed cases are read-only.');self._queue_capacity()
+            try:return self.manager.confirm_wide(job_id,plan_hash,identity_receipt_hash,selected_seed_entity_id,selected_favorite_movie_entity_id)
+            except (OSError,sqlite3.Error):
+                self._mutations_blocked=True;self.manager.block_storage('StorageFailure');raise
 
     def health(self):return {**self.manager.health(),'admissions_blocked':self._mutations_blocked or self.manager._admissions_blocked()}
 

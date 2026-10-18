@@ -229,14 +229,19 @@ python scripts/continue_public_policy.py --storage /var/data/cases --execute --e
 
 Both commands acquire the existing operating-system lease; neither loads keys
 nor calls providers. Execution rebuilds the proposal and rejects changed sources
-or inventory. It flushes a new staging file outside the root, publishes an
-exclusive hardlink, flushes and verifies the final bytes and originals. Staging
-remains for inspection and is never cleaned automatically. POSIX also flushes
-directories; Windows flushes published-file metadata using a write-capable
-handle, following Microsoft's [file metadata guidance](https://learn.microsoft.com/en-us/windows/win32/fileio/file-caching).
+or inventory. It flushes a new staging file outside the root and retains that
+record for inspection. POSIX publishes it through an exclusive hardlink and
+flushes directories. Windows seals a second new file in the same staging
+directory and publishes that copy with native `os.rename`, which rejects an
+existing destination; the original staging record remains. The Windows branch
+does not require hardlink support or fall back to a different method on failure.
+Both paths flush the published file and verify its bytes and all originals.
+Staging is never cleaned automatically. Windows uses a write-capable file handle;
+directory-index durability is not independently attested. See the
+[Python rename contract](https://docs.python.org/3.12/library/os.html#os.rename).
 This is not a tested power-loss guarantee.
 
-Unsupported links, disk exhaustion or any flush/publication failure stop the
+Unsupported POSIX links, disk exhaustion or any flush/publication failure stop the
 operation. Inspect root and staging before restarting or taking related actions.
 Do not substitute commit methods, discard records, refund admissions or retry
 inference automatically. Check actual host space and inodes before the operation.

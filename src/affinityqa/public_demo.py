@@ -324,6 +324,7 @@ def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
                     'execution': 'recorded-replay-and-repeatable-cases' if capture is not None else 'repeatable-cases',
                     'new_cases_configured': True,
                     'open_movie_discovery_configured': True,
+                    'wide_cinema_discovery_configured': True,
                     'remote_execution_configured': case_manager.manager.enabled,
                     **case_manager.health(),
                     'provider_readiness': 'NOT_CHECKED_BY_LIVENESS'}, headers={'Cache-Control': 'no-store'})
@@ -362,7 +363,7 @@ def create_public_app(root: Path, *, origin: str, run_id: str | None = None,
         demo = review._file(static, demo.relative_to(static).as_posix())
         scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',demo.read_text('utf8'),re.DOTALL)
         hashes = ' '.join("'sha256-" + base64.b64encode(hashlib.sha256(s.encode()).digest()).decode() + "'" for s in scripts if s)
-        csp = f"default-src 'none'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        csp = f"default-src 'none'; script-src 'self' {hashes}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://images.qloo.com; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
         @app.get('/')
         @app.get('/demo')
         @app.get('/demo/')

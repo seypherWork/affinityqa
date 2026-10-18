@@ -72,9 +72,9 @@ async function main(){
     const restored=await(await page.request.get(url+'/api/demo/cases/jobs/'+job.job_id+'/verification')).json();
     assert.deepEqual(restored,receipt);
     const switchStart=posts.length;
-    await page.getByRole('button',{name:/^02 \/ MUSIC & FILMS/}).click();
+    await page.getByRole('navigation',{name:'Main navigation',exact:true}).getByRole('link',{name:'PREVIOUS COMPARISONS',exact:true}).click();
     await page.getByRole('heading',{name:'BUILD YOUR NEXT WATCH',exact:true}).waitFor();
-    await page.getByRole('button',{name:/^01 \/ START WITH A FILM/}).click();
+    await page.getByRole('button',{name:'EARLIER FILM DISCOVERIES',exact:false}).click();
     await page.getByRole('heading',{name:/^BEYOND /}).waitFor();
     assert.equal(posts.length,switchStart,'Switching modes retains discovery without another POST');
     assert.equal(posts.filter(p=>p.endsWith('/plans')).length,1);

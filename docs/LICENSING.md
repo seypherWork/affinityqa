@@ -6,4 +6,14 @@ This grant applies to original project code and original accompanying documentat
 
 The interface's vector and CSS asset sources are listed in [asset inventory](ASSET-PROVENANCE.md).
 
+The wide-cinema route can display externally hosted film images from observed
+Qloo metadata. These are third-party images, outside the MIT grant. This source
+package includes no standalone poster assets, private provider captures or raw
+provider corpus. Local application screenshots containing third-party film
+images are withheld from the package because repository redistribution rights
+have not been established. Contextual display does not itself grant those
+rights, and this documentation grants no new image or provider-data license.
+See the [presentation and limits](WIDE-CINEMA-DISCOVERY.md#presentation-and-limits)
+and [dated asset inventory](ASSET-PROVENANCE.md).
+
 The source-only package excludes `runs/`, `evidence/`, credentials and provider snapshots. The separately held judge-review package contains provider-derived evidence and is not automatically distributable under the project's MIT license. Data-display and evidence-redistribution permission remains a separate pending decision. No approval to publish the repository, deploy the demo or submit to the competition follows from the code-license approval.
