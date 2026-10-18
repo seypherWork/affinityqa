@@ -34,15 +34,21 @@ async function main(){
     });
     await page.goto(url+'/demo#open');
     const discovery=page.locator('section[aria-labelledby="open-movie-title"]');
+    const noInternalIdentifiers=async()=>{
+      assert.doesNotMatch(await discovery.textContent(),/INSPECT CASE IDENTIFIERS|PLAN SHA-256|urn:entity:|\b[a-f0-9]{64}\b|\b\d{8}T\d{6}Z-[a-z0-9]+\b|\b[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}\b/i);
+      assert.equal(await discovery.locator('code[title],label [title]').count(),0,'Identity codes must not leak through hover text');
+    };
     await discovery.getByRole('heading',{name:'FIND YOUR NEXT FIVE',exact:true}).waitFor();
     await discovery.getByRole('button',{name:/^OPEN OR RESTORE MY SESSION/}).click();
     await page.getByLabel('FILM TITLE',{exact:true}).fill('John Wick');
     await page.getByLabel('Your direction (optional)',{exact:true}).fill('A fast action film with a tense pace.');
     await page.getByRole('button',{name:'REVIEW MY DISCOVERY PLAN',exact:true}).click();
     await page.getByRole('button',{name:'FIND MY FILM',exact:true}).waitFor();
+    await noInternalIdentifiers();
     assert.equal(posts.filter(p=>p.endsWith('/execute')).length,0);
     await page.getByRole('button',{name:'FIND MY FILM',exact:true}).click();
     await page.getByRole('heading',{name:'WHICH FILM DID YOU MEAN?',exact:true}).waitFor({timeout:20000});
+    await noInternalIdentifiers();
     const confirm=page.getByRole('button',{name:'CONFIRM FILM & DISCOVER FIVE',exact:true});
     assert.equal(await confirm.isEnabled(),false,'No automatic title/year selection');
     await page.getByRole('group',{name:'SELECT ONE FILM',exact:true}).getByRole('radio').first().check();
@@ -59,6 +65,7 @@ async function main(){
     const job=await(await page.request.get(url+'/api/demo/cases/jobs/'+cap.open_movie_jobs[0].job_id)).json();
     assert.equal(job.status,'COMPLETE');assert.equal(job.result.provenance,'SIMULATION_ONLY');
     assert.equal(job.result.open_movie_results.delivered.length,5);assert.equal(job.saved_model_packets,1);
+    await noInternalIdentifiers();assert.ok(!(await discovery.textContent()).includes(job.job_id));
     const link=page.getByRole('link',{name:'DOWNLOAD DISCOVERY VERIFICATION',exact:true});
     await page.locator('summary').filter({hasText:/^INSPECT VERIFICATION & EVIDENCE LIMITS$/}).click();
     const downloadEvent=page.waitForEvent('download');await link.click();const download=await downloadEvent;
@@ -68,6 +75,7 @@ async function main(){
     const readOnlyStart=posts.length;await page.reload();
     await discovery.getByRole('button',{name:/^OPEN OR RESTORE MY SESSION/}).click();
     await page.getByRole('heading',{name:/^BEYOND /}).waitFor();
+    await noInternalIdentifiers();
     assert.deepEqual(posts.slice(readOnlyStart),['/api/demo/cases/session']);
     const restored=await(await page.request.get(url+'/api/demo/cases/jobs/'+job.job_id+'/verification')).json();
     assert.deepEqual(restored,receipt);
@@ -100,7 +108,7 @@ async function main(){
     assert.ok(audit);assert.equal(audit.synthetic_qloo_calls,2);assert.equal(audit.synthetic_model_calls,1);
     console.log(JSON.stringify({result:'PASS',viewport:mobile?'mobile':'desktop',native_download_bytes:bytes.length,
       native_download_sha256:crypto.createHash('sha256').update(bytes).digest('hex'),reloads_without_execution:2,
-      modes_retained:true,lost_plan_response_recovered_without_repost:true,...audit}));
+      modes_retained:true,lost_plan_response_recovered_without_repost:true,technical_identifiers_hidden:true,verification_identifiers_preserved:true,...audit}));
   }catch(error){
     if(page)try{console.error(JSON.stringify({synthetic_body:(await page.locator('body').innerText()).slice(-5500)}))}catch{}
     console.error(JSON.stringify({synthetic_host_output:output.slice(-1500),synthetic_host_errors:errors.slice(-1500)}));throw error;

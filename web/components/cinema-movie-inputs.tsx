@@ -11,7 +11,6 @@ export const emptyMovieQueries=():MovieQueryPair=>({A:[],B:[]});
 export const emptyMovieSelection=():MovieInputSelection=>({A:[],B:[]});
 export const movieQueryCount=(queries:MovieQueryPair)=>queries.A.length+queries.B.length;
 export const hasConfirmedYear=(movie:MovieInputCandidate)=>Number.isInteger(movie.release_year)&&movie.release_year>=1000&&movie.release_year<=9999;
-const shortId=(id:string)=>id.length>16?`${id.slice(0,8)}…${id.slice(-4)}`:id;
 
 export function CinemaMovieQueryEditor({queries,artists,maximum,disabled,onChange}:{queries:MovieQueryPair;artists:{A:string;B:string};maximum:number;disabled:boolean;onChange:(value:MovieQueryPair)=>void}){
   const count=movieQueryCount(queries);
@@ -44,7 +43,7 @@ export function CinemaMovieIdentityPicker({queries,candidates,selection,disabled
         <p className={styles.identityQuery}><span>ORIGINAL FILM QUERY</span>{query}</p>
         <div className={styles.identityChoices}>{matches.length?matches.map(movie=><label className={styles.identityChoice} key={movie.entity_id} data-selected={selection[profile]?.[slot]===movie.entity_id}>
           <input type="radio" name={`movie-identity-${groupId}-${profile}-${slot}`} value={movie.entity_id} checked={selection[profile]?.[slot]===movie.entity_id} disabled={!hasConfirmedYear(movie)} onChange={()=>onChange(profile,slot,movie.entity_id)}/>
-          <span><strong>{movie.name} ({hasConfirmedYear(movie)?movie.release_year:'Year unverified'})</strong><span className={styles.identityMetadata}><span>Qloo film identity</span><code title={movie.entity_id}>{shortId(movie.entity_id)}</code></span></span>
+          <span><strong>{movie.name} ({hasConfirmedYear(movie)?movie.release_year:'Year unverified'})</strong><span className={styles.identityMetadata}>FILM</span></span>
         </label>):<p role="alert">No film matches were saved for this query. Edit the title above and review a new plan. This case cannot continue without a confirmed film.</p>}</div>
         {duplicate&&<p className={styles.identityConflict} role="alert">Choose distinct films within this profile. The same film cannot fill two query slots.</p>}
       </fieldset>;
@@ -57,7 +56,7 @@ export function CinemaConfirmedMovieInputs({movies}:{movies:ConfirmedMovieInputs
     <div className={styles.sectionHeading}><h3>CONFIRMED FILM INPUTS</h3><span>Positive taste signals saved with this case</span></div>
     <div className={styles.identityProfiles}>{profiles.map(profile=><div className={styles.confirmedIdentity} key={profile}>
       <span className={styles.eyebrow}>PROFILE {profile}</span>
-      {movies[profile]?.length?movies[profile].map(movie=><div className={styles.confirmedMovie} key={movie.entity_id}><strong>{movie.name} ({movie.release_year})</strong><code title={movie.entity_id}>{shortId(movie.entity_id)}</code></div>):<p>No additional film input for this profile.</p>}
+      {movies[profile]?.length?movies[profile].map(movie=><div className={styles.confirmedMovie} key={movie.entity_id}><strong>{movie.name} ({movie.release_year})</strong></div>):<p>No additional film input for this profile.</p>}
     </div>)}</div>
     <p className={styles.small}>The confirmed identities are supplied to Qloo and the model. Recommendations remain in the reviewed catalog; this does not establish how much you will like them.</p>
   </section>;

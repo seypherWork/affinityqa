@@ -29,7 +29,7 @@ async function main(){
   const historical={...makeJob('historical-complete'),status:'COMPLETE',saved_provider_samples:4,saved_model_packets:2,result:verifiedResult()};
   const historicalHash=createHash('sha256').update(JSON.stringify(historical)).digest('hex');
   const jobs=new Map([[historical.job_id,historical]]),posts=[],errors=[];
-  let capabilityEnabled=false,confirmations=0;
+  let capabilityEnabled=false,confirmations=0,catalogMissing=false;
   const server=http.createServer((req,res)=>{
     const url=new URL(req.url,'http://127.0.0.1');
     const receipt=url.pathname.match(/^\/api\/demo\/cases\/jobs\/([^/]+)\/verification$/);
@@ -46,7 +46,7 @@ async function main(){
     const context=await browser.newContext({acceptDownloads:true,viewport:process.argv.includes('--mobile')?{width:390,height:844}:{width:1280,height:900}});
     const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
     const capture=async name=>{if(!process.env.AFFINITYQA_TEST_SCREENSHOT_DIR)return;const directory=path.resolve(process.env.AFFINITYQA_TEST_SCREENSHOT_DIR);fs.mkdirSync(directory,{recursive:true});fs.writeFileSync(path.join(directory,name+'.png'),await page.screenshot({fullPage:true}),{flag:'wx'});};
-    const capabilities=()=>({configured:true,execution_enabled:true,simulation_only:true,admission_mode:'repeatable-v1',remaining_plans:null,remaining_executions:null,operator_mode:'groq',model:'synthetic',catalog,default_artists:artists,cinema_preferences_supported:true,cinema_identity_confirmation_supported:true,cinema_discoveries_supported:true,...(capabilityEnabled?{movie_input_search_supported:true,maximum_movie_queries_per_case:2,...(pairedMode?{fast_pair_review_supported:true}:{})}:{}),jobs:[...jobs.values()].map(({job_id,status,artists})=>({job_id,status,artists}))});
+    const capabilities=()=>({configured:true,execution_enabled:true,simulation_only:true,admission_mode:'repeatable-v1',remaining_plans:null,remaining_executions:null,operator_mode:'groq',model:'synthetic',catalog:catalogMissing?[]:catalog,default_artists:artists,cinema_preferences_supported:true,cinema_identity_confirmation_supported:true,cinema_discoveries_supported:true,...(capabilityEnabled?{movie_input_search_supported:true,maximum_movie_queries_per_case:2,...(pairedMode?{fast_pair_review_supported:true}:{})}:{}),jobs:[...jobs.values()].map(({job_id,status,artists})=>({job_id,status,artists}))});
     await context.route(url=>!/^\/api\/demo\/cases\/jobs\/[^/]+\/verification$/.test(url.pathname),async route=>{
       const req=route.request(),url=new URL(req.url());assert.equal(url.origin,origin,'External browser requests forbidden');
       const json=body=>route.fulfill({json:clone(body)});
@@ -80,7 +80,14 @@ async function main(){
       if(url.pathname.startsWith('/api/'))throw Error('Unexpected API request '+url.pathname);return route.continue();
     });
     const openSession=async()=>{await page.getByRole('button',{name:'OPEN OR RESTORE MY SESSION',exact:true}).click();await page.getByRole('heading',{name:'YOUR MUSICAL INTERESTS',exact:true}).waitFor();};
-    const plan=async()=>{await page.getByRole('button',{name:'REVIEW A NEW PLAN',exact:true}).click();await page.getByRole('status').filter({hasText:/^PLANNED$/}).waitFor();};
+    const noInternalIdentifiers=async()=>{
+      const view=page.locator('section[aria-labelledby="individual-title"]'),text=await view.textContent();
+      assert.doesNotMatch(text,/INSPECT PLAN IDENTIFIERS|PLAN SHA-256|urn:entity:|\b[a-f0-9]{64}\b/i);
+      for(const id of jobs.keys())assert.ok(!text.includes(id),'Saved history must show taste names and status, not internal IDs');
+      assert.equal(await view.locator('code[title],label [title]').count(),0);
+      for(const value of [...Object.values(artistIds),...Object.values(films),...catalog])assert.ok(!text.includes(value.entity_id),'Artist and film choice IDs remain machine-readable only');
+    };
+    const plan=async()=>{await page.getByRole('button',{name:'REVIEW A NEW PLAN',exact:true}).click();await page.getByRole('status').filter({hasText:/^PLANNED$/}).waitFor();await noInternalIdentifiers();};
     const chooseArtists=async()=>{for(const profile of ['A','B'])await page.getByRole('group',{name:'PROFILE '+profile,exact:true}).getByRole('radio').check();};
     const openConfirmedInputs=async()=>{await page.locator('summary').filter({hasText:'YOUR CONFIRMED TASTE INPUTS'}).click();};
     await page.goto(origin+'/demo#new');await openSession();
@@ -102,6 +109,7 @@ async function main(){
     assert.equal(await page.getByLabel('Profile B film title 1',{exact:true}).inputValue(),'The Thing','Editing one query preserves the other');
     await plan();await page.getByRole('button',{name:'FIND ARTISTS & FILMS',exact:true}).click();
     await page.getByRole('heading',{name:'CONFIRM YOUR FILMS',exact:true}).waitFor();
+    await noInternalIdentifiers();
     const confirm=page.getByRole('button',{name:'CONFIRM IDENTITIES & START REVIEW',exact:true});
     assert.equal(await confirm.isEnabled(),false);assert.equal(await page.getByRole('radio',{checked:true}).count(),0,'No artist or film identity may be selected automatically');
     assert.equal(await page.getByRole('radio',{name:/Year unverified/}).isEnabled(),false,'A film without a verified year is not confirmable');
@@ -114,6 +122,7 @@ async function main(){
     const completed=[...jobs.values()].find(job=>job.chosen_movie_inputs);assert.ok(completed);
     assert.deepEqual(posts.at(-1).body.selected_movie_entity_ids,{A:['film-gladiator-2000'],B:['film-thing-1982']});
     await openConfirmedInputs();await page.getByRole('heading',{name:'CONFIRMED FILM INPUTS',exact:true}).waitFor();await page.getByText('Gladiator (2000)',{exact:true}).waitFor();await capture('02-confirmed-films-and-results');
+    await noInternalIdentifiers();
     const downloadPromise=page.waitForEvent('download');await page.getByRole('link',{name:'DOWNLOAD SELECTED VERIFICATION',exact:true}).click();
     const download=await downloadPromise;assert.equal(new URL(download.url()).origin,origin);const stream=await download.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);const receiptBytes=Buffer.concat(chunks),receipt=JSON.parse(receiptBytes.toString('utf8'));assert.equal(receipt.job_id,completed.job_id);assert.deepEqual(receipt.chosen_movie_inputs,completed.chosen_movie_inputs);
     const beforeRestore=posts.filter(post=>!post.path.endsWith('/session')).length;await page.reload();await openSession();await openConfirmedInputs();await page.getByRole('heading',{name:'CONFIRMED FILM INPUTS',exact:true}).waitFor();assert.equal(posts.filter(post=>!post.path.endsWith('/session')).length,beforeRestore,'Restoring a selected movie case uses reads only');
@@ -143,8 +152,22 @@ async function main(){
       await page.getByRole('status').filter({hasText:/^COMPLETE$/}).waitFor();assert.equal(posts.length,beforeViews,'Switching views retains the selected case and performs no mutation');
       await capture('04-shared-pass-two-tastes');
     }
+    // A missing historical catalog must not turn machine IDs into film names.
+    const beforeMissing=posts.filter(post=>!post.path.endsWith('/session')).length;
+    const missing=makeJob('missing-catalog-case');missing.artists={A:'Missing catalog A',B:'Missing catalog B'};
+    missing.preferences={A:{schema_version:1,favorite_entity_ids:[catalog[0].entity_id],excluded_entity_ids:[catalog[1].entity_id]},B:{schema_version:1,favorite_entity_ids:[catalog[2].entity_id],excluded_entity_ids:[catalog[3].entity_id]}};
+    jobs.set(missing.job_id,missing);catalogMissing=true;await page.reload();await openSession();
+    await page.getByRole('button',{name:'Missing catalog A / Missing catalog B — PLANNED',exact:true}).click();
+    await page.locator('summary').filter({hasText:'REVIEW YOUR TASTE INPUTS'}).click();
+    assert.equal(((await page.locator('section[aria-labelledby="individual-title"]').textContent()).match(/Film title unavailable/g)||[]).length,4,'All saved favorite and exclusion fallbacks stay human-readable');await noInternalIdentifiers();
+    Object.assign(missing,{status:'COMPLETE',saved_provider_samples:4,saved_model_packets:2,result:verifiedResult()});
+    await page.reload();await openSession();await page.getByRole('status').filter({hasText:/^COMPLETE$/}).waitFor();
+    assert.equal(await page.getByRole('heading',{name:'FILM TITLE UNAVAILABLE',exact:true}).count(),10);await noInternalIdentifiers();
+    const unchangedReceipt=await(await page.request.get(origin+'/api/demo/cases/jobs/'+completed.job_id+'/verification')).body();assert.deepEqual(unchangedReceipt,receiptBytes,'Original downloaded IDs and evidence remain unchanged when the visible catalog is missing');
+    assert.equal(posts.filter(post=>!post.path.endsWith('/session')).length,beforeMissing,'Inspecting missing-catalog cases never submits execution work');
+    await capture('05-unavailable-catalog-readable-fallbacks');
     assert.equal(createHash('sha256').update(JSON.stringify(jobs.get(historical.job_id))).digest('hex'),historicalHash,'Historical case bytes stay unchanged');assert.equal(confirmations,pairedMode?2:1);assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
-    console.log(JSON.stringify({result:'PASS',scenario:'movie query cap, legacy payload, normalized plan, edit invalidation, explicit title/year confirmation, duplicate and unknown-year rejection, native receipt, restoration, no-match and historical preservation',paired_capability:pairedMode,viewport:process.argv.includes('--mobile')?'mobile':'desktop',completed_synthetic_cases:confirmations,synthetic_confirmations:confirmations,real_provider_calls:0,historical_case_sha256:historicalHash,downloaded_receipt_sha256:createHash('sha256').update(receiptBytes).digest('hex'),scope:'FRONTEND_WITH_SYNTHETIC_API_ONLY'}));
+    console.log(JSON.stringify({result:'PASS',scenario:'movie query cap, legacy payload, normalized plan, edit invalidation, explicit title/year confirmation, duplicate and unknown-year rejection, native receipt, restoration, no-match and historical preservation',paired_capability:pairedMode,viewport:process.argv.includes('--mobile')?'mobile':'desktop',completed_synthetic_cases:confirmations,synthetic_confirmations:confirmations,real_provider_calls:0,historical_case_sha256:historicalHash,downloaded_receipt_sha256:createHash('sha256').update(receiptBytes).digest('hex'),technical_identifiers_hidden:true,verification_identifiers_preserved:true,missing_catalog_fallbacks_checked:true,scope:'FRONTEND_WITH_SYNTHETIC_API_ONLY'}));
   }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 }
 main().catch(error=>{console.error(error.stack||error.message);process.exitCode=1;});

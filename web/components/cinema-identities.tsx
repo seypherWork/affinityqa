@@ -7,7 +7,7 @@ export type IdentityCandidates={A:IdentityCandidate[];B:IdentityCandidate[]};
 export type IdentityQueries={A:string;B:string};
 export type IdentitySelection={A:string;B:string};
 const profiles=['A','B'] as const;
-const shortId=(id:string)=>id.length>16?`${id.slice(0,8)}…${id.slice(-4)}`:id;
+const profileLabel=(type:string)=>type==='urn:entity:artist'?'MUSIC ARTIST':type==='urn:entity:person'?'PERSON PROFILE':'QLOO PROFILE';
 
 export function CinemaIdentityPicker({candidates,queries,selection,disabled,groupId,onChange}:{candidates:IdentityCandidates;queries:IdentityQueries;selection:IdentitySelection;disabled:boolean;groupId:string;onChange:(profile:'A'|'B',entityId:string)=>void}){
   const sameIdentity=!!selection.A&&selection.A===selection.B;
@@ -19,7 +19,7 @@ export function CinemaIdentityPicker({candidates,queries,selection,disabled,grou
       <p className={styles.identityQuery}><span>ORIGINAL QUERY</span>{queries[profile]}</p>
       <div className={styles.identityChoices}>{candidates[profile].length?candidates[profile].map(candidate=><label className={styles.identityChoice} key={candidate.entity_id} data-selected={selection[profile]===candidate.entity_id}>
         <input type="radio" name={`identity-${groupId}-${profile}`} value={candidate.entity_id} checked={selection[profile]===candidate.entity_id} onChange={()=>onChange(profile,candidate.entity_id)}/>
-        <span><strong>{candidate.name}</strong><span className={styles.identityMetadata}>{candidate.type}<code title={candidate.entity_id}>{shortId(candidate.entity_id)}</code></span></span>
+        <span><strong>{candidate.name}</strong><span className={styles.identityMetadata}>{profileLabel(candidate.type)}</span></span>
       </label>):<p>No artist matches were saved for this query. This case cannot continue without two valid artist choices.</p>}</div>
     </fieldset>)}</div>
     {sameIdentity&&<p className={styles.identityConflict} role="alert">Choose two distinct artists. Both profiles currently point to the same Qloo identity.</p>}
@@ -32,7 +32,7 @@ export function CinemaConfirmedIdentities({identities,queries}:{identities:Ident
     <div className={styles.sectionHeading}><h3>CONFIRMED ARTIST IDENTITIES</h3><span>Saved with this case</span></div>
     <div className={styles.identityProfiles}>{profiles.map(profile=><div className={styles.confirmedIdentity} key={profile}>
       <span className={styles.eyebrow}>PROFILE {profile}</span><strong>{identities[profile].name}</strong>
-      <span className={styles.identityMetadata}>{identities[profile].type}<code title={identities[profile].entity_id}>{shortId(identities[profile].entity_id)}</code></span>
+      <span className={styles.identityMetadata}>{profileLabel(identities[profile].type)}</span>
       <p className={styles.identityQuery}><span>ORIGINAL QUERY</span>{queries[profile]}</p>
     </div>)}</div>
   </section>;
