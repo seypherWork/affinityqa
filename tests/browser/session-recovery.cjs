@@ -24,6 +24,18 @@ const capabilities = {
   operator_mode: 'groq', catalog: [], jobs: [{job_id: jobId, status: 'STARTED', artists}],
 };
 
+// Identify the selected case through the retained internal pointer plus the
+// human-readable rendered profiles. Machine IDs must never become UI labels.
+async function selectedCase(page, expected) {
+  await page.waitForFunction(({id, artistA, artistB}) => {
+    const selected = document.querySelector('section[aria-labelledby="job-title"]');
+    return sessionStorage.getItem('affinityqa-public-selected-case-v1') === id
+      && !!selected && selected.textContent.includes(artistA) && selected.textContent.includes(artistB);
+  }, {id: expected.job_id, artistA: expected.artists.A, artistB: expected.artists.B});
+  assert.equal(await page.getByText(expected.job_id, {exact: true}).count(), 0,
+    'Internal case identity must be retained without being rendered as text');
+}
+
 async function recoverThroughSavedHistory(browser, origin, mobile, openDifferentCase = false) {
   const page = await browser.newPage({viewport: mobile ? {width: 390, height: 844} : {width: 1280, height: 900}});
   const saved = {...job, job_id: 'synthetic-lost-execute-response', status: 'PLANNED'};
@@ -78,7 +90,7 @@ async function recoverThroughSavedHistory(browser, origin, mobile, openDifferent
     assert.ok(capabilitiesReads > before.capabilitiesReads && statusReads > before.statusReads, 'Explicit recovery must refresh capabilities and the selected case');
     assert.equal(posts.length, before.posts, 'Status recovery must not repeat any mutation');
     assert.equal(posts.filter(value => value.endsWith('/execute')).length, 1);
-    assert.equal(await page.locator('dd').filter({hasText: /^synthetic-lost-execute-response$/}).count(), 1, 'Recovery must restore the original uncertain case, even after selecting another');
+    await selectedCase(page, saved); // Restores the exact uncertain case, even after selecting another.
     assert.equal(await statusControl.count(), 0, 'Recovered uncertainty should clear');
     assert.deepEqual(errors, []);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
@@ -109,7 +121,7 @@ async function recoverPlanAndSwitchMode(browser, origin, mobile, deferRestoratio
     if (url.pathname === '/api/demo/cases/session') return json({schema_version: 1, csrf_token: 'c'.repeat(64), expires_utc: '2099-01-01T00:00:00Z'});
     if (url.pathname === '/api/demo/cases/capabilities') return json({...capabilities, remaining_plans: null, remaining_executions: null, admission_mode: 'repeatable-v1', default_artists: artists, catalog, cinema_preferences_supported: true, cinema_identity_confirmation_supported: true, cinema_discoveries_supported: true, minimum_model_interval_seconds: 22, jobs: jobs.map(({job_id, status, artists}) => ({job_id, status, artists}))});
     if (url.pathname === '/api/demo/cases/plans') {
-      jobs.unshift({...job, job_id: 'admitted-plan-with-lost-response', status: 'PLANNED'});
+      jobs.unshift({...job, job_id: 'admitted-plan-with-lost-response', status: 'PLANNED', artists: {A: 'Admitted plan A', B: 'Admitted plan B'}});
       return route.fulfill({status: 503, json: {error: 'Synthetic lost plan response'}});
     }
     const selected = jobs.find(value => url.pathname === '/api/demo/cases/jobs/' + value.job_id);
@@ -143,7 +155,7 @@ async function recoverPlanAndSwitchMode(browser, origin, mobile, deferRestoratio
     assert.ok((await workflow.innerText()).includes('START THE REVIEW'));
     await page.getByText('NEXT NEW PLAN: up to 39 model attempts.', {exact: false}).waitFor();
     await page.getByRole('button', {name: /Other integrity A \/ Other integrity B — COMPLETE/}).click();
-    await page.locator('dd').filter({hasText: /^completed-integrity-case$/}).waitFor({state: 'attached'});
+    await selectedCase(page, other);
     await page.getByRole('button', {name: /^FILM PREFERENCES/}).click();
     assert.ok((await workflow.innerText()).includes('CONFIRM THE MATCHES'), 'A completed integrity result must not override the next discovery workflow');
     assert.equal((await workflow.innerText()).includes('START THE REVIEW'), false);
@@ -160,9 +172,9 @@ async function recoverPlanAndSwitchMode(browser, origin, mobile, deferRestoratio
     const beforeReads = statusReads;
     await page.getByRole('button', {name: 'CHECK CURRENT STATUS', exact: true}).click();
     await page.getByText('Saved plans have been refreshed.', {exact: false}).waitFor();
-    await page.locator('li').filter({has: page.getByText('admitted-plan-with-lost-response', {exact: true})}).getByRole('button').waitFor();
+    await page.getByRole('button', {name: 'Admitted plan A / Admitted plan B — PLANNED', exact: true}).waitFor();
     assert.equal(statusReads, beforeReads, 'Unknown plan ID must not be guessed from a prior selection or the first history entry');
-    assert.equal(await page.locator('dd').filter({hasText: deferRestoration ? /^completed-discovery-case$/ : /^completed-integrity-case$/}).count(), 1, 'A refreshed plan list must preserve the selected case');
+    await selectedCase(page, deferRestoration ? completed : other); // Refreshing history preserves selection.
     assert.equal(posts.filter(value => value.endsWith('/plans')).length, 1, 'Lost plan response must not repeat its POST');
     assert.equal(posts.filter(value => value.endsWith('/execute') || value.endsWith('/confirm-identities')).length, 0);
     assert.deepEqual(errors, []);
@@ -206,35 +218,35 @@ async function preserveActiveCaseWhileReadingHistory(browser, origin, mobile) {
     await page.getByRole('status').filter({hasText:/^STARTED$/}).waitFor();
     const beforeHistory=activeReads;
     await page.getByRole('button',{name:/Historical artist A \/ Historical artist B — COMPLETE/}).click();
-    await page.locator('dd').filter({hasText:/^historical-complete-case$/}).waitFor({state:'attached'});
+    await selectedCase(page,historical);
     const runningNotice=page.getByRole('complementary',{name:'Running case kept in progress',exact:true});
     await runningNotice.waitFor();
     assert.equal(await page.getByRole('button',{name:'REVIEW A NEW PLAN',exact:true}).isEnabled(),false,'Inspecting history must not admit overlapping work');
     const beforeBackgroundRead=activeReads;
     await page.waitForFunction(({minimum})=>{const text=document.querySelector('[aria-label="Running case kept in progress"]')?.textContent??'';const saved=text.match(/(\d+)\/39 model packets saved/);return !!saved&&Number(saved[1])>=minimum;},{minimum:beforeBackgroundRead},{timeout:8000});
     assert.ok(activeReads>beforeBackgroundRead&&activeReads>beforeHistory,'The original active ID must keep polling while historical evidence is selected');
-    assert.equal(await page.locator('dd').filter({hasText:/^historical-complete-case$/}).count(),1,'Background polling must not steal the historical selection');
+    await selectedCase(page,historical);
     assert.deepEqual(posts,['/api/demo/cases/session'],'Reading history and observing progress must not execute work');
     const postsBeforeReload=posts.length;
     await page.reload();
     await page.getByRole('button',{name:'OPEN OR RESTORE MY SESSION',exact:true}).click();
-    await page.locator('dd').filter({hasText:/^historical-complete-case$/}).waitFor({state:'attached'});
+    await selectedCase(page,historical);
     await runningNotice.waitFor();
     assert.equal(await page.getByRole('button',{name:'REVIEW A NEW PLAN',exact:true}).isEnabled(),false,'Reloading a selected historical case must restore the owned active companion and keep new work blocked');
     const beforeRestoredPoll=activeReads;
     await page.waitForFunction(({minimum})=>{const text=document.querySelector('[aria-label="Running case kept in progress"]')?.textContent??'';const saved=text.match(/(\d+)\/39 model packets saved/);return !!saved&&Number(saved[1])>=minimum;},{minimum:beforeRestoredPoll},{timeout:8000});
     assert.ok(activeReads>beforeRestoredPoll,'The owned active case must resume polling after reload while historical evidence stays selected');
-    assert.equal(await page.locator('dd').filter({hasText:/^historical-complete-case$/}).count(),1);
+    await selectedCase(page,historical);
     assert.deepEqual(posts.slice(postsBeforeReload),['/api/demo/cases/session'],'Reopening ownership may post the session once; companion restoration must use GETs and never execute or confirm work');
     await page.getByRole('button',{name:'RETURN TO RUNNING CASE',exact:true}).click();
-    await page.locator('dd').filter({hasText:/^running-integrity-case$/}).waitFor({state:'attached'});
+    await selectedCase(page,active);
     await page.getByRole('status').filter({hasText:/^STARTED$/}).waitFor();
     await page.getByRole('button',{name:/Historical artist A \/ Historical artist B — COMPLETE/}).click();
-    await page.locator('dd').filter({hasText:/^historical-complete-case$/}).waitFor({state:'attached'});
+    await selectedCase(page,historical);
     completeActive=true;
     await runningNotice.waitFor({state:'hidden',timeout:8000});
     await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(button=>button.textContent.trim().startsWith('REVIEW A NEW PLAN')&&!button.disabled));
-    assert.equal(await page.locator('dd').filter({hasText:/^historical-complete-case$/}).count(),1,'Completing the background case must not open or replace the selected historical case');
+    await selectedCase(page,historical);
     assert.deepEqual(posts,['/api/demo/cases/session','/api/demo/cases/session']);assert.deepEqual(errors,[]);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
     console.log(JSON.stringify({result:'PASS',scenario:'saved advanced consent and active polling preserved across historical inspection and reload; terminal background does not replace selection',viewport:mobile?'mobile':'desktop',active_reads:activeReads,session_posts:2,execution_posts:0,provider_calls:0}));
