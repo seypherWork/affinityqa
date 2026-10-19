@@ -100,7 +100,7 @@ class CausalEvidenceIntegrationTests(unittest.TestCase):
                             raise_server_exceptions=False) as client:
                 summary = client.get('/api/demo/summary')
                 self.assertEqual(summary.status_code, 200)
-                self.assertEqual(summary.json()['replay_schema_version'], 2)
+                self.assertEqual(summary.json()['replay_schema_version'], 3)
                 for fault in VERIFIER.OPERATIONS:
                     for repeat in (1, 2, 3):
                         with self.subTest(fault=fault, repeat=repeat):
@@ -110,7 +110,7 @@ class CausalEvidenceIntegrationTests(unittest.TestCase):
                                       'fault': fault, 'repeat': repeat})
                             self.assertEqual(response.status_code, 200, response.text)
                             value = response.json()
-                            self.assertEqual(value['schema_version'], 2)
+                            self.assertEqual(value['schema_version'], 3)
                             VERIFIER.validate_replay(value,
                                 run_id=fixture_module.RUN_ID, pair_id=fixture_module.PAIR_ID,
                                 fault=fault, repeat=repeat, artists=self.fixture.artists)
@@ -209,6 +209,7 @@ class CausalEvidenceIntegrationTests(unittest.TestCase):
     def test_legacy_v1_projection_remains_verifiable_without_new_proof_claim(self):
         result = self.replay()
         del result['diagnostic_evidence']
+        del result['context_contrast']
         dto = public_demo.replay_dto(result, profile_names=self.fixture.profile_names)
         self.assertEqual(dto['schema_version'], 1)
         self.assertNotIn('diagnostic_evidence', dto)
@@ -228,13 +229,14 @@ class CausalEvidenceIntegrationTests(unittest.TestCase):
         dto = public_demo.replay_dto(result, profile_names=self.fixture.profile_names)
         expected = dict(run_id=fixture_module.RUN_ID, pair_id=fixture_module.PAIR_ID,
                         fault='stale-profile', repeat=1, artists=self.fixture.artists)
-        VERIFIER.validate_replay(dto, required_version=2, **expected)
+        VERIFIER.validate_replay(dto, required_version=3, **expected)
         legacy = copy.deepcopy(dto)
         legacy['schema_version'] = 1
         del legacy['diagnostic_evidence']
+        del legacy['context_contrast']
         VERIFIER.validate_replay(legacy, **expected)
         VERIFIER.validate_replay(legacy, required_version=1, **expected)
-        for value, advertised in ((legacy, 2), (dto, 1), (dto, True), (dto, 3)):
+        for value, advertised in ((legacy, 2), (dto, 1), (dto, True), (dto, 2)):
             with self.subTest(advertised=advertised), self.assertRaises(RuntimeError):
                 VERIFIER.validate_replay(value, required_version=advertised, **expected)
 

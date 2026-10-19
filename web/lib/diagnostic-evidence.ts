@@ -1,3 +1,4 @@
+import {acceptsContextContrast} from './context-contrast';
 export const evidenceChecks = {
   raw_qloo_request_bound:'Interest and movie catalog match the Qloo request',
   raw_qloo_response_bound:'Saved response content is intact',
@@ -15,12 +16,15 @@ export const repairCopy = {
 } as const;
 export type Diagnosis = keyof typeof repairCopy;
 export type DiagnosticEvidence = {schema_version:1;source:'saved-qloo-semantic-check';status:'VERIFIED'|'NOT_VERIFIED';diagnosis:Diagnosis;operation:string;checks:Record<keyof typeof evidenceChecks,boolean>};
-type ReplayProof = {schema_version?:number;diagnosis:string;repair:string;fault:string;status:string;diagnostic_evidence?:DiagnosticEvidence};
+type ReplayProof = {schema_version?:number;diagnosis:string;repair:string;fault:string;status:string;diagnostic_evidence?:DiagnosticEvidence;context_contrast?:unknown;before?:Array<{position:number;title:string;year:number}>;after?:Array<{position:number;title:string;year:number}>};
 const faults:Record<string,Diagnosis> = {'cache-omits-profile':'CACHE_OMITS_PROFILE','stale-profile':'STALE_PROFILE','wrong-tool-profile':'WRONG_TOOL_PROFILE'};
 export function acceptsDiagnosticEvidence(value:ReplayProof, requiredVersion?:number):boolean {
-  // A backend advertising v2 cannot silently downgrade its semantic evidence.
-  if(value.schema_version===1)return requiredVersion!==2 && !('diagnostic_evidence' in value);
-  if(value.schema_version!==2 || !value.diagnostic_evidence)return false;
+  // Advertised versions are exact; retain explicit legacy v1/v2 readers.
+  if(requiredVersion!==undefined && (![1,2,3].includes(requiredVersion)||value.schema_version!==requiredVersion))return false;
+  if(value.schema_version===1)return !('diagnostic_evidence' in value)&&!('context_contrast' in value);
+  if(![2,3].includes(value.schema_version||0)||!value.diagnostic_evidence)return false;
+  if(value.schema_version===2 && 'context_contrast' in value)return false;
+  if(value.schema_version===3 && (!value.before||!value.after||!acceptsContextContrast(value.context_contrast,value.fault,value.before,value.after)))return false;
   const proof=value.diagnostic_evidence;
   const keys=['schema_version','source','status','diagnosis','operation','checks'];
   if(typeof proof!=='object'||Object.keys(proof).length!==keys.length||keys.some(key=>!(key in proof))

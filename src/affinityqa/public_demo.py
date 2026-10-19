@@ -22,6 +22,7 @@ from .api import CausalReplayBody
 from . import causal_review as review
 from .errors import AffinityQAError, SchemaError
 from .causal_evidence import PROOF_CHECKS, OPERATIONS
+from .context_contrast import validate_context_contrast
 
 SHA = re.compile(r'^[a-f0-9]{64}$')
 RUN = re.compile(r'^\d{8}T\d{6}Z-[a-f0-9]{8}$')
@@ -59,7 +60,7 @@ def summary_dto(report: dict, receipt_sha: str) -> dict:
                       for p in report['pairs']],
             'historical_quality': {'development': {'passing': 13, 'denominator': 14, 'gate': 'FAIL'},
                                    'independent': {'passing': 4, 'denominator': 6, 'gate': 'FAIL'}},
-            'execution_mode': 'recorded-local-llm-replay', 'replay_schema_version': 2,
+            'execution_mode': 'recorded-local-llm-replay', 'replay_schema_version': 3,
             'notice': 'Recorded replay. The original capture used real Qloo inputs and local model decisions. '
                       'Each replay executes routing, diagnosis and repair with saved decisions; zero new '
                       'model/API calls. Controlled repeats are not independent user trials.'}
@@ -104,6 +105,12 @@ def replay_dto(result: dict, *, profile_names: dict[str, str]) -> dict:
                 or result['status'] == 'PASS' and proof['status'] != 'VERIFIED'):
             raise SchemaError('Unexpected independent Qloo evidence projection.')
         projection.update(schema_version=2, diagnostic_evidence=copy.deepcopy(proof))
+    if 'context_contrast' in result:
+        if 'diagnostic_evidence' not in projection:
+            raise SchemaError('Context contrast requires independent diagnosis evidence.')
+        contrast = validate_context_contrast(result['context_contrast'],result['fault'],
+            before=projection['before'],after=projection['after'])
+        projection.update(schema_version=3,context_contrast=copy.deepcopy(contrast))
     return projection
 
 

@@ -37,6 +37,21 @@ async function main(){
           if(faultMode==='mismatch')value.diagnostic_evidence.diagnosis='STALE_PROFILE';
           if(faultMode==='downgrade'){value.schema_version=1;delete value.diagnostic_evidence}
           if(faultMode==='extra')value.diagnostic_evidence.private_packet='PRIVATE_CANARY_MUST_NOT_RENDER';
+          if(faultMode==='contrast-missing')delete value.context_contrast;
+          if(faultMode==='contrast-truthy')value.context_contrast.checks.task_fixed=1;
+          if(faultMode==='contrast-extra')value.context_contrast.private_packet='PRIVATE_CANARY_MUST_NOT_RENDER';
+          if(faultMode==='contrast-downgrade'){value.schema_version=2;delete value.context_contrast}
+          if(faultMode==='contrast-metrics')value.context_contrast.metrics.changed_top_five=0;
+          if(faultMode==='contrast-nonfinite')value.context_contrast.metrics.ranking_distance=null;
+          if(faultMode==='contrast-no-effect'){
+            value.before=structuredClone(value.after);
+            value.context_contrast.behavioral_effect='NO_OBSERVED_EFFECT';
+            Object.assign(value.context_contrast.metrics,{ranking_distance:0,minimum_before_healthy_distance:0,changed_top_five:0,top_five_order_changed:false,recovery_observed:false});
+          }
+          if(faultMode==='contrast-confounded'){
+            value.context_contrast.status='CONFOUNDED';value.context_contrast.behavioral_effect='NOT_EVALUATED';
+            value.context_contrast.checks.model_manifest_fixed=false;value.context_contrast.metrics=null;
+          }
           return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(value)});
         }
       }
@@ -47,6 +62,7 @@ async function main(){
     await root.getByRole('button',{name:'Replay this incident',exact:true}).waitFor();
     await page.getByText('SYNTHETIC LOCAL VALIDATION · NO REAL PROVIDER CALLS',{exact:true}).waitFor();
     const proof=()=>page.getByRole('region',{name:'Verified Qloo diagnosis and repair',exact:true});
+    const contrast=()=>page.getByRole('region',{name:'Recorded Qloo context contrast',exact:true});
     const clickReplay=async()=>{await root.getByRole('button',{name:'Replay this incident',exact:true}).click()};
     const faultNames=['cache-omits-profile','stale-profile','wrong-tool-profile'];
     for(const fault of faultNames){
@@ -58,6 +74,14 @@ async function main(){
         assert.equal(await proof().getByRole('heading',{name:'WHAT FAILED. WHAT CHANGED.',exact:true}).count(),1);
         assert.equal(await proof().locator('code').count(),0,'Ordinary proof cards contain no technical codes');
         assert.doesNotMatch(await proof().innerText(),/[a-f0-9]{64}|urn:entity:|PRIVATE_CANARY/);
+        if(fault==='wrong-tool-profile'){
+          await contrast().getByText('INPUTS CONTROLLED',{exact:true}).waitFor();
+          assert.equal(await contrast().getByRole('heading',{name:'CHANGE ABOVE RECORDED VARIATION',exact:true}).count(),1);
+          assert.doesNotMatch(await contrast().innerText(),/[a-f0-9]{64}|urn:entity:|PRIVATE_CANARY/);
+          await contrast().locator('summary').focus();await page.keyboard.press('Enter');
+          assert.equal(await contrast().locator('li strong').filter({hasText:'PASS'}).count(),13);
+          await page.keyboard.press('Enter');
+        }else assert.equal(await contrast().count(),0,'Non-context faults cannot claim an isolated context effect');
         assert.equal(await root.locator('ol').count(),3); // before / after / healthy
         const beforeFilms=await root.locator('ol').nth(1).innerText();
         assert.equal(await root.locator('ol').nth(2).innerText(),beforeFilms,'Repair reaches recorded healthy movies');
@@ -70,7 +94,12 @@ async function main(){
       }
     }
     if(process.env.AFFINITYQA_TEST_SCREENSHOT){fs.writeFileSync(process.env.AFFINITYQA_TEST_SCREENSHOT,await page.screenshot({fullPage:true}),{flag:'wx'})}
-    for(const mode of ['missing','truthy','mismatch','downgrade','extra','busy','unavailable']){
+    for(const mode of ['contrast-no-effect','contrast-confounded']){
+      faultMode=mode;await clickReplay();await contrast().waitFor();
+      await contrast().getByText(mode==='contrast-no-effect'?'NO EFFECT ABOVE RECORDED VARIATION':'COMPARISON UNAVAILABLE',{exact:true}).waitFor();
+      if(mode==='contrast-confounded')assert.equal(await contrast().getByText('INPUTS CONTROLLED',{exact:true}).count(),0);
+    }
+    for(const mode of ['missing','truthy','mismatch','downgrade','extra','contrast-missing','contrast-truthy','contrast-extra','contrast-downgrade','contrast-metrics','contrast-nonfinite','busy','unavailable']){
       faultMode=mode;await clickReplay();
       const alert=root.getByRole('alert');await alert.waitFor();
       assert.equal(await proof().count(),0,'Invalid proof cannot retain a prior successful repair');
@@ -80,7 +109,7 @@ async function main(){
     faultMode='';await clickReplay();await proof().getByText('EVIDENCE CHECKED',{exact:true}).waitFor();
     assert.equal(errors.length,0,errors.join('\n'));
     const receipt={status:'PASS',provenance:'synthetic local backend and browser; not real Qloo or model evidence',mobile,
-      controls:{three_faults_three_repeats:true,eight_semantic_checks:true,healthy_recovery:true,keyboard:true,
+      controls:{three_faults_three_repeats:true,eight_semantic_checks:true,thirteen_context_controls:true,no_effect_and_confounded_states:true,context_projection_failures_blocked:true,healthy_recovery:true,keyboard:true,
         no_overflow:true,malformed_proofs_blocked:true,downgrade_blocked:true,busy_and_failure:true,zero_provider_calls:true},
       replays_requested:replays,real_qloo_calls:0,real_model_calls:0};
     if(process.env.AFFINITYQA_TEST_NATIVE_RECEIPT)fs.writeFileSync(process.env.AFFINITYQA_TEST_NATIVE_RECEIPT,JSON.stringify(receipt,null,2),{flag:'wx'});

@@ -37,15 +37,16 @@ OPERATIONS = {'cache-omits-profile': ('CACHE_OMITS_PROFILE', 'set-profile-cache'
 def validate_replay(value, *, run_id, pair_id, fault, repeat, artists, required_version=None):
     """Reject mislabeled, incomplete or expanded responses before counting a replay."""
     require(type(value) is dict and type(value.get('schema_version')) is int
-            and value['schema_version'] in (1, 2), 'Unexpected replay schema.')
+            and value['schema_version'] in (1, 2, 3), 'Unexpected replay schema.')
     version = value['schema_version']
-    require(required_version is None or type(required_version) is int and required_version in (1, 2),
+    require(required_version is None or type(required_version) is int and required_version in (1, 2, 3),
             'Unexpected advertised replay schema.')
     require(required_version is None or version == required_version,
             'Replay schema differs from the advertised version.')
-    require(set(value) == (REPLAY_FIELDS | {'diagnostic_evidence'} if version == 2 else REPLAY_FIELDS),
+    expected_fields = REPLAY_FIELDS | ({'diagnostic_evidence'} if version >= 2 else set()) | ({'context_contrast'} if version == 3 else set())
+    require(set(value) == expected_fields,
             'Unexpected replay projection.')
-    if version == 2:
+    if version >= 2:
         proof = value['diagnostic_evidence']
         proof_checks = {'raw_qloo_request_bound', 'raw_qloo_response_bound', 'context_projection_bound',
                         'model_payload_bound', 'observed_trace_bound', 'supported_transition_verified',
@@ -84,6 +85,14 @@ def validate_replay(value, *, run_id, pair_id, fault, repeat, artists, required_
                     and type(row['title']) is str and bool(row['title'].strip())
                     and type(row['year']) is int, 'Invalid film display schema.')
     require(value['after'] == value['healthy'], 'Recovery differs from healthy.')
+    if version == 3:
+        from affinityqa.context_contrast import validate_context_contrast
+        from affinityqa.errors import SchemaError
+        try:
+            validate_context_contrast(value['context_contrast'],fault,
+                before=value['before'],after=value['after'])
+        except SchemaError as error:
+            raise RuntimeError('Invalid recorded context contrast.') from error
     for field in ('trace', 'repaired_trace'):
         trace = value[field]
         require(type(trace) is dict and set(trace) == TRACE_HASHES | {'cache_hit'}, 'Unexpected trace projection.')

@@ -13,6 +13,7 @@ from .causal_runner import TASK
 from .errors import SchemaError
 from .evidence import fingerprint
 from .metrics import rank_distance
+from .context_contrast import context_contrast
 from .causal_evidence import (INPUT_CHECKS, inspect_decision, plan_repair, session_state,
                               verify_repair_transition, verify_captured_packets)
 from .store import RUN_ID
@@ -269,13 +270,19 @@ def replay_causal(root: Path, pair_id: str, fault: str, repeat: int):
     movie_map = {r['entity_id']: r for r in record['catalog']}
     def films(ranking): return _films([movie_map[i] for i in ranking[:5]])
     p = order[1]
+    contrast = context_contrast(fault, request(p,'before'), request(p,'after'),
+        before[p], after[p], memory.packets, packets,
+        profiles=bundle['profiles'], contexts=bundle['contexts'], samples=samples,
+        healthy=healthy[p], plan=_read(_file(run,'causal-plan.json')),
+        policy=_read(_file(run,'frozen-causal-policy.json')),
+        manifest=engine.manifest, noise_barrier=barrier)
     return {'schema_version': 1, 'status': 'PASS' if all(checks.values()) and all(proof_checks.values()) else 'FAIL',
             'replay_gate': 'PASS' if all(checks.values()) and all(proof_checks.values()) else 'FAIL', 'cultural_gate': 'NOT_VALIDATED', 'release_gate': 'BLOCKED',
             'run_id': report['run_id'], 'pair_id': pair_id, 'fault': fault, 'repeat': repeat,
             'source': 'recorded-local-llm-replay', 'new_model_calls': 0, 'new_qloo_calls': 0,
             'recorded_decision_dispatches': engine.calls, 'source_execution_ids': engine.sources,
             'diagnosis': diagnostic['diagnosis'], 'repair': patch['operation'], 'checks': checks,
-            'diagnostic_evidence': diagnostic_evidence,
+            'diagnostic_evidence': diagnostic_evidence, 'context_contrast': contrast,
             'before': films(before[p]['ranking']), 'after': films(after[p]['ranking']), 'healthy': films(healthy[p][0]['ranking']),
             'trace': before[p]['trace'], 'repaired_trace': after[p]['trace'],
             'notice': 'Pipeline executed now with verified recorded model decisions. No new inference or cultural-quality validation.'}
