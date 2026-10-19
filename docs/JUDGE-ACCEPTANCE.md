@@ -1,5 +1,93 @@
 # Judge acceptance record
 
+## Latest completed hosted acceptance — 18 October 2026
+
+**PASS for the bounded operational rollout, two real discovery journeys,
+physical downloads, same-profile fresh-page restoration and three recorded
+repair paths.** This is not a claim of universal correctness, human preference
+quality, arbitrary-code repair or competition eligibility.
+
+The tested/deployed code was `0faa96d578adf0691106f3877359418190927f3d`.
+The deployment's 353 source files were compared with that frozen source.
+This later documentation reconciliation does not change the runtime or renew
+its inference observations. Earlier local and hosted records are retained below.
+
+| Check | Observed evidence | Boundary |
+| --- | --- | --- |
+| Public CI | [39163714448](https://github.com/seypherWork/affinityqa/actions/runs/39163714448), commit `0faa96d`: Windows passed 723 tests with no skips; Ubuntu passed 719 and skipped four native Windows tests, all covered on Windows. Types and production export passed. | Ten Linux browser steps used synthetic providers. Windows CI browser steps were skipped, not passed. |
+| Hosted version | The existing Render service's source matched all 353 files. Configuration, model, keys, hosting plan and Groq Free were retained. | A private compressed backup was streamed and verified before deployment; no private backup is included here. |
+| Artist-led real trial | Eminem: 100 Qloo candidates, five delivered films; three actual Qloo HTTP attempts and one Groq attempt. No cache hit, unknown attempt or retry. | Operator-driven technical input, not a human preference participant. |
+| Film-led real trial | John Wick (2014): 100 Qloo candidates, five delivered films; three actual Qloo HTTP attempts and one Groq attempt. No cache hit, unknown attempt or retry. | A second technical input, not universal search/genre coverage. |
+| Model/output contract | The model selected indices; canonical identities were reconstructed server-side. Restored text matched the source-bound descriptions in each selected download. | Literal Qloo metadata is not independently verified film truth or a model-written rationale. |
+| Delivery and recovery | Both native public verification downloads were physically saved, parsed and checked; both cases restored on a fresh page in the same profile. Five corresponding images were visually observed per case. | Public projections are not the original private receipt bytes or independent provider attestations. Restore/read/download made no fresh inference. |
+| Recorded core | Alice Coltrane / Lil Nas X: cache-profile omission, stale profile and wrong tool profile; six replay controls passed for each. | Uses saved decisions, with zero fresh Qloo/model calls. |
+| Preservation | Pre/post checks retained existing immutable files and logical history; exact permitted operational advances and the reviewed Eminem transition were checked separately. | No blanket exemption for jobs, sessions, operations, receipts, config or cache. Original failures remain retained. |
+
+### The two delivered lists
+
+| Input | Delivered films |
+| --- | --- |
+| Eminem | 8 Mile (2002); Get Rich or Die Tryin' (2005); Notorious (2009); Coach Carter (2005); American Gangster (2007). |
+| John Wick (2014) | The Equalizer (2014); John Wick: Chapter 2 (2017); Furious 7 (2015); John Wick: Chapter 3 - Parabellum (2019); Run All Night (2015). |
+
+These titles are reported observations for those trials, not expected outputs
+for every future run or proof of individual satisfaction.
+
+<details>
+<summary>Technical download fingerprints</summary>
+
+| Case | Public JSON bytes | Public download SHA-256 |
+| --- | --- | --- |
+| `20261018T192520Z-ab055586` — Eminem | 52,439 | `bac4e3a0c0695c17c89cbd04608e07645887f4cc7ada107bc3811d14d101f27e` |
+| `20261018T215537Z-987fe56c` — John Wick | 52,575 | `1618fb970ec5eb67b4095b8806f84c7ff46a66010dd277404caf9f69eb4e68aa` |
+
+The corresponding original private receipt identifiers carried by the public
+projections are `01f99c984928697bbdd0f853a60bd894bf5a3bf2abdec91aff3d31b5f0ad9f97`
+and `334e7bd5639a02446fdb2784e6744eab209ae3fa417e514b539e26890cef2c09`.
+They differ from download hashes because the projections and private receipts
+have different bytes. Raw provider pages, private paths, keys and stores are
+not distributed with this record. No external provider signature is asserted.
+
+</details>
+
+### Read-only reconciliation — 19 October 2026
+
+- GitHub `main` still resolved to `0faa96d`; both jobs in the dated CI run were
+  completed successfully. This was a read of the existing run, not a rerun.
+- The public service reported alive, execution enabled, no active capture,
+  no queued work, no admission block and no paused provider at observation time.
+  Its `NOT_CHECKED_BY_LIVENESS` marker does not establish credential validity or
+  provider quota. No case was started during the check.
+- The existing Devpost project still displayed **SUBMITTED TO Qloo Agentic
+  Hackathon** and its existing submission edit link. No duplicate project or
+  submission was created. Its older public story is the reason for preparing
+  this factual update; it has not yet been replaced by this draft.
+- The separate local workflow check on 19 October ran 723 Windows tests, types,
+  build, four synthetic browser commands and a restricted source-preview smoke
+  check. Those results are local/synthetic and add no real-service trials.
+
+### What remains outside this acceptance
+
+Cultural quality is **NOT_VALIDATED**, with **0 verified human preference
+participants**. The separate historical 39-decision remote campaign remains
+**INCONCLUSIVE**. Its evaluated-agent **BLOCKED** gate is distinct from the
+diagnostic application's operational availability. No model ranking improvement
+over Qloo is established here. Shared quotas, uncertain-send handling, storage
+safeguards and future availability remain separate operational boundaries.
+
+The two hosted trials consumed six fresh Qloo attempts and two Groq attempts in
+total. That completed test budget is not a reusable authorization. This document
+update made no new provider calls and does not authorize another trial.
+
+[Judge walkthrough](DEMO-GUIDE.md) ·
+[Discovery protocol](WIDE-CINEMA-DISCOVERY.md) ·
+[Local acceptance before the hosted rollout](LOCAL-ACCEPTANCE-20261018.md)
+
+<details>
+<summary>Earlier local and hosted acceptance records, retained verbatim</summary>
+
+# Judge acceptance record
+
 ## Additive open-film protocol: local acceptance, 17 October 2026
 
 This source candidate adds a separate movie-led route with a new Qloo pool per
@@ -365,5 +453,7 @@ The Qloo review relies on the [official caching FAQ](https://docs.qloo.com/refer
 
 </details>
 
+
+</details>
 
 </details>

@@ -1,3 +1,160 @@
+# AffinityQA — English submission update
+
+Prepared 19 October 2026 for review of the existing submitted project. This text
+has not been saved to Devpost. It does not create another submission.
+The project began on 3 October 2026, as declared by the owner.
+
+## Project name
+
+AffinityQA
+
+## Tagline
+
+Follow the profile. Prove the recovery.
+
+## Elevator pitch
+
+An agent can return plausible films for the wrong taste profile. AffinityQA
+traces Qloo context through agent requests and caches, diagnoses three supported
+integration faults, applies the matching repair and verifies healthy recovery.
+
+## Inspiration
+
+A movie list can pass every format check and still belong to yesterday's
+profile. A cache key or tool-routing mistake can quietly survive a change in
+taste. We built AffinityQA for engineers who need to see which profile reached
+the agent, what broke, what changed and what evidence supports recovery.
+
+## What it does
+
+The hosted application provides two complementary review paths:
+
+- **Diagnosis & evidence:** select a captured incident and follow Detect,
+  Diagnose, Repair and Verify. Compare the requested taste, consumed Qloo context,
+  faulty output, supported repair and healthy reference. Replay uses saved real
+  model decisions and makes zero new Qloo/model calls.
+- **Film discovery:** start with a film or artist, optionally add a known
+  favorite film in artist mode, review the plan and explicitly confirm the
+  returned identities. Explore five films from an actual Qloo pool of up to
+  100 candidates per case. An optional direction guides selection in that pool.
+
+Open or restore a private visitor session, download the selected verification
+and return to earlier cases without executing them again. Judges need no
+installation, account, local model, personal API key or running creator PC.
+Earlier twenty-film comparisons keep their original contracts and history.
+Current outputs are films; artist/song recommendations and playback are not
+implemented.
+
+## How Qloo is used
+
+Qloo resolves explicit artist/film identities and supplies cross-domain film
+affinity context. That context reaches the agent and becomes part of the
+inspectable request/tool/cache chain. The diagnostic experiment deliberately
+breaks that chain in three ways: a cache key omitting the profile, a stale
+request profile or another profile's Qloo context. The corresponding adapter,
+session or cache repair is checked against healthy behavior and legitimate reuse.
+This is a supported integration repair, not arbitrary source-code repair.
+
+In the current discovery route, Groq Free / GPT-OSS 20B selects eligible
+indices, and the server reconstructs canonical film identities. The model
+supplies no plot or explanation prose. Cards display that film's saved Qloo
+description, with language/missing-data labels, and observed images with a
+fallback. Faithful metadata display is separate from independent film-fact or
+taste validation. The optional direction is sent to the model, not as an
+undocumented Qloo free-text query.
+
+## How we built it
+
+Python and FastAPI implement capture, diagnostics, supported repairs, independent
+file verification and owned case storage. Next.js and TypeScript provide the
+review interface. Persistent plans, confirmed identities, original observations,
+failed attempts and verification receipts survive recovery.
+
+The original controlled experiment used a local model. Hosted discovery uses
+Groq Free with GPT-OSS 20B. A durable queue reserves request/token capacity before
+dispatch and distinguishes fresh, reused and restored work. Repeatable sessions
+remove a lifetime application count cap, not finite provider quotas or storage
+safeguards. Sent failures or uncertain responses are not silently retried.
+
+## Challenges we ran into
+
+Real identity searches mixed artist, person and collaboration results. We
+preserved explicit confirmation, prioritized exact musical matches and kept
+other matches inspectable without exposing internal codes on ordinary screens.
+
+Model prose also proved too weak a basis for film descriptions. The current
+contract accepts indices only and reconstructs identity and literal descriptions
+from the selected source. Original failures and earlier verification contracts
+remain retained rather than rewritten as successes.
+
+Recovery had to preserve accepted work after interrupted browser responses and
+fresh-page session restoration. Private caches, versioned receipts, ownership,
+CSRF and provider accounting remain part of the tested boundary.
+
+## Accomplishments and verified results
+
+The completed 18 October hosted acceptance used code `0faa96d`:
+
+- Two real hosted trials, Eminem and John Wick (2014), each retained 100
+  candidates and delivered five films. Together they used six actual Qloo HTTP
+  requests and two Groq selections, without cache hits, unknown attempts or retry.
+- Both native verification downloads were physically saved and checked; both
+  completed cases restored on a fresh page in the same browser profile. Matching
+  images and source descriptions were observed.
+- Each of the three recorded repair types passed all six replay controls, with
+  zero fresh Qloo/model calls.
+- [CI 39163714448](https://github.com/seypherWork/affinityqa/actions/runs/39163714448)
+  passed 723 Windows tests and 719 Ubuntu tests. Four native Windows tests were
+  skipped on Ubuntu and passed on Windows. Types/export passed on both; ten
+  Linux browser steps used synthetic providers. Windows CI browser steps were
+  skipped, not counted as passes.
+- Existing hosted history, evidence and consumed work were preserved under
+  explicit pre/post checks and separately reviewed operational transitions.
+
+These are bounded technical observations, not independent human participants,
+proof of ranking improvement over Qloo or a guarantee for every future input.
+[Exact dated acceptance and public file fingerprints](https://github.com/seypherWork/affinityqa/blob/main/docs/JUDGE-ACCEPTANCE.md).
+
+## What we learned
+
+Profile integrity, backend comparability and cultural quality require different
+evidence. The supported diagnostic experiment can pass recovery checks while a
+separate historical remote causal campaign remains **INCONCLUSIVE**. Cultural
+quality remains **NOT_VALIDATED**, with **zero verified human preference
+participants**. Role-play inputs remain synthetic; prior failures retain their
+scores and thresholds. The historical evaluated-agent **BLOCKED** result is
+separate from the diagnostic application's availability.
+
+## What comes next
+
+Independent human preference evaluation and broader controlled fault coverage
+need their own evidence. The hosted review keeps saved results and a recorded
+repair path available independently of new inference capacity. Groq stays free;
+no unlimited throughput or future uptime is promised. Original code is MIT
+licensed; provider data, models and third-party assets retain their own terms.
+Raw captures, credentials and private stores are excluded from the public source.
+
+## Links
+
+- [Hosted diagnostic path](https://affinityqa-review.onrender.com/demo#recorded)
+- [Hosted film discovery](https://affinityqa-review.onrender.com/demo#wide)
+- [Public source and MIT license](https://github.com/seypherWork/affinityqa)
+- [Judge walkthrough](https://github.com/seypherWork/affinityqa/blob/main/docs/DEMO-GUIDE.md)
+
+## Owner review boundary
+
+The existing project was observed as submitted on 19 October. Replacing its
+public story requires the owner's final approval; this file has not done so.
+The [official rules](https://qloo.devpost.com/rules), rechecked 19 October, set the
+deadline at 30 October 2026, 23:45 EDT (31 October, 04:45 in Belgium).
+Required materials remain in English. The
+[official overview](https://qloo.devpost.com/) says a video is optional; the
+functional externally hosted demo and open-source repository are the required
+review surfaces. No new video is represented as completed.
+
+<details>
+<summary>Earlier English working drafts, retained verbatim; not the current story</summary>
+
 # AffinityQA — English submission draft
 
 English working entry, 15 October 2026, reconciled after the ab32065 hosted acceptance. Prepared for factual review; not submitted.
@@ -380,6 +537,8 @@ This draft is for review and submits no entry. Code publication, engineering che
 - The initial Groq 403/1010 failure was diagnosed through anonymous client-header comparison. The application User-Agent fix passed 289 tests per platform in published CI; two later authenticated diagnostic captures each stopped on a second response under the former global-fingerprint rule. Those partial attempts remain preserved separately from the complete v3 run.
 - Historical 13/14 and 4/6 cultural failures remain FAIL; cultural quality remains NOT_VALIDATED and recommender release BLOCKED.
 
+
+</details>
 
 </details>
 

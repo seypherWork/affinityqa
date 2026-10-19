@@ -4,6 +4,132 @@
 
 **Follow the profile. Prove the recovery.**
 
+A personalized agent can return plausible films for the wrong person.
+AffinityQA follows an explicit taste profile through Qloo context, agent routing
+and cache state, diagnoses three supported integration faults, applies the
+corresponding repair and verifies recovery against healthy behavior.
+
+[Try the recorded repair](https://affinityqa-review.onrender.com/demo#recorded) ·
+[Discover films](https://affinityqa-review.onrender.com/demo#wide) ·
+[Judge walkthrough](docs/DEMO-GUIDE.md) ·
+[Dated acceptance](docs/JUDGE-ACCEPTANCE.md)
+
+## Try it in your browser
+
+No installation, Docker, local model or personal API key is needed. The hosted
+application runs independently of the creator's PC.
+
+| Path | What to do | What it proves |
+| --- | --- | --- |
+| **DIAGNOSIS & EVIDENCE** | Choose an incident, replay it, then inspect Detect → Diagnose → Repair → Verify. | The retained pipeline reproduces the supported routing/cache repair with saved real-model decisions. Zero new Qloo/model calls. |
+| **FILM DISCOVERY** | Start with a film or artist, review the plan, explicitly confirm identities and discover five films. | A new Qloo candidate pool and one constrained Groq selection when shared capacity is available. |
+| **SAVED** | Restore your private visitor session, inspect earlier cases and download their verification. | Existing results can be read without starting the work again. |
+
+The [walkthrough](docs/DEMO-GUIDE.md) explains the shortest diagnostic opening,
+identity confirmation, waiting states and recovery. **PREVIOUS COMPARISONS**
+preserves earlier twenty-film tasks and their original evidence.
+
+## Why Qloo belongs in the agent
+
+Qloo resolves explicit film/artist identities and supplies cross-domain film
+affinity context. That context is consumed by the agent and can be followed
+through the request, tool response and cache. AffinityQA tests whether it stayed
+bound to the requested taste, rather than checking only that the output is valid.
+
+| Controlled incident | Diagnosis | Supported repair |
+| --- | --- | --- |
+| A cache key omits profile identity | `CACHE_OMITS_PROFILE` | Bind cached context to the profile. |
+| An old profile reaches the agent | `STALE_PROFILE` | Restore the requested profile. |
+| Tool context belongs to another profile | `WRONG_TOOL_PROFILE` | Bind Qloo context to the request. |
+
+Repairs operate on the supported adapter/session/cache configuration. The
+verifier checks the profile chain, healthy-reference recovery and legitimate
+cache reuse. This is a diagnostic tool for teams building personalized agents;
+it does not claim to repair arbitrary software.
+
+![Architecture and evidence boundaries](docs/images/architecture.svg)
+
+## Film discovery with inspectable evidence
+
+- Start with one film or artist. Artist mode can also include a known favorite
+  film. Confirm the actual identity and, for films, the year.
+- Discover five films from an actual Qloo pool of **up to 100 candidates per
+  case**, rather than a permanent twenty-film output whitelist.
+- An optional direction guides the model's selection within that pool. It is
+  not sent as an undocumented Qloo free-text query.
+- Groq Free / GPT-OSS 20B returns eligible indices only. The server reconstructs
+  canonical film identities; the model supplies no plot or explanation prose.
+- Descriptions reproduce that film's saved Qloo metadata, with language labels
+  and a no-description fallback. Observed images have an unavailable-image
+  fallback. Source fidelity does not establish independent film facts or taste.
+- Ordinary screens hide internal codes. Technical identifiers remain in the
+  selected verification download for audit.
+
+Outputs are films, including when the input is an artist. Artist/song
+recommendations and music playback are not current functions.
+[Contract and boundaries](docs/WIDE-CINEMA-DISCOVERY.md).
+
+## Last verified hosted acceptance — 18 October 2026
+
+The hosted code was checked against `0faa96d`, with the existing service, cases,
+model and hosting plan preserved. Groq remained free. This is dated acceptance,
+not a guarantee of future provider availability.
+
+| Evidence | Observed result | Boundary |
+| --- | --- | --- |
+| [CI 39163714448](https://github.com/seypherWork/affinityqa/actions/runs/39163714448) | 723 Windows tests passed; Ubuntu passed 719 and skipped four Windows-only tests, which passed on Windows. Types and production export passed on both. Ten Linux browser steps passed. | Synthetic providers; Windows CI browser steps were skipped. |
+| Two real hosted discovery trials | Eminem and John Wick (2014), each with 100 candidates and five delivered films; six fresh Qloo requests and two Groq selections in total. | Operator-driven technical trials, not independent human preference participants. |
+| Delivery and recovery | Both native verification downloads physically saved and checked; both cases restored on a fresh page in the same browser profile. Matching images and source descriptions were observed. | Read/download/restore is not another inference. |
+| Recorded diagnosis | All three supported incidents passed their six replay controls. | Recorded decisions; zero new Qloo/model calls. |
+| Preservation | Hosted history, original evidence and consumed work retained under explicit pre/post checks. | Permitted operational advances and the reviewed Eminem transition were checked separately. |
+
+[Case details, file hashes and limits](docs/JUDGE-ACCEPTANCE.md).
+On 19 October the public repository still pointed to that code, and the hosted
+health endpoint reported execution enabled without an admission pause. Liveness
+does not test provider credentials or remaining quota; no fresh inference was
+made during that check.
+
+Cultural quality remains **NOT_VALIDATED**, with **zero verified human preference
+participants**. The separate historical remote causal campaign remains
+**INCONCLUSIVE**. Shared provider quotas and storage safeguards can make new
+work wait or stop; saved cases and recorded repair are separate review paths.
+No unlimited free throughput, universal absence of defects or future uptime is
+promised. The historical evaluated-agent **BLOCKED** gate is distinct from the
+diagnostic application's availability.
+
+## Run and inspect the source
+
+Use the [source quickstart](docs/PUBLIC-CODE-QUICKSTART.md) for the existing
+Python dependency locks, Windows/Linux test commands, frontend build and
+restricted local preview. The [engineering review](docs/CLOUD-ENGINEERING-REVIEW.md)
+and [deployment guide](docs/PUBLIC-DEMO-DEPLOYMENT.md) document their own dated
+scope. A source preview without compatible authorized recorded evidence reports
+`UNAVAILABLE`; it does not fabricate demonstration results.
+
+| Area | Contents |
+| --- | --- |
+| `src/affinityqa/` | Qloo integration, supported diagnosis/repair, verifiers, case ownership and queue. |
+| `web/` | Static Next.js review interface and retained comparison routes. |
+| `tests/` | Synthetic contracts, integrity, failure and browser regressions. |
+| `scripts/` | Source packaging, restricted server and verification entry points. |
+| `docs/` | Walkthrough, dated acceptance, protocols and asset provenance. |
+
+Original AffinityQA code is **MIT licensed**; see [LICENSE](LICENSE).
+Provider data, models and third-party assets retain their own terms. Raw
+captures, credentials and private stores are excluded. The repository illustrations
+are original project SVGs, not screenshots of new inference or licensed movie
+poster downloads. [Licensing](docs/LICENSING.md) ·
+[Asset provenance](docs/ASSET-PROVENANCE.md).
+
+<details>
+<summary>README snapshot before the 18 October hosted rollout</summary>
+
+![AffinityQA — Follow the profile. Prove the recovery.](docs/images/hero.svg)
+
+# AffinityQA
+
+**Follow the profile. Prove the recovery.**
+
 AffinityQA helps engineers catch personalization incidents that ordinary output checks miss. It follows an explicit musical interest through Qloo context, an agent's request routing and its cache, diagnoses the supported fault, applies a repair and checks the recovery against a healthy reference.
 
 [Earlier hosted workspace](https://affinityqa-review.onrender.com/demo) · [Judge walkthrough](docs/DEMO-GUIDE.md) · [Engineering review](docs/CLOUD-ENGINEERING-REVIEW.md) · [Acceptance record](docs/JUDGE-ACCEPTANCE.md)
@@ -226,3 +352,5 @@ Existing storage needs the reviewed, stopped-store continuation in [PUBLIC-NEW-C
 ## License and data
 
 Original AffinityQA code is **MIT licensed**; see [LICENSE](LICENSE). Qloo data, model decisions, models and third-party assets retain their own terms. Raw captures and provider credentials remain private. [Licensing scope](docs/LICENSING.md) · [Asset provenance](docs/ASSET-PROVENANCE.md)
+
+</details>

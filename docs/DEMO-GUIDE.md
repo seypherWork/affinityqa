@@ -1,3 +1,94 @@
+# AffinityQA — judge walkthrough
+
+Open [the hosted application](https://affinityqa-review.onrender.com/demo#recorded).
+A browser is sufficient: no account, installation, Docker, local model or judge
+API key is needed. The creator's PC does not need to be running.
+
+The latest completed hosted acceptance was on **18 October 2026**, code
+`0faa96d`. On 19 October, a read-only check found the public demo alive with new
+cases enabled. That check made no inference and does not establish available
+provider quota. [Dated evidence](JUDGE-ACCEPTANCE.md).
+
+## Start with diagnosis and repair
+
+1. Open **DIAGNOSIS & EVIDENCE**. Choose **Alice Coltrane / Lil Nas X**,
+   **Profile missing from cache key**, and a repeat requesting **Lil Nas X**.
+2. Press **Replay this incident** once. This executes the retained pipeline with
+   saved real-model decisions: zero new model and Qloo calls.
+3. Follow **DETECT**, **DIAGNOSE**, **REPAIR** and **VERIFY**. Before repair,
+   compare requested Lil Nas X with the incorrectly consumed Alice Coltrane
+   profile. After repair, follow Lil Nas X through the restored chain.
+4. Inspect all six recovery controls. They cover the supported diagnosis, repair,
+   profile integrity, redispatch, healthy-reference agreement and legitimate
+   cache reuse; they do not validate individual movie taste.
+5. The other incident choices are **Stale profile passed to agent** and
+   **Qloo context bound to wrong profile**. Each has its own recorded experiment
+   and supported repair. The 18 October acceptance checked all three.
+
+This route demonstrates the engineering core using captured observations.
+The separate advanced 39-decision campaign is not required for this opening;
+its remote causal result remains INCONCLUSIVE.
+
+## Try a new discovery
+
+1. Open **FILM DISCOVERY**, then **OPEN OR RESTORE MY SESSION**. Choose
+   **START WITH A FILM** or **START WITH AN ARTIST**. Enter a starting point;
+   artist mode can also include one known favorite film and an optional direction.
+2. Press **REVIEW MY DISCOVERY PLAN**. Opening ownership, typing and reviewing
+   the plan do not send Qloo/model requests. Inspect its request limits.
+3. Use the displayed **FIND MY FILM**, **FIND MY ARTIST** or
+   **FIND MY ARTIST & FAVORITE FILM** button once. Explicitly choose the intended
+   identity; check a film's title and year. Exact full-name artist matches appear
+   first when present; alternatives stay in **Other matches & collaborations**.
+4. Press **CONFIRM & DISCOVER FIVE** once. The application retrieves a Qloo
+   pool of up to 100 films and requests one constrained Groq Free selection.
+   No fixed twenty-film whitelist governs this route.
+5. Inspect five cards. Names/years come from the selected candidate identities.
+   Descriptions are literal saved Qloo metadata, with language and missing-data
+   labels; they are not model-generated explanations. Images can use a fallback.
+   **HOW THESE WERE CHOSEN** explains the pool and ordering.
+6. Use **DOWNLOAD DISCOVERY VERIFICATION**. Open **SAVED**; on a fresh page in
+   the same browser profile, restore the same session and case. Reading retained
+   evidence does not start another selection.
+
+Both film-led and artist-led paths output **films**, not artists or songs.
+The optional direction reaches the model, not an undocumented Qloo query.
+Internal codes remain out of ordinary screens; the verification retains audit
+identifiers. Saved results belong to their host and ownership session: a local
+preview does not share the hosted history.
+
+## If work waits or stops
+
+Shared Qloo/Groq Free capacity is finite. Inspect the saved status and the
+displayed wait/pause reason rather than sending the same work again. Keep the
+same browser profile and ownership cookies. Failed or uncertain sends are not
+silently retried, and the application does not promise instant or unlimited
+free inference. A partial result is retained as partial.
+
+You can inspect saved cases or return to the recorded repair path without
+spending provider capacity. **PREVIOUS COMPARISONS** preserves older two-profile
+twenty-film tasks and their original evidence; it is not the current discovery
+entry point. Do not start the long advanced campaign merely to test the short
+discovery flow.
+
+## Read the claims separately
+
+- Recorded repair checks supported integration recovery; it is not new inference.
+- Synthetic engineering/browser tests check contracts and UI behavior.
+- The two 18 October real hosted trials check those inputs, downloads and
+  restoration. They are not a human preference study or universal seed coverage.
+- Source-bound descriptions do not establish that the metadata is true.
+- Cultural quality remains NOT_VALIDATED, with zero verified human preference
+  participants. The historical evaluated-agent BLOCKED result is separate from
+  the diagnostic application's availability.
+
+[Latest hosted acceptance](JUDGE-ACCEPTANCE.md) ·
+[Discovery contract](WIDE-CINEMA-DISCOVERY.md) ·
+[Source setup](PUBLIC-CODE-QUICKSTART.md)
+
+<details>
+<summary>Earlier walkthrough snapshots, retained verbatim</summary>
+
 # AffinityQA — reviewer walkthrough
 
 **18 October 2026: locally accepted v10 interface; release consolidation only.**
@@ -332,5 +423,7 @@ See [JUDGE-ACCEPTANCE.md](JUDGE-ACCEPTANCE.md) and [PUBLIC-NEW-CASES.md](PUBLIC-
 - The former 65-second pacing example had a 2,470-second spacing lower bound. The reviewed current plan uses 22 seconds; neither example establishes universal quota entitlement or a latency guarantee.
 - The private Windows v9 installation and earlier transport/partial captures remain preserved separately. Their existence does not alter cultural FAIL gates or authorize public provider-data redistribution.
 
+
+</details>
 
 </details>
