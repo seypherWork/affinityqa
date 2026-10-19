@@ -34,11 +34,28 @@ OPERATIONS = {'cache-omits-profile': ('CACHE_OMITS_PROFILE', 'set-profile-cache'
               'wrong-tool-profile': ('WRONG_TOOL_PROFILE', 'bind-request-tool', 4)}
 
 
-def validate_replay(value, *, run_id, pair_id, fault, repeat, artists):
+def validate_replay(value, *, run_id, pair_id, fault, repeat, artists, required_version=None):
     """Reject mislabeled, incomplete or expanded responses before counting a replay."""
-    require(type(value) is dict and set(value) == REPLAY_FIELDS, 'Unexpected replay projection.')
-    require(type(value['schema_version']) is int and value['schema_version'] == 1,
-            'Unexpected replay schema.')
+    require(type(value) is dict and type(value.get('schema_version')) is int
+            and value['schema_version'] in (1, 2), 'Unexpected replay schema.')
+    version = value['schema_version']
+    require(required_version is None or type(required_version) is int and required_version in (1, 2),
+            'Unexpected advertised replay schema.')
+    require(required_version is None or version == required_version,
+            'Replay schema differs from the advertised version.')
+    require(set(value) == (REPLAY_FIELDS | {'diagnostic_evidence'} if version == 2 else REPLAY_FIELDS),
+            'Unexpected replay projection.')
+    if version == 2:
+        proof = value['diagnostic_evidence']
+        proof_checks = {'raw_qloo_request_bound', 'raw_qloo_response_bound', 'context_projection_bound',
+                        'model_payload_bound', 'observed_trace_bound', 'supported_transition_verified',
+                        'requested_context_restored', 'legitimate_cache_bound'}
+        require(type(proof) is dict and set(proof) == {'schema_version', 'source', 'status', 'diagnosis', 'operation', 'checks'}
+                and type(proof['schema_version']) is int and proof['schema_version'] == 1
+                and proof['source'] == 'saved-qloo-semantic-check' and proof['status'] == 'VERIFIED'
+                and proof['diagnosis'] == value['diagnosis'] and proof['operation'] == value['repair']
+                and type(proof['checks']) is dict and set(proof['checks']) == proof_checks
+                and all(v is True for v in proof['checks'].values()), 'Independent Qloo evidence failed.')
     require((value['run_id'], value['pair_id'], value['fault']) == (run_id, pair_id, fault)
             and type(value['repeat']) is int and value['repeat'] == repeat,
             'Replay identity differs from the requested incident.')
@@ -111,7 +128,7 @@ def main():
                         require(response.status_code==200,f'Replay HTTP failed: {pair["pair_id"]} {fault} {repeat}')
                         value=response.json()
                         validate_replay(value, run_id=args.run_id, pair_id=pair['pair_id'], fault=fault,
-                                        repeat=repeat, artists=pair['artists'])
+                                        repeat=repeat, artists=pair['artists'], required_version=data.get('replay_schema_version', 1))
                         results.append({'pair_id':pair['pair_id'],'fault':fault,'repeat':repeat,'status':value['status']})
             for route in ('/api/review','/api/causal-repair/export','/api/live/jobs','/api/runs','/api/repair-contract','/docs','/openapi.json','/.env'):
                 status=client.get(route).status_code;require(status==404,f'Private route exposed: {route}');routes.append({'route':route,'status':status})

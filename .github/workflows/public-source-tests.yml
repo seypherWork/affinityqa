@@ -108,3 +108,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node ../tests/browser/wide-cinema-journey.cjs --mobile
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check Qloo-bound diagnosis, supported repair and malformed evidence on desktop and mobile
+        if: runner.os == 'Linux'
+        working-directory: web
+        run: |
+          node ../tests/browser/diagnostic-evidence-journey.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node ../tests/browser/diagnostic-evidence-journey.cjs --mobile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

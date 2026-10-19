@@ -21,6 +21,7 @@ from starlette.concurrency import run_in_threadpool
 from .api import CausalReplayBody
 from . import causal_review as review
 from .errors import AffinityQAError, SchemaError
+from .causal_evidence import PROOF_CHECKS, OPERATIONS
 
 SHA = re.compile(r'^[a-f0-9]{64}$')
 RUN = re.compile(r'^\d{8}T\d{6}Z-[a-f0-9]{8}$')
@@ -58,7 +59,7 @@ def summary_dto(report: dict, receipt_sha: str) -> dict:
                       for p in report['pairs']],
             'historical_quality': {'development': {'passing': 13, 'denominator': 14, 'gate': 'FAIL'},
                                    'independent': {'passing': 4, 'denominator': 6, 'gate': 'FAIL'}},
-            'execution_mode': 'recorded-local-llm-replay',
+            'execution_mode': 'recorded-local-llm-replay', 'replay_schema_version': 2,
             'notice': 'Recorded replay. The original capture used real Qloo inputs and local model decisions. '
                       'Each replay executes routing, diagnosis and repair with saved decisions; zero new '
                       'model/API calls. Controlled repeats are not independent user trials.'}
@@ -83,13 +84,27 @@ def replay_dto(result: dict, *, profile_names: dict[str, str]) -> dict:
             raise SchemaError('An observed profile has no verified name.')
         return names
     before_names, after_names = identities(result['trace']), identities(result['repaired_trace'])
-    return {**{key: copy.deepcopy(result[key]) for key in fields},
+    projection = {**{key: copy.deepcopy(result[key]) for key in fields},
             'checks': {key: result['checks'][key] for key in check_fields},
             'requested_artist': before_names['requested_profile_sha256'],
             'identity_before': before_names, 'identity_after': after_names,
             'before': films(result['before']), 'after': films(result['after']),
             'healthy': films(result['healthy']), 'trace': trace(result['trace']),
             'repaired_trace': trace(result['repaired_trace'])}
+    if 'diagnostic_evidence' in result:
+        proof = result['diagnostic_evidence']
+        keys = {'schema_version', 'source', 'status', 'diagnosis', 'operation', 'checks'}
+        if (type(proof) is not dict or set(proof) != keys or type(proof['schema_version']) is not int
+                or proof['schema_version'] != 1 or proof['source'] != 'saved-qloo-semantic-check'
+                or proof['diagnosis'] != result['diagnosis'] or proof['operation'] != result['repair']
+                or proof['diagnosis'] not in OPERATIONS or OPERATIONS[proof['diagnosis']][0] != proof['operation']
+                or type(proof['checks']) is not dict or set(proof['checks']) != set(PROOF_CHECKS)
+                or any(type(value) is not bool for value in proof['checks'].values())
+                or proof['status'] != ('VERIFIED' if all(proof['checks'].values()) else 'NOT_VERIFIED')
+                or result['status'] == 'PASS' and proof['status'] != 'VERIFIED'):
+            raise SchemaError('Unexpected independent Qloo evidence projection.')
+        projection.update(schema_version=2, diagnostic_evidence=copy.deepcopy(proof))
+    return projection
 
 
 class _Capture:

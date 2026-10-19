@@ -427,3 +427,9 @@ See [JUDGE-ACCEPTANCE.md](JUDGE-ACCEPTANCE.md) and [PUBLIC-NEW-CASES.md](PUBLIC-
 </details>
 
 </details>
+
+## Independent Qloo evidence checks
+
+The local extension and its synthetic acceptance are described in
+[Qloo diagnostic evidence](QLOO-DIAGNOSTIC-EVIDENCE.md). Deployment and original-capture
+compatibility are separate approvals; this source addition does not change hosted evidence.

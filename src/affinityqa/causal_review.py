@@ -13,6 +13,8 @@ from .causal_runner import TASK
 from .errors import SchemaError
 from .evidence import fingerprint
 from .metrics import rank_distance
+from .causal_evidence import (INPUT_CHECKS, inspect_decision, plan_repair, session_state,
+                              verify_repair_transition, verify_captured_packets)
 from .store import RUN_ID
 
 
@@ -185,6 +187,23 @@ class _ReplayEngine:
         return {'schema_version': 1, 'request_id': request['request_id'], 'ranked_entity_ids': ranking}
 
 
+def _recorded_tool_samples(run, receipt, contexts):
+    """Resolve selected raw inputs only through their already pinned byte hashes."""
+    samples = {}
+    for context in contexts.values():
+        digest = context['sample_sha256']
+        names = [name for name, value in receipt['artifact_sha256'].items()
+                 if value == digest and Path(name).parent == Path('.')
+                 and name.startswith('http-') and name.endswith('.json')]
+        if len(names) != 1:
+            raise SchemaError('A selected Qloo input is not uniquely bound to the receipt.')
+        path = _file(run, names[0])
+        if _sha(path) != digest:
+            raise SchemaError('A selected Qloo input changed before semantic verification.')
+        samples[digest] = _read(path)
+    return samples
+
+
 def replay_causal(root: Path, pair_id: str, fault: str, repeat: int):
     selected, _ = _selection(root)
     if selected is None or selected[1]['status'] != 'COMPLETE':
@@ -202,16 +221,29 @@ def replay_causal(root: Path, pair_id: str, fault: str, repeat: int):
     packet_paths = sorted(directory.glob('causal-execution-*.json'))
     if len(packet_paths) != 39 or any(p.relative_to(run).as_posix() not in receipt['artifact_sha256'] for p in packet_paths):
         raise SchemaError('Replay decisions are not all covered by the verified receipt.')
-    engine = _ReplayEngine(_read(_file(directory, 'model-manifest.json')), [_read(p) for p in packet_paths])
-    session = CausalMovieSession(ExecutionRecorder(engine, _MemoryLedger()), bundle['contexts'], fault=fault)
+    packets = [_read(p) for p in packet_paths]
+    samples = _recorded_tool_samples(run, receipt, bundle['contexts'])
+    verify_captured_packets(record['catalog'], bundle['profiles'], bundle['contexts'], samples,
+                            packets, execution_prefix=directory.name + '/')
+    engine = _ReplayEngine(_read(_file(directory, 'model-manifest.json')), packets)
+    memory = _MemoryLedger()
+    session = CausalMovieSession(ExecutionRecorder(engine, memory), bundle['contexts'], fault=fault)
     order = ['A', 'B'] if repeat % 2 else ['B', 'A']
     def request(p, phase):
         profile = bundle['profiles'][p]
         return make_request(TASK, record['catalog'], profile, bundle['contexts'][profile_hash(profile)], f'replay-{phase}-{p}')
     before = {p: session.rank(request(p, 'before')) for p in order}
-    diagnostic = diagnose(before[order[1]]['trace'])
+    def inspect(p, phase, decision):
+        return inspect_decision(request(p, phase), decision, memory.packets,
+                                profiles=bundle['profiles'], contexts=bundle['contexts'], samples=samples)
+    observed = inspect(order[1], 'before', before[order[1]])
+    state_before = session_state(session)
+    plan = plan_repair(observed, state_before)
+    diagnostic = {key: plan[key] for key in ('diagnosis', 'operation')}
     patch = session.apply(diagnostic)
+    verify_repair_transition(plan, state_before, session_state(session))
     after = {p: session.rank(request(p, 'after')) for p in order}
+    after_evidence = {p: inspect(p, 'after', after[p]) for p in order}
     healthy = record['healthy']
     barrier = report['noise_barrier']
     expected = {'cache-omits-profile': ('CACHE_OMITS_PROFILE', 'set-profile-cache'),
@@ -224,15 +256,26 @@ def replay_causal(root: Path, pair_id: str, fault: str, repeat: int):
               'matches_recorded_healthy': all(rank_distance(after[p]['ranking'], h['ranking'], 5) <= barrier for p in order for h in healthy[p])}
     control = session.rank(request(order[0], 'equivalent'))
     checks['legitimate_cache_reuse'] = control['trace']['cache_hit'] and diagnose(control['trace'])['diagnosis'] == 'NONE'
+    control_evidence = inspect(order[0], 'equivalent', control)
+    inspected = [observed, *after_evidence.values(), control_evidence]
+    proof_checks = {key: all(row['checks'][key] is True for row in inspected) for key in INPUT_CHECKS}
+    proof_checks.update(supported_transition_verified=True,
+        requested_context_restored=all(row['diagnosis'] == 'NONE' and
+            row['requested_profile_sha256'] == row['tool_profile_sha256'] for row in after_evidence.values()),
+        legitimate_cache_bound=checks['legitimate_cache_reuse'] and control_evidence['diagnosis'] == 'NONE')
+    diagnostic_evidence = {'schema_version': 1, 'source': 'saved-qloo-semantic-check',
+        'status': 'VERIFIED' if all(proof_checks.values()) else 'NOT_VERIFIED',
+        'diagnosis': diagnostic['diagnosis'], 'operation': patch['operation'], 'checks': proof_checks}
     movie_map = {r['entity_id']: r for r in record['catalog']}
     def films(ranking): return _films([movie_map[i] for i in ranking[:5]])
     p = order[1]
-    return {'schema_version': 1, 'status': 'PASS' if all(checks.values()) else 'FAIL',
-            'replay_gate': 'PASS' if all(checks.values()) else 'FAIL', 'cultural_gate': 'NOT_VALIDATED', 'release_gate': 'BLOCKED',
+    return {'schema_version': 1, 'status': 'PASS' if all(checks.values()) and all(proof_checks.values()) else 'FAIL',
+            'replay_gate': 'PASS' if all(checks.values()) and all(proof_checks.values()) else 'FAIL', 'cultural_gate': 'NOT_VALIDATED', 'release_gate': 'BLOCKED',
             'run_id': report['run_id'], 'pair_id': pair_id, 'fault': fault, 'repeat': repeat,
             'source': 'recorded-local-llm-replay', 'new_model_calls': 0, 'new_qloo_calls': 0,
             'recorded_decision_dispatches': engine.calls, 'source_execution_ids': engine.sources,
             'diagnosis': diagnostic['diagnosis'], 'repair': patch['operation'], 'checks': checks,
+            'diagnostic_evidence': diagnostic_evidence,
             'before': films(before[p]['ranking']), 'after': films(after[p]['ranking']), 'healthy': films(healthy[p][0]['ranking']),
             'trace': before[p]['trace'], 'repaired_trace': after[p]['trace'],
             'notice': 'Pipeline executed now with verified recorded model decisions. No new inference or cultural-quality validation.'}
