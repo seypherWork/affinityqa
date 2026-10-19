@@ -4,26 +4,36 @@ Open [the hosted application](https://affinityqa-review.onrender.com/demo#record
 A browser is sufficient: no account, installation, Docker, local model or judge
 API key is needed. The creator's PC does not need to be running.
 
-The latest completed hosted acceptance was on **18 October 2026**, code
-`0faa96d`. On 19 October, a read-only check found the public demo alive with new
-cases enabled. That check made no inference and does not establish available
-provider quota. [Dated evidence](JUDGE-ACCEPTANCE.md).
+**Verified hosted walkthrough · 20 October 2026 · `1a6229e`.** All three
+supported recorded incidents and two fresh discovery trials (Scary Movie (2000)
+and Björk) completed. Each fresh trial retrieved 100 Qloo candidates and five
+films; five images loaded, native downloads and restored cases were checked.
+This is a dated observation, not a guarantee of current quota or future uptime.
+The [README review](../README.md#verified-hosted-review--20-october-2026) separates
+that hosted source from later unactivated source changes. The
+[18 October acceptance](JUDGE-ACCEPTANCE.md) remains historical evidence.
 
 ## Start with diagnosis and repair
 
 1. Open **DIAGNOSIS & EVIDENCE**. Choose **Alice Coltrane / Lil Nas X**,
-   **Profile missing from cache key**, and a repeat requesting **Lil Nas X**.
+   **Qloo context bound to wrong profile**, and **Repeat 1**.
 2. Press **Replay this incident** once. This executes the retained pipeline with
    saved real-model decisions: zero new model and Qloo calls.
-3. Follow **DETECT**, **DIAGNOSE**, **REPAIR** and **VERIFY**. Before repair,
-   compare requested Lil Nas X with the incorrectly consumed Alice Coltrane
-   profile. After repair, follow Lil Nas X through the restored chain.
-4. Inspect all six recovery controls. They cover the supported diagnosis, repair,
-   profile integrity, redispatch, healthy-reference agreement and legitimate
-   cache reuse; they do not validate individual movie taste.
-5. The other incident choices are **Stale profile passed to agent** and
-   **Qloo context bound to wrong profile**. Each has its own recorded experiment
-   and supported repair. The 18 October acceptance checked all three.
+3. Follow **DETECT**, **DIAGNOSE**, **REPAIR** and **VERIFY**. The requested
+   profile and model profile remain Lil Nas X; before repair, the consumed
+   Qloo context incorrectly belongs to Alice Coltrane. The repair restores
+   the Qloo context binding to Lil Nas X.
+4. Open **WHAT DID QLOO CHANGE?** The saved comparison holds the requested
+   interest, task, ordered catalog, model settings and output format fixed.
+   Changing only consumed Qloo context changes four of five films in this
+   comparison; the repaired titles/years match the healthy reference. This is
+   not a no-Qloo benchmark or proof of better personal taste.
+5. Expand the eight evidence checks, thirteen context-comparison checks and six
+   recovery controls. Inspect supported diagnosis/repair, profile provenance,
+   healthy agreement and legitimate cache reuse.
+6. Try **Profile missing from cache key** and **Stale profile passed to agent**.
+   Each has its own saved experiment and supported repair. All three incidents
+   passed the 20 October bounded hosted review; not every pair/repeat was rerun.
 
 This route demonstrates the engineering core using captured observations.
 The separate advanced 39-decision campaign is not required for this opening;
@@ -75,14 +85,16 @@ discovery flow.
 
 - Recorded repair checks supported integration recovery; it is not new inference.
 - Synthetic engineering/browser tests check contracts and UI behavior.
-- The two 18 October real hosted trials check those inputs, downloads and
-  restoration. They are not a human preference study or universal seed coverage.
+- The two fresh real hosted trials in the 20 October review above check their
+  inputs, downloads and restoration. The earlier 18 October trials remain
+  historical evidence. Neither is a human preference study or universal seed
+  coverage.
 - Source-bound descriptions do not establish that the metadata is true.
 - Cultural quality remains NOT_VALIDATED, with zero verified human preference
   participants. The historical evaluated-agent BLOCKED result is separate from
   the diagnostic application's availability.
 
-[Latest hosted acceptance](JUDGE-ACCEPTANCE.md) ·
+[Historical 18 October acceptance](JUDGE-ACCEPTANCE.md) ·
 [Discovery contract](WIDE-CINEMA-DISCOVERY.md) ·
 [Source setup](PUBLIC-CODE-QUICKSTART.md)
 
@@ -430,6 +442,35 @@ See [JUDGE-ACCEPTANCE.md](JUDGE-ACCEPTANCE.md) and [PUBLIC-NEW-CASES.md](PUBLIC-
 
 ## Independent Qloo evidence checks
 
-The local extension and its synthetic acceptance are described in
-[Qloo diagnostic evidence](QLOO-DIAGNOSTIC-EVIDENCE.md). Deployment and original-capture
-compatibility are separate approvals; this source addition does not change hosted evidence.
+The historical design-stage note in
+[Qloo diagnostic evidence](QLOO-DIAGNOSTIC-EVIDENCE.md) describes the local
+extension and its synthetic checks. Its original deployment/compatibility
+approval boundary is retained there. The dated hosted review at the top of
+this guide describes the later verified hosted evidence.
+
+## Clean-source synthetic review
+
+Use the [source quickstart](PUBLIC-CODE-QUICKSTART.md) to install/build, then run
+both commands from `web`:
+
+A Playwright-compatible Chromium browser must be available first. On a clean
+Windows setup, `npx --yes pnpm@11.25.0 exec playwright install chromium` downloads
+it; on Linux the existing CI uses
+`npx --yes pnpm@11.25.0 exec playwright install --with-deps chromium`, which can
+also install system dependencies and require elevated permissions. Review that
+installation before running it. Alternatively, set
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to an existing compatible Chrome executable;
+the local acceptance used that explicit executable, not a fresh browser install.
+These setup commands are instructions; no browser installation was performed for
+this correction.
+
+```text
+npx --yes pnpm@11.25.0 test:diagnostic-evidence
+npx --yes pnpm@11.25.0 test:diagnostic-evidence --mobile
+```
+
+Each command launches an isolated synthetic backend and browser. Together they
+exercise all three incident types and failure states on desktop and mobile
+without Qloo or model requests. These are not genuine provider replays. The
+hosted recorded route above remains the genuine-capture review path; no raw
+private captures or credentials are in the public source.

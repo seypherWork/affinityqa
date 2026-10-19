@@ -1,6 +1,36 @@
 # AffinityQA — source setup and review
 
-**Current verified deployment · 15 October 2026.** The hosted runtime is `32406c2`, with repeatable reviewer access enabled. There is no lifetime application plan or execution count cap; shared provider quotas and storage safeguards still apply. Use the [current acceptance record](JUDGE-ACCEPTANCE.md) and [judge walkthrough](DEMO-GUIDE.md) for the verified cases and their limits. The installation commands below apply to this source tree; dated observations describe their original versions.
+**Verified hosted review · 20 October 2026 · `1a6229e`.**
+The [judge walkthrough](DEMO-GUIDE.md) and [README dated review](../README.md#verified-hosted-review--20-october-2026)
+describe the latest recorded and real-service checks. A later local source
+candidate is not automatically this deployed revision. The dated notes below
+keep their original scope; they are not the current service status.
+
+For a clean-source, credential-free synthetic walkthrough, install/build using
+the commands below, then run these from `web` for desktop and mobile:
+
+A Playwright-compatible Chromium browser must be available first. On a clean
+Windows setup, `npx --yes pnpm@11.25.0 exec playwright install chromium` downloads
+it; on Linux the existing CI uses
+`npx --yes pnpm@11.25.0 exec playwright install --with-deps chromium`, which can
+also install system dependencies and require elevated permissions. Review that
+installation before running it. Alternatively, set
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to an existing compatible Chrome executable;
+the local acceptance used that explicit executable, not a fresh browser install.
+These setup commands are instructions; no browser installation was performed for
+this correction.
+
+```text
+npx --yes pnpm@11.25.0 test:diagnostic-evidence
+npx --yes pnpm@11.25.0 test:diagnostic-evidence --mobile
+```
+
+Each starts its own synthetic backend and browser. For the genuine recorded
+diagnosis, use the hosted link in the judge guide. A bare source preview without
+authorized private captures reports `UNAVAILABLE`; do not upload private captures
+or keys to make it look like a genuine replay.
+
+**Historical deployment note · 15 October 2026.** That hosted runtime was `32406c2`, with repeatable reviewer access enabled. There is no lifetime application plan or execution count cap; shared provider quotas and storage safeguards still apply. See the [18 October acceptance record](JUDGE-ACCEPTANCE.md) for that older evidence and the [judge walkthrough](DEMO-GUIDE.md) for the dated current route. The installation commands below apply to this source tree; dated observations describe their original versions.
 
 The source now includes the separately activated
 [repeatable reviewer queue](PUBLIC-REPEATABLE-CASES.md). Install both dependency

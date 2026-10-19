@@ -62,3 +62,23 @@ export function artistChoiceGroups(rows:Identity[],query:string){
   return {exactArtists:rows.filter(exact),alternatives:rows.filter(row=>!exact(row))};
 }
 export function mergeWideCases(first:SavedCase[],second:SavedCase[]){const rows=new Map(first.filter(value=>value.wide_cinema_discovery===true).map(value=>[value.job_id,value]));for(const value of second)if(value.wide_cinema_discovery===true&&!rows.has(value.job_id))rows.set(value.job_id,value);return [...rows.values()]}
+
+// An older page refreshes loaded rows in place and appends only unseen IDs.
+export function mergeEarlierWideCases(loaded:SavedCase[],fresh:SavedCase[]){
+  const updates=new Map(fresh.filter(row=>row.wide_cinema_discovery===true).map(row=>[row.job_id,row]));
+  return mergeWideCases(loaded.map(row=>updates.get(row.job_id)??row),fresh);
+}
+export function refreshWideCaseStatus(rows:SavedCase[],job:Pick<SavedCase,'job_id'|'status'>){
+  return rows.map(row=>row.job_id===job.job_id?{...row,status:job.status}:row);
+}
+// Distinct provider records must not masquerade as one unambiguous film choice.
+export function ambiguousMovieIds(rows:Identity[]){
+  const groups=new Map<string,Set<string>>();
+  for(const row of rows){
+    if(row.type!=='urn:entity:movie'||!hasMovieYear(row))continue;
+    const title=row.name.normalize('NFKC').trim().replace(/\s+/gu,' ').toLowerCase();
+    const key=JSON.stringify([title,row.release_year]);
+    const ids=groups.get(key)??new Set<string>();ids.add(row.entity_id);groups.set(key,ids);
+  }
+  return new Set([...groups.values()].filter(ids=>ids.size>1).flatMap(ids=>[...ids]));
+}

@@ -69,7 +69,34 @@ Outputs are films, including when the input is an artist. Artist/song
 recommendations and music playback are not current functions.
 [Contract and boundaries](docs/WIDE-CINEMA-DISCOVERY.md).
 
-## Last verified hosted acceptance — 18 October 2026
+## Verified hosted review — 20 October 2026
+
+The last documented hosted walkthrough used **`1a6229e`**, also the revision
+of [CI 39310299737](https://github.com/seypherWork/affinityqa/actions/runs/39310299737).
+This is a dated observation, not a live status or a claim that later source
+changes have been deployed. Keep source, CI and hosted evidence separate.
+
+- All three supported recorded incidents passed in the hosted interface. The
+  Qloo-context comparison exposes eight evidence checks, thirteen comparison
+  checks and six recovery controls. It uses saved decisions, not new inference.
+- Two additional hosted technical trials, **Scary Movie (2000)** and **Björk**,
+  each retrieved 100 Qloo candidates and delivered five films with five loaded
+  images. Total: six fresh Qloo requests and two Groq Free selections. Native
+  verification downloads matched byte-for-byte after session restoration.
+- All preexisting non-SQLite case files and historical rows were preserved;
+  the two trials' normal counters and quota observations were reconciled.
+- On the same unchanged source, the 20 October local Windows audit passed 774
+  tests and 16 isolated desktop/mobile browser commands, plus typecheck/build.
+  Those local tests used synthetic providers. The previous CI passed 774
+  Windows and 770 Ubuntu tests; four Windows-only contracts were skipped on
+  Ubuntu and passed on Windows. Windows CI browser steps were skipped.
+
+These are operator technical trials with synthetic preferences, not independent
+human preference participants or proof of cultural superiority. Groq remains
+free with shared finite capacity. The [current judge walkthrough](docs/DEMO-GUIDE.md)
+separates recorded repair, fresh discovery and clean-source synthetic review.
+
+## Historical hosted acceptance — 18 October 2026
 
 The hosted code was checked against `0faa96d`, with the existing service, cases,
 model and hosting plan preserved. Groq remained free. This is dated acceptance,
@@ -84,7 +111,8 @@ not a guarantee of future provider availability.
 | Preservation | Hosted history, original evidence and consumed work retained under explicit pre/post checks. | Permitted operational advances and the reviewed Eminem transition were checked separately. |
 
 [Case details, file hashes and limits](docs/JUDGE-ACCEPTANCE.md).
-On 19 October the public repository still pointed to that code, and the hosted
+In the earlier 19 October read-only observation, the repository still pointed
+to that historical code and the hosted
 health endpoint reported execution enabled without an admission pause. Liveness
 does not test provider credentials or remaining quota; no fresh inference was
 made during that check.

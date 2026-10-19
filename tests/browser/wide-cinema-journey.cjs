@@ -28,6 +28,74 @@ async function main(){
     const prepare=async()=>{await root().getByRole('button',{name:'REVIEW MY DISCOVERY PLAN'}).click();await root().locator('[data-state="PLANNED"]').waitFor();await noInternalIdentifiers();};
     const noMutation=()=>fixture.state.posts.filter(row=>row.path!=='/api/demo/cases/session').length;
     const capture=async name=>{if(!process.env.AFFINITYQA_TEST_SCREENSHOT_DIR)return;const directory=path.resolve(process.env.AFFINITYQA_TEST_SCREENSHOT_DIR);fs.mkdirSync(directory,{recursive:true});await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));fs.writeFileSync(path.join(directory,name+'.png'),await page.screenshot({fullPage:true}),{flag:'wx'});};
+    async function auditFixesRegression(which='all'){
+      const before=noMutation();
+      if(which!=='history'){
+        const movies=[
+          {entity_id:'50000000-0000-4000-8000-000000000001',name:'Scary Movie',release_year:2026,type:'urn:entity:movie'},
+          {entity_id:'50000000-0000-4000-8000-000000000002',name:'Scary Movie',release_year:2026,type:'urn:entity:movie'},
+          {entity_id:'50000000-0000-4000-8000-000000000003',name:'Scary Movie',release_year:2000,type:'urn:entity:movie'},
+        ];
+        const savedArtist={entity_id:'60000000-0000-4000-8000-000000000001',name:'Synthetic Björk',type:'urn:entity:artist'};
+        const restore=async(mode,favorite)=>{
+          const id=mode==='movie'?'ambiguous-seed-regression':'ambiguous-favorite-regression';
+          const saved=fixture.addComplete(id,job=>Object.assign(job,{status:'AWAITING_IDENTITY_CONFIRMATION',discovery_mode:mode,seed_query:mode==='movie'?'Scary Movie':'Synthetic Björk',favorite_movie_query:favorite?'Scary Movie':null,intent_text:'',result:null,identity_receipt_sha256:'d'.repeat(64),seed_candidates:mode==='movie'?movies:[savedArtist],favorite_movie_candidates:favorite?movies:[],saved_provider_samples:favorite?2:1,saved_model_packets:0,receipt_sha256:undefined}));
+          await page.evaluate(({id,music,movie,artist})=>{sessionStorage.setItem('affinityqa-wide-cinema-selected-case-v1',id);sessionStorage.setItem('affinityqa-wide-cinema-choice-v1',JSON.stringify({job_id:id,identity_receipt_sha256:'d'.repeat(64),selected_seed_entity_id:music?artist:movie,selected_favorite_movie_entity_id:music?movie:null}))},{id:saved.job_id,music:mode==='music',movie:movies[0].entity_id,artist:savedArtist.entity_id});
+          await page.reload();await openSession();
+          const group=root().getByRole('group',{name:favorite?'SELECT YOUR KNOWN FAVORITE FILM':'SELECT ONE FILM',exact:true});await group.waitFor();
+          return group;
+        };
+        for(const mode of ['movie','music']){
+          const group=await restore(mode,mode==='music'),radios=group.getByRole('radio');
+          assert.ok(await radios.nth(0).isDisabled(),'Same-title/year movie record1 must not offer an indistinguishable choice');
+          assert.ok(await radios.nth(1).isDisabled(),'Same-title/year movie record2 must not offer an indistinguishable choice');
+          assert.ok(await radios.nth(2).isEnabled(),'The unambiguous2000 film remains available');
+          assert.match(await group.innerText(),/cannot be distinguished with the supplied title and year/i);
+          assert.ok(await root().getByRole('button',{name:'CONFIRM & DISCOVER FIVE',exact:true}).isDisabled(),'Restored ambiguous seed/favorite must not enable confirmation');
+          await radios.nth(2).check();
+          assert.ok(await root().getByRole('button',{name:'CONFIRM & DISCOVER FIVE',exact:true}).isEnabled(),'An explicitly chosen unique film can continue');
+          await noInternalIdentifiers();
+          await capture('ambiguous-'+(mode==='music'?'favorite':'seed')+(mobile?'-mobile':'-desktop'));
+        }
+      }
+      if(which!=='identity'){
+        fixture.state.historyPageSize=200;
+        const pageId='older-page-regression',detailId='older-detail-regression';
+        const planned=(id,title)=>fixture.addComplete(id,job=>Object.assign(job,{status:'PLANNED',seed_query:title,result:null,receipt_sha256:undefined,saved_provider_samples:0,saved_model_packets:0}));
+        planned(pageId,'Older page transition');planned(detailId,'Older detail transition');
+        for(let i=0;i<205;i++)planned('recent-history-'+i,'Recent history '+String(i).padStart(3,'0'));
+        await openSaved();await root().getByRole('button',{name:'REFRESH',exact:true}).click();
+        await root().getByRole('button',{name:'FILM · Recent history 204 PLANNED',exact:true}).waitFor();
+        const earlier=root().getByRole('button',{name:'LOAD EARLIER DISCOVERIES',exact:true});
+        await earlier.click();await earlier.waitFor({state:'hidden'});
+        await root().getByRole('button',{name:'FILM · Older page transition PLANNED',exact:true}).waitFor();
+        const names=()=>root().locator('#wide-cinema-history li>button strong').allTextContents();
+        const originalOrder=await names();assert.ok(originalOrder.length>200);
+        fixture.addComplete(pageId,job=>{job.seed_query='Older page transition'});
+        await root().getByRole('button',{name:'REFRESH',exact:true}).click();await earlier.waitFor();
+        await earlier.click();await earlier.waitFor({state:'hidden'});
+        assert.equal(await root().getByRole('button',{name:'FILM · Older page transition COMPLETE',exact:true}).count(),1,'Fresh older-page status replaces the cached PLANNED row');
+        assert.deepEqual(await names(),originalOrder,'Fresh statuses do not reorder history or drop earlier rows');
+        fixture.addComplete(detailId,job=>{job.seed_query='Older detail transition'});
+        await root().getByRole('button',{name:'FILM · Older detail transition PLANNED',exact:true}).click();
+        await root().getByRole('heading',{name:'INSPIRED BY John Wick',exact:true}).waitFor();
+        await openSaved();
+        assert.equal(await root().getByRole('button',{name:'FILM · Older detail transition COMPLETE',exact:true}).count(),1,'Opening a fresh historical job updates its cached row even outside newest200');
+        assert.deepEqual(await names(),originalOrder,'Remember updates the historical row in place');
+        const downloadBefore=await (await page.request.get(fixture.origin+'/api/demo/cases/jobs/'+detailId+'/verification')).body();
+        await page.reload();await openSession();await root().getByRole('heading',{name:'INSPIRED BY John Wick',exact:true}).waitFor();
+        assert.deepEqual(await (await page.request.get(fixture.origin+'/api/demo/cases/jobs/'+detailId+'/verification')).body(),downloadBefore,'Restoring a historical result preserves its original verification bytes');
+        await noInternalIdentifiers();
+      }
+      assert.equal(noMutation(),before,'History reads, local choices and restoration must not resubmit provider work');
+      fixture.assertPreserved();
+    }
+    if(process.argv.includes('--audit-history-only')||process.argv.includes('--audit-identity-only')){
+      await page.goto(fixture.origin+'/demo');await root().waitFor();await openSession();
+      await auditFixesRegression(process.argv.includes('--audit-history-only')?'history':'identity');
+      assert.deepEqual(errors,[]);
+      process.stdout.write(JSON.stringify({status:'PASS',focused_audit_regression:process.argv.includes('--audit-history-only')?'history':'identity',viewport:mobile?'mobile':'desktop',provider_api_calls:0,model_calls:0,legacy_preserved:true})+'\n');return;
+    }
     await page.goto(fixture.origin+'/demo');await root().waitFor({state:'visible'});
     assert.equal(fixture.state.posts.length,0,'Mode discovery does not open a session');
     await openSession();await root().getByLabel('FILM TITLE',{exact:true}).fill('John Wick');await root().getByLabel('Your direction (optional)',{exact:true}).fill('Fast action, tense pace, no claim of guaranteed satisfaction.');
@@ -104,8 +172,9 @@ async function main(){
     assert.equal(await artistGroup.getByRole('radio',{checked:true}).inputValue(),selectedArtist);
     assert.notEqual(await alternativeDetails.getAttribute('open'),null);
     assert.equal(noMutation(),beforeArtistChoices,'Artist grouping, keyboard choice and restoration make no provider POST');
+    await auditFixesRegression();
     fixture.assertPreserved();assert.deepEqual(errors,[]);assert.ok(imageRequests.length>=5);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'No horizontal overflow');
-    process.stdout.write(JSON.stringify({status:'PASS',viewport:mobile?'mobile':'desktop',candidate_count:100,delivered_count:5,image_evidence:realPosters?'five-observed-CDN-images-loaded':'intercepted-synthetic-image-bytes',images:imageEvidence,provider_api_calls:0,model_calls:0,posts:fixture.state.posts.length,recovery_without_repeat:true,legacy_preserved:true,history_pagination:true,technical_identifiers_hidden:true,verification_identifiers_preserved:true,physical_download_bytes:verificationBytes.length})+'\n');
+    process.stdout.write(JSON.stringify({status:'PASS',viewport:mobile?'mobile':'desktop',candidate_count:100,delivered_count:5,image_evidence:realPosters?'five-observed-CDN-images-loaded':'intercepted-synthetic-image-bytes',images:imageEvidence,provider_api_calls:0,model_calls:0,posts:fixture.state.posts.length,recovery_without_repeat:true,legacy_preserved:true,history_pagination:true,history_status_refresh_in_place:true,ambiguous_seed_and_favorite_blocked:true,technical_identifiers_hidden:true,verification_identifiers_preserved:true,physical_download_bytes:verificationBytes.length})+'\n');
   }finally{if(browser)await browser.close();await fixture.close();}
 }
 main().catch(error=>{process.stderr.write(error.stack+'\n');process.exitCode=1});
