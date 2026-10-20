@@ -60,8 +60,8 @@ it does not claim to repair arbitrary software.
 - Groq Free / GPT-OSS 20B returns eligible indices only. The server reconstructs
   canonical film identities; the model supplies no plot or explanation prose.
 - Descriptions reproduce that film's saved Qloo metadata, with language labels
-  and a no-description fallback. Observed images have an unavailable-image
-  fallback. Source fidelity does not establish independent film facts or taste.
+  and a no-description fallback. Cards use labelled, original abstract artwork;
+  no external posters load. Source fidelity does not establish film facts or taste.
 - Ordinary screens hide internal codes. Technical identifiers remain in the
   selected verification download for audit.
 
@@ -382,3 +382,16 @@ Existing storage needs the reviewed, stopped-store continuation in [PUBLIC-NEW-C
 Original AffinityQA code is **MIT licensed**; see [LICENSE](LICENSE). Qloo data, model decisions, models and third-party assets retain their own terms. Raw captures and provider credentials remain private. [Licensing scope](docs/LICENSING.md) · [Asset provenance](docs/ASSET-PROVENANCE.md)
 
 </details>
+
+## Reviewer access and artwork policy — local candidate, 20 October 2026
+
+The [judge walkthrough](docs/DEMO-GUIDE.md#reviewer-access-and-original-artwork)
+separates the quota-free recorded repair from new inference under finite shared
+limits. The official Qloo developer guide states that hackathon keys stay active
+through judging and permits private server-side response caching. This is not
+unlimited provider capacity, an uptime guarantee or an image licence.
+
+This source candidate replaces external card images with the project's existing
+original vector illustrations. Historical case records and downloads retain
+their original bytes. It does not retroactively change the dated image-loading
+observations above or establish that this candidate is deployed.

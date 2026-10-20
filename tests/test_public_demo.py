@@ -174,7 +174,7 @@ class PublicDemoTests(unittest.TestCase):
                 self.assertIn("'sha256-",response.headers['content-security-policy'])
                 self.assertNotIn("script-src 'self' 'unsafe-inline'",response.headers['content-security-policy'])
                 directives = dict(part.strip().split(' ', 1) for part in response.headers['content-security-policy'].split(';') if part.strip())
-                self.assertEqual(directives['img-src'], "'self' data: https://images.qloo.com")
+                self.assertEqual(directives['img-src'], "'self' data:")
                 self.assertEqual(directives['connect-src'], "'self'")
                 self.assertNotIn('*', directives['img-src'])
                 self.assertEqual(client.get('/_next/static/app.js').status_code,200)

@@ -68,7 +68,7 @@ async function createFixture({webRoot=path.resolve(__dirname,'../../web'),wideEn
       if(url.pathname.startsWith('/api/'))throw Error('Unexpected API route '+url.pathname);
       const out=path.resolve(webRoot,'out'),file=path.resolve(out,url.pathname==='/demo'||url.pathname==='/demo/'?'demo.html':url.pathname.slice(1));
       if(!file.startsWith(out+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404).end();return;}
-      res.setHeader('Content-Security-Policy',"img-src 'self' data: https://images.qloo.com");res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'})[path.extname(file)]||'application/octet-stream');fs.createReadStream(file).pipe(res);
+      res.setHeader('Content-Security-Policy',"img-src 'self' data:");res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'})[path.extname(file)]||'application/octet-stream');fs.createReadStream(file).pipe(res);
     }catch(error){state.failure=error;res.writeHead(500,{'Content-Type':'application/json'}).end(JSON.stringify({error:error.message}));}
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));

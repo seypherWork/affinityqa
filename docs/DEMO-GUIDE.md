@@ -55,7 +55,8 @@ its remote causal result remains INCONCLUSIVE.
    No fixed twenty-film whitelist governs this route.
 5. Inspect five cards. Names/years come from the selected candidate identities.
    Descriptions are literal saved Qloo metadata, with language and missing-data
-   labels; they are not model-generated explanations. Images can use a fallback.
+   labels; they are not model-generated explanations. Original abstract artwork
+   is decorative and labelled; it is not a film poster.
    **HOW THESE WERE CHOSEN** explains the pool and ordering.
 6. Use **DOWNLOAD DISCOVERY VERIFICATION**. Open **SAVED**; on a fresh page in
    the same browser profile, restore the same session and case. Reading retained
@@ -144,8 +145,8 @@ and inconclusive remote causal result, not a required short demonstration.
    AI ranks eligible indices; the server reconstructs film identities. The text
    under each card is literal Qloo metadata with an accessible Spanish/English
    label, or a fixed no-plot fallback. It is not a model-written explanation.
-   Posters are observed presentation assets and can have an unavailable-image
-   fallback. Use **HOW THESE WERE CHOSEN** to inspect the ordering and pool.
+   Card illustrations are project-authored decorative vectors, not film posters.
+   Historical image metadata remains in the original verification. Use **HOW THESE WERE CHOSEN** to inspect the ordering and pool.
 5. Use **DOWNLOAD DISCOVERY VERIFICATION**. Open **SAVED**, reload and restore
    the same session to inspect the completed case. Reading or downloading saved
    work does not request a new recommendation. Original historical downloads
@@ -474,3 +475,35 @@ exercise all three incident types and failure states on desktop and mobile
 without Qloo or model requests. These are not genuine provider replays. The
 hosted recorded route above remains the genuine-capture review path; no raw
 private captures or credentials are in the public source.
+
+## Reviewer access and original artwork
+
+**Local candidate policy, 20 October 2026; publication and hosted acceptance are
+separate.** The illustration change does not need the creator's PC after its
+approved deployment. Judges use the existing HTTPS demo in a normal browser;
+there is no installation, provider key or judge account to supply.
+
+- Start with DIAGNOSIS & EVIDENCE. Recorded replay executes the retained
+  diagnostic/repair pipeline using saved decisions, with zero new Qloo/Groq
+  calls. It is a replay of genuine captured evidence, not fresh inference.
+- FILM DISCOVERY admits new work when shared capacity is available. Read its
+  plan, confirm identity/year, then submit once. Keep the ownership cookie; use
+  SAVED and restore the same browser session for existing cases and downloads.
+- If a provider waits, fails or is unavailable, retain the status/receipt. Read
+  saved evidence or the recorded repair; do not clear cookies, reset counters
+  or resubmit uncertain work. A replay is not a replacement fresh result.
+- All card illustrations are original abstract SVGs, labelled ORIGINAL
+  ILLUSTRATION. They do not depict the film, actors, genre or plot. No external
+  poster requests are needed. Old verifications still contain their original
+  image metadata; rendering does not rewrite those records.
+
+The [official Qloo hackathon developer guide](https://docs.qloo.com/reference/qloo-llm-hackathon-developer-guide),
+sections Quotas, Limits & Key Expiration and FAQ, states that keys remain
+active through the end of judging and that API responses may be cached on
+private servers without a duration cap, but may not be placed in a public
+repository. The [current rules](https://qloo.devpost.com/rules) link this guide.
+Judging ends 17 November 2026 at 04:45 UTC (05:45 Brussels). Keep Render active
+through that period; do not expose cached responses, credentials or stores in
+the public source package. These policies do not reserve quota, promise uptime,
+grant artwork rights or validate personal taste. Groq remains Free; provider
+limits, the current model and case accounting remain unchanged.

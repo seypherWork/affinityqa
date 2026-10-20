@@ -169,3 +169,21 @@ The rules require free testing access through judging; replacing a one-use
 application cap with repeatable admission addresses that technical defect.
 Provider scarcity and actual long-term access still need operational evidence.
 This document neither grants an organizer exemption nor submits the entry.
+
+## Access policy clarification — 20 October 2026
+
+The [official hackathon developer guide](https://docs.qloo.com/reference/qloo-llm-hackathon-developer-guide),
+linked from the [current rules](https://qloo.devpost.com/rules), states that
+hackathon keys remain active through judging and permits private server-side
+API-response caching without a duration cap. Response data must not be put in a
+public repository. This clarifies general key/cache policy; it does not grant
+unlimited quota, redistribute captures or guarantee service uptime.
+
+Keep the existing paid Render service running through judging (ends
+17 November 2026, 04:45 UTC / 05:45 Brussels). The judge needs only the hosted
+link and a browser, not the creator's PC. Saved evidence and recorded repair
+remain distinct from new provider execution. Groq stays Free; if shared quota
+waits or a safety pause appears, preserve all cases and receipts and use the
+recorded path honestly. No counters, ownership, model or paid plan are changed
+by this documentation/presentation update. Original illustrations remove the
+card UI's dependence on third-party poster availability or permissions.

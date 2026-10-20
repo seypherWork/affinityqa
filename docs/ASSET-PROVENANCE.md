@@ -17,8 +17,9 @@ Reviewed on 16 October 2026 for the local experience candidate. The application 
 
 Inspection of `web/app`, `web/components` and `web/lib` found no external image URLs or downloaded raster assets. The package manifest binds the actual source bytes. This inventory is a source inspection, not a trademark-clearance opinion or a certification of every dependency's rights. See [licensing scope](LICENSING.md).
 
-That inspection describes the 16 October interface. The additive wide-cinema
-route uses actual image URLs observed in Qloo film metadata. It permits direct
+The following paragraph records the earlier, superseded wide-cinema image
+policy. That route used actual image URLs observed in Qloo film metadata and
+permitted direct
 browser loads from `images.qloo.com` only, with identity binding and a missing
 image fallback. No standalone poster asset or application screenshot containing
 third-party film images is bundled into this source package. No URL is
@@ -49,3 +50,22 @@ not automatically public judge evidence or permission to publish.
 The interface study used the workspace hierarchy and result navigation in [Linear Insights](https://linear.app/insights) and the summary/table/case workflow documented in [Braintrust](https://www.braintrust.dev/docs/evaluate/interpret-results). These references informed information hierarchy and progressive disclosure; their code and branded assets were not copied. The original documentation illustrations remain distinct from application screenshots and provider evidence.
 
 The 16 October discovery study additionally used [Seerr's official repository](https://github.com/seerr-team/seerr), [Letterboxd's description](https://letterboxd.com/about/what-is-letterboxd/) and [MUBI's presentation](https://mubi.com/en/about). Their discovery, title/year confirmation and editorial hierarchy informed the original implementation. No third-party UI code, film artwork or branded asset was copied. Film titles and years come from the existing catalog and confirmed inputs; decorative art does not assert additional film metadata.
+
+## Original-only card presentation — 20 October 2026 local candidate
+
+This policy supersedes the earlier wide-discovery image rendering above. All
+five cards now reuse `FilmAbstractArtwork` from `web/components/cinema-art.tsx`,
+the project-authored abstract SVG already used in the earlier comparison view.
+No downloaded image, new asset provider or new dependency is introduced. The
+art is decorative and labelled ORIGINAL ILLUSTRATION; it does not depict or
+assert facts about a film. It is original project code under the existing MIT
+scope, not a licence to any title, metadata, trademark or third-party image.
+
+The UI no longer consumes external image URLs and the HTTP content policy no
+longer permits the Qloo image CDN. Valid, missing, stale and unsafe historical
+image metadata all receive original artwork without changing film identities,
+ranking or source descriptions. Archived case/verification bytes are retained.
+Earlier dated CDN tests remain historical observations, not current behavior.
+Promotional materials can use original workflow illustrations without depending
+on permission to reproduce posters; screenshots still require checking for
+provider-derived text and personal information before publication.

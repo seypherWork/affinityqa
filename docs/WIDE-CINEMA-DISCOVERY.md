@@ -105,11 +105,12 @@ Native caching may reduce new sends without bypassing evidence accounting.
 
 The existing local design, manual artist/film choices, saved cases and five-card
 layout remain. The interface states that AI selects and Qloo supplies the source
-description. Source and language are accessible beside each extract. Posters
-use only the captured Qloo URL bound to the exact identity; missing, unsafe or
-unavailable images have a visible fallback. Displayed images load directly from
-`images.qloo.com` without this page's referrer and are separate HTTP requests,
-not new Qloo API queries. Their content is not independently classified.
+description. Source and language are accessible beside each extract. Each card
+uses project-authored abstract SVG artwork labelled ORIGINAL ILLUSTRATION. It
+is decorative, not a poster or a depiction of a film, cast, plot or genre. No
+third-party image loads, including for historical cases. The server's image
+policy permits only same-origin/data images. Selection and source binding are
+unchanged; original image metadata stays in archived verifications.
 
 Provider metadata and images are outside the original-code MIT grant; raw
 provider captures, personal case stores and image binaries are not included
