@@ -1,5 +1,7 @@
 # Cloud engineering review — 13 October 2026
 
+> **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
+
 ## Outcome and scope
 
 Review started from `250aac1258535db593db644747a5659003fced82` on
@@ -65,7 +67,7 @@ source builder includes the regression harness and this review.
 | Actual new-case hosted browser journey | Retained live v2 trial stopped PARTIAL; original response diagnosis and counterfactual v3 projection now complete; full v3 browser journey passes with fake providers | Observe a complete new owned case after a reviewed v3 deployment on the exact runtime; do not repeat or relabel the admitted partial case |
 | Sustained judge capacity | A liveness/summary read succeeded; internal admissions do not reserve Groq quota | Verify the account's provider allowance, hosting persistence and usable access over the judging period |
 | Remote causal attribution | Prior genuine runs retain varied fingerprints and INCONCLUSIVE attribution | Comparable controlled observations under the frozen causal protocol; no relabelling of those prior runs |
-| Cultural recommendation quality | NOT_VALIDATED, zero verified human participants in the current acceptance record | Independent real-person labels and the existing evaluation protocol |
+| Cultural recommendation quality | NOT_VALIDATED; the dated technical acceptance contains no structured human preference ratings | Independent real-person labels and the existing evaluation protocol |
 
 The scoped technical patch can be reviewed without claiming full jury
 acceptance. Local checks made no provider calls. The separate authorized live

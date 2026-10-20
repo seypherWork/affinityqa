@@ -1,5 +1,7 @@
 # Taste discovery and the shared model pass
 
+> **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
+
 This page describes the retained musical-comparison protocol. The additive
 [open film-discovery protocol](OPEN-FILM-DISCOVERY.md) retrieves a new pool per
 confirmed film; it does not change the historical fixed-catalog experiment.
@@ -64,7 +66,7 @@ introduced by this protocol. Offline synthetic tests prove contracts and failure
 handling; the two separately documented hosted trials supply bounded real-provider
 evidence. Neither establishes future availability or recommendation quality. All
 four delivered lists matched their same-input Qloo baselines. Cultural quality
-remains `NOT_VALIDATED`, with zero verified human participants.
+remains `NOT_VALIDATED`, with no structured human preference labels in that dated technical record.
 
 ## Observed abbreviated-query check
 

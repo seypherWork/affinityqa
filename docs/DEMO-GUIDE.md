@@ -1,5 +1,7 @@
 # AffinityQA — judge walkthrough
 
+> **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
+
 Open [the hosted application](https://affinityqa-review.onrender.com/demo#recorded).
 A browser is sufficient: no account, installation, Docker, local model or judge
 API key is needed. The creator's PC does not need to be running.
@@ -12,6 +14,29 @@ This is a dated observation, not a guarantee of current quota or future uptime.
 The [README review](../README.md#verified-hosted-review--20-october-2026) separates
 that hosted source from later unactivated source changes. The
 [18 October acceptance](JUDGE-ACCEPTANCE.md) remains historical evidence.
+
+## Informal human testing
+
+Updated 20 October 2026 from the creator's direct account.
+
+On 20 October 2026, the creator reported successful informal testing by three real people: the creator and two friends. The creator tested Eminem; one friend used Fast & Furious and found the car/tuning recommendations good; the other used Scream and received related horror recommendations. The friends' feedback is reported through the creator. Exact film editions, complete output lists and per-film ratings have not been recorded for those two trials. This is qualitative feedback from a convenience sample, not a measured accuracy score or an independent cultural evaluation.
+
+| Person | Reported input | Available feedback |
+| --- | --- | --- |
+| Creator | Eminem | Personally tested the application; reports a positive overall experience. |
+| Friend A | Fast & Furious; exact title/year not recorded | Creator reports good car/tuning-related recommendations. |
+| Friend B | Scream; exact year not recorded | Creator reports related horror recommendations. |
+
+### What this changes
+
+Do not describe current human testing as zero people. Three real people are reported to have tried the application. These trials are separate from synthetic role-play profiles, operator acceptance cases and automated CI. Do not add those technical cases to the human count. No tester names or contact details are needed.
+
+### Boundaries
+
+None of these three informal trials has been tied to an exact deployed revision in this record. The two friends' inputs and feedback have not been matched to saved case IDs. In particular, these human trials must not be attributed to revision 7ce58a2 simply because its separate technical acceptance appears in the same documentation. No systematic per-film ratings, accuracy percentage, blind comparison, broad population result or universal absence of errors follows from this report. The creator's recovered saved John Wick case is not an additional person. These human trials do not validate the diagnostic agent's causal attribution.
+
+Existing technical receipts retain their original gates and data. Cultural quality remains NOT_VALIDATED by the formal evaluation protocol; the informal feedback is recorded here without retroactively rewriting earlier experiments. Original receipts, historical failures, case stores, model and Groq Free are unchanged.
+
 
 ## Start with diagnosis and repair
 
@@ -91,8 +116,7 @@ discovery flow.
   historical evidence. Neither is a human preference study or universal seed
   coverage.
 - Source-bound descriptions do not establish that the metadata is true.
-- Cultural quality remains NOT_VALIDATED, with zero verified human preference
-  participants. The historical evaluated-agent BLOCKED result is separate from
+- Cultural quality remains NOT_VALIDATED, with no structured human preference labels in that dated technical record. The historical evaluated-agent BLOCKED result is separate from
   the diagnostic application's availability.
 
 [Historical 18 October acceptance](JUDGE-ACCEPTANCE.md) ·
@@ -182,7 +206,7 @@ evidence unchanged. No new native Massive Attack v10 success is claimed.
 The frozen source passed 723 Windows tests, production export and synthetic
 desktop/mobile browser checks. Those results do not establish CI or Render
 acceptance of this release preparation. Cultural quality remains NOT_VALIDATED
-with zero verified human preference participants. Qloo metadata can itself be
+with no structured human preference labels in that dated technical record. Qloo metadata can itself be
 inaccurate: this verifies faithful source display, not general movie truth or
 individual satisfaction.
 
@@ -256,7 +280,7 @@ evaluations or participants. All four latest film lists equalled their Qloo
 baselines. External favorite-film inputs are positive seeds; they do not expand
 the twenty-film output catalog. The application recommends films, not songs.
 
-Cultural quality remains NOT_VALIDATED with zero verified human participants;
+Cultural quality remains NOT_VALIDATED with no structured human preference labels in that dated technical record;
 remote causal attribution for the historical 39-decision campaign is INCONCLUSIVE.
 The tested-recommender BLOCKED gate is separate from the diagnostic application's
 bounded technical acceptance. Groq Free quotas remain shared and finite.
@@ -388,7 +412,7 @@ The remote v3 operator separates **integration**, **backend comparability** and 
 
 The earlier direct run `20261008T182536Z-edb5fd04` completed with 39 valid Groq packets, four Qloo samples, integration PASS 3/3 and nine recoveries. Its verifier and independent audit checked source/plan/admission/process bindings and arithmetic. That direct run reported **27** known fingerprints. The later hosted run `20261008T190353Z-772b6659` separately reported **25** known fingerprints, none absent, with the same integration PASS and nine observed recoveries. Both have backend VARIED and causal INCONCLUSIVE. These known development requests are not unseen-user trials.
 
-**Cultural quality NOT_VALIDATED** and **tested-recommender release BLOCKED** remain separate. The historical 13/14 development and independent 4/6 movie-quality trials retain FAIL and their original thresholds. No verified human preference labels are available; requested ratings from two real people for the twenty-movie catalog remain pending.
+**Cultural quality NOT_VALIDATED** and **tested-recommender release BLOCKED** remain separate. The historical 13/14 development and independent 4/6 movie-quality trials retain FAIL and their original thresholds. This dated record contains no structured participant-level ratings. See the current human testing evidence for the three informal testers reported by the creator.
 
 These verifiers inspect recorded evidence and protocol bindings. They do not provide external-service cryptographic attestation or an independent human preference study.
 

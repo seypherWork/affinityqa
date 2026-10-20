@@ -1,5 +1,7 @@
 # Local acceptance — 18 October 2026
 
+> **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
+
 This record describes the accepted local v10 product source. It accompanies a
 release-preparation copy, not an approved publication. The owner checked the
 public service's health and revision on 18 October: it still ran the earlier
@@ -95,8 +97,7 @@ map encoded as compact UTF-8 JSON; it describes the tested source before this
 documentation consolidation. It is not the hash of a source ZIP or this release
 copy. The deployment operator must bind and verify the final release separately.
 
-Cultural quality remains **NOT_VALIDATED**, with **zero verified human preference
-participants**. The historical 39-decision remote causal campaign remains
+Cultural quality remains **NOT_VALIDATED**. That dated technical acceptance contains no structured human preference ratings. The historical 39-decision remote causal campaign remains
 **INCONCLUSIVE**. Technical completion does not prove movie truth, preference
 improvement, universal provider reliability or the unique cause of older HTTP 400
 failures. Source descriptions and posters retain their provider/third-party

@@ -1,5 +1,7 @@
 ![AffinityQA — Follow the profile. Prove the recovery.](docs/images/hero.svg)
 
+> **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](docs/DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
+
 # AffinityQA
 
 **Follow the profile. Prove the recovery.**
@@ -117,8 +119,7 @@ health endpoint reported execution enabled without an admission pause. Liveness
 does not test provider credentials or remaining quota; no fresh inference was
 made during that check.
 
-Cultural quality remains **NOT_VALIDATED**, with **zero verified human preference
-participants**. The separate historical remote causal campaign remains
+Cultural quality remains **NOT_VALIDATED**. That dated technical acceptance contains no structured human preference ratings. The separate historical remote causal campaign remains
 **INCONCLUSIVE**. Shared provider quotas and storage safeguards can make new
 work wait or stop; saved cases and recorded repair are separate review paths.
 No unlimited free throughput, universal absence of defects or future uptime is
@@ -248,8 +249,7 @@ Local acceptance cases stay local. The hosted service has its own retained
 history; this consolidation does not migrate, merge or replace either host's
 case store. A deployment must preserve the hosted history and ownership.
 
-Cultural quality remains **NOT_VALIDATED**, with **zero verified human preference
-participants**. The separate historical 39-decision remote campaign remains
+Cultural quality remains **NOT_VALIDATED**. That dated technical acceptance contains no structured human preference ratings. The separate historical 39-decision remote campaign remains
 **INCONCLUSIVE**. The controlled diagnostic application does not repair arbitrary
 programs or certify movie taste. Shared provider quotas, storage safeguards and
 failed/unknown-send controls still apply; no automatic retry, unlimited free
@@ -280,7 +280,7 @@ Groq remains free. [Dated acceptance and file fingerprints](docs/JUDGE-ACCEPTANC
 
 All four delivered lists matched their same-input Qloo baselines. This proves
 bounded integration, not improvement over Qloo or individual satisfaction.
-Cultural quality remains **NOT_VALIDATED**, with **zero verified human participants**.
+Cultural quality remains **NOT_VALIDATED**. That dated technical acceptance contains no structured human preference ratings.
 The separate historical 39-decision remote campaign remains **INCONCLUSIVE**.
 Its **BLOCKED** tested-recommender release is distinct from availability of the
 diagnostic application. Historical failures and thresholds remain preserved.
@@ -311,7 +311,7 @@ All three recorded repair types also passed their six replay checks on this depl
 
 **Earlier acceptance on `32406c2`, also on 15 October:** two consecutive Sade / Nine Inch Nails cases completed in one session. The first used four fresh Qloo requests and two Groq decisions; the second reused four saved Qloo responses and made two fresh Groq decisions. Both native downloads and recovery of the first case passed. Their complete dated evidence and the retained failed case remain in the [acceptance record](docs/JUDGE-ACCEPTANCE.md).
 
-This is bounded technical acceptance, not a preference study. Both latest top-five lists equalled the same-input Qloo baseline. Cultural quality remains **NOT_VALIDATED**, with **zero verified human participants**. Remote causal attribution for the separate historical 39-decision campaign remains **INCONCLUSIVE**. A **BLOCKED** tested-recommender release is an evaluation result; it does not mean that the diagnostic application is unavailable. Historical quality failures and thresholds are preserved.
+This is bounded technical acceptance, not a preference study. Both latest top-five lists equalled the same-input Qloo baseline. Cultural quality remains **NOT_VALIDATED**. That dated technical acceptance contains no structured human preference ratings. Remote causal attribution for the separate historical 39-decision campaign remains **INCONCLUSIVE**. A **BLOCKED** tested-recommender release is an evaluation result; it does not mean that the diagnostic application is unavailable. Historical quality failures and thresholds are preserved.
 
 Judge access requires no account, installation or provider key. Shared Qloo and Groq Free capacity is unreserved: new work may wait, pause or stop, while saved results and recorded repairs remain readable. There is no promise of unlimited free inference or future uptime. The owner must maintain free testing access through judging. [Repeatable access contract](docs/PUBLIC-REPEATABLE-CASES.md) · [Judge walkthrough](docs/DEMO-GUIDE.md).
 

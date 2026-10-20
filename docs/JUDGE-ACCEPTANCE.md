@@ -1,5 +1,7 @@
 # Judge acceptance record
 
+> **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
+
 ## Latest completed hosted acceptance — 18 October 2026
 
 **PASS for the bounded operational rollout, two real discovery journeys,
@@ -68,8 +70,7 @@ not distributed with this record. No external provider signature is asserted.
 
 ### What remains outside this acceptance
 
-Cultural quality is **NOT_VALIDATED**, with **0 verified human preference
-participants**. The separate historical 39-decision remote campaign remains
+Cultural quality is **NOT_VALIDATED**. That dated technical acceptance contains no structured human preference ratings. The separate historical 39-decision remote campaign remains
 **INCONCLUSIVE**. Its evaluated-agent **BLOCKED** gate is distinct from the
 diagnostic application's operational availability. No model ranking improvement
 over Qloo is established here. Shared quotas, uncertain-send handling, storage
@@ -280,7 +281,7 @@ The following snapshots retain their original results and scope. Their old PENDI
 | Public source and build | Tested code `2c2f28a9866920031c84779a38af340e3a724966`; [CI 38472962653](https://github.com/seypherWork/affinityqa/actions/runs/38472962653): 479 Python tests on each of Windows and Ubuntu, type checking and production export | Three Linux browser regressions used synthetic providers; they are separate from the native Windows trial |
 | Hosted source | The same code is LIVE on the existing Render service, deployment `dep-db7bbqfavr4c73fiklg0` | No service, model, key, paid plan or automatic-deployment change for this trial |
 | Preserved rollout | All 264 inventoried original files were unchanged; only the reviewed continuation marker and staging payload were added. Reattachment retained all 266 inventoried files | This is the dated deployment inventory, before the new trial. Two auxiliary files were compared by metadata only; no current whole-disk count is claimed |
-| Plan and manual identities | Case `20261014T144251Z-c1eb0039`, protocol `cinema-confirmed-discovery-v3`, Sade and Nine Inch Nails explicitly selected | One engineering visitor with synthetic preferences; no verified human participant |
+| Plan and manual identities | Case `20261014T144251Z-c1eb0039`, protocol `cinema-confirmed-discovery-v3`, Sade and Nine Inch Nails explicitly selected | One engineering visitor with synthetic preferences; not a structured human preference study |
 | Genuine completion | Four saved Qloo responses and two Groq model packets; `VERIFIED_COMPLETE`; preference checks PASS | One attempt per request, no retry or fallback; this short mode does not run the controlled causal campaign |
 | Explicit tastes | Get Out known favorite and Everything Everywhere All at Once excluded in both profiles; 18 eligible movies, five delivered per profile | Neither known favorite nor excluded film was delivered. Both top fives equalled the same-input Qloo baseline |
 | Native file download | Brave marked the one download complete; the physical JSON was 5,605 bytes, SHA-256 `42546b06d00be2a6d9b669e5502a8298ce0c81db267b4123fa251a75073ab686` | Actual browser save plus physical-file check; not an HTTP-only substitute |
@@ -353,7 +354,7 @@ This record distinguishes evidence for each revision and execution mode. It is n
 | Earlier hosted Linux cache/restart | Source `e08ddf2a7b7751b07b9c0b4635ad838247c44c00`; 7 October record | 54 recorded selections; 382 evidence hashes bound and preserved across service-process restart | Prior Linux recorded-runtime evidence; not a new restart or browser check for source `457fcace665b29a206840cedf24bceac56865b8f` |
 | Backend code and CI, 8 October | Revision `457fcace665b29a206840cedf24bceac56865b8f`; reviewed 13 source changes plus manifest; [CI 37824994293](https://github.com/seypherWork/affinityqa/actions/runs/37824994293) | Windows/Python 3.13.16: 295 tests in 54.247 s; Ubuntu 24.04/Python 3.12.14: 295 tests in 58.926 s; source allowlist, type checking/build passed on both; hosted observation matched 182 manifest payload hashes | Historical backend code-revision checks; the 9 October source/UI release has its own CI result; documentation proposals create no new CI observation |
 | Earlier direct remote v3 case and audit | Run `20261008T182536Z-edb5fd04`; recorded-file verification at 18:40:49 UTC and independent audit at 18:46:38 UTC both VERIFIED_COMPLETE | 39 validated Groq packets; four fresh Qloo samples; integration PASS 3/3, each with nine checks and three repeats; nine recoveries; source/plan/admission/process bindings audited | 27 known distinct fingerprints, none absent; causal INCONCLUSIVE; known development pair, not independent users; separate from the hosted case |
-| Cultural evaluation | Historical 13/14 development and independent 4/6 movie-quality records | Both overall gates remain FAIL; zero verified human preference labels | NOT_VALIDATED; ratings from two real people for the twenty-movie catalog are requested and pending |
+| Cultural evaluation | Historical 13/14 development and independent 4/6 movie-quality records | Both overall gates remain FAIL; no structured human preference ratings in that dated record | NOT_VALIDATED; structured twenty-film ratings were not collected in that dated record; current three-person informal feedback is documented separately |
 
 Portable termination checks observed the owned processes absent and listener closed after Ctrl+C. The console returned `-1073741510`; no complete graceful-shutdown acceptance or admitted-job termination is claimed, because no new jobs were admitted. This Windows observation does not replace the separate 8 October hosted case/restart evidence.
 

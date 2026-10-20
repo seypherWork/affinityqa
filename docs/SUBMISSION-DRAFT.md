@@ -1,5 +1,7 @@
 # AffinityQA — English submission update
 
+> **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
+
 Prepared 19 October 2026 for review of the existing submitted project. This text
 has not been saved to Devpost. It does not create another submission.
 The project began on 3 October 2026, as declared by the owner.
@@ -120,8 +122,7 @@ proof of ranking improvement over Qloo or a guarantee for every future input.
 Profile integrity, backend comparability and cultural quality require different
 evidence. The supported diagnostic experiment can pass recovery checks while a
 separate historical remote causal campaign remains **INCONCLUSIVE**. Cultural
-quality remains **NOT_VALIDATED**, with **zero verified human preference
-participants**. Role-play inputs remain synthetic; prior failures retain their
+quality remains **NOT_VALIDATED**, with **no structured human preference labels in that dated technical record**. Role-play inputs remain synthetic; prior failures retain their
 scores and thresholds. The historical evaluated-agent **BLOCKED** result is
 separate from the diagnostic application's availability.
 
@@ -378,7 +379,7 @@ Discovery v3 validates raw search rows before projecting selectable musical iden
 
 Profile integrity, backend comparability and recommendation quality answer different questions. A pipeline can pass its integration checks while the remote model reports different backend fingerprints. We therefore retain **INCONCLUSIVE** causal attribution for that remote experiment. A coherent movie list also does not establish that a person would enjoy the films.
 
-Historical quality failures remain unchanged. Verified human preference participants: **0**. Role-play profiles are synthetic engineering inputs. Cultural quality remains **NOT_VALIDATED**; no precision of 100%, population reliability, superiority to the Qloo baseline or production recommender approval is claimed.
+Historical quality failures remain unchanged. The dated technical record contains no structured human preference labels. Role-play profiles are synthetic engineering inputs. Cultural quality remains **NOT_VALIDATED**; no precision of 100%, population reliability, superiority to the Qloo baseline or production recommender approval is claimed.
 
 ## What comes next
 
@@ -493,7 +494,7 @@ The demonstrated use case is an engineer debugging a movie-discovery agent whose
 
 We have not measured adoption, time saved, user satisfaction or production incident reduction. Results cover three deliberately injected faults in the tested adapter. They do not establish general bug detection, autonomous code rewriting or independent cultural recommendation quality.
 
-There are **zero verified human preference labels**. Ratings from **two real people for the twenty-movie catalog** have been requested and remain pending. The cultural gate remains **NOT_VALIDATED** and promotion of the tested recommender remains **BLOCKED**. Those gates are separate from the recorded diagnostic application's functional evidence.
+This dated record contains no structured human preference ratings. That request concerned a structured twenty-film evaluation; the current three-person informal feedback is recorded separately in the human testing evidence. The cultural gate remains **NOT_VALIDATED** and promotion of the tested recommender remains **BLOCKED**. Those gates are separate from the recorded diagnostic application's functional evidence.
 
 ## How it is built
 

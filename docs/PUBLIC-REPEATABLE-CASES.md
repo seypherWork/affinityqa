@@ -1,5 +1,7 @@
 # Repeatable reviewer access
 
+> **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
+
 This version adds an explicit `repeatable-v1` admission mode. It removes the
 application's lifetime plan and execution caps for one visitor identity. It
 does not remove Qloo or Groq quotas, reserve future capacity, guarantee uptime,
@@ -79,8 +81,7 @@ Rejected provider envelopes retain only a closed status/error projection,
 never an arbitrary provider debug body.
 
 The original per-case two- or 39-decision bounds, explicit identity choice,
-favorite/exclusion checks, cultural **NOT_VALIDATED** and zero verified human
-participants remain unchanged. Completed synthetic cases verify engineering
+favorite/exclusion checks and cultural **NOT_VALIDATED** gate remain unchanged. The dated technical acceptance contains no structured human preference ratings. Completed synthetic cases verify engineering
 behavior; they are not evidence of actual provider availability or film quality.
 
 ## Owner configuration
