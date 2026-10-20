@@ -1,5 +1,7 @@
 """Bounded two-page capture using the unchanged durable provider dispatcher."""
 import copy
+import re
+import unicodedata
 from pathlib import Path
 
 from .agents import strict_json
@@ -9,10 +11,9 @@ from .groq_agent import contains_secret
 from .individual_capture import safe_directory_path, validate_capture_paths, execution_lease, sha
 from .provider_runtime import current_runtime
 from .qloo import QlooClient, LiveTransport
-from .models import canonical_id
-from .search_music_candidates import music_candidates
+from .models import canonical_id, parse_entities
 from .wide_cinema_discovery import (PROTOCOL, SOURCE, need, validate_request, search_queries, movie_candidates,
-    select_identities, qloo_request, context_from_samples, make_decision, result_for, cache_key, validate_page, text)
+    seed_identity, select_identities, qloo_request, context_from_samples, make_decision, result_for, cache_key, validate_page, text)
 from .wide_cinema_agent import WideCinemaAgent, model_manifest, validate_failure_projection
 
 SOURCES = ('wide_cinema_discovery.py','wide_cinema_agent.py','wide_cinema_capture.py','wide_cinema_verify.py',
@@ -42,6 +43,7 @@ SOURCES = ('wide_cinema_discovery.py','wide_cinema_agent.py','wide_cinema_captur
     'wide_cinema_v9_compat.py','wide_cinema_v9_verify.py',
     'wide_cinema_v9_source/wide_cinema_discovery.py','wide_cinema_v9_source/wide_cinema_agent.py',
     'wide_cinema_v9_source/wide_cinema_capture.py','wide_cinema_v9_source/wide_cinema_verify.py')
+SOURCES = (*SOURCES,'wide_cinema_v10_compat.py','wide_cinema_v10_verify.py','wide_cinema_v10_source/wide_cinema_discovery.py','wide_cinema_v10_source/wide_cinema_agent.py','wide_cinema_v10_source/wide_cinema_capture.py','wide_cinema_v10_source/wide_cinema_verify.py')
 DATA = ('requirements-backend.lock.txt','requirements-repeatable.lock.txt','assets/tokenizers/o200k_base.tiktoken')
 
 
@@ -116,13 +118,48 @@ def prepare_plan(request, output, *, minimum_model_interval_seconds=None):
         'retrieval_policy':{'pages':[1,2],'take':50,'maximum_raw_rows':100,'maximum_candidates':100,'minimum_eligible':5,
             'fixed_catalog_fallback':False,'missing_year':'reject-row-with-source-position','conflicting_identity':'stop',
             'deduplication':'first-observed-consistent-UUID','seed_returned':'stop'},
-        'identity_candidate_contract':'qloo-wide-confirmed-seed-and-optional-favorite-v1',
+        'identity_candidate_contract':'qloo-wide-confirmed-seed-and-optional-favorite-v2-canonical-name-filter',
         'priority_policy':'explicit-taste-first-then-seed-interpretation-then-provider-order-v1',
         'model_output_policy':'five-ordered-catalog-indices-source-grounded-v10',
         'faults':[],'execution_pacing':{'strategy':'shared-durable-provider-scheduler','minimum_interval_seconds':0},
         'maximum_token_reservation':8000,'cultural_gate':'NOT_VALIDATED','release_gate':'BLOCKED'}
     value['plan_sha256'] = fingerprint(value)
     return value
+
+
+def _search_music_profiles(body):
+    # Validate every raw row before excluding an unusable display name. Never
+    # hide malformed IDs/metadata or contradictory musical identities.
+    need(isinstance(body,dict) and isinstance(body.get('results'),list)
+         and 1 <= len(body['results']) <= 5, 'Bounded search results required.')
+    rows=[parse_entities({**body,'results':[raw]},insights=False)[0] for raw in body['results']]
+    occupations={'musician','singer','singer songwriter','songwriter','rapper','composer',
+                 'pianist','guitarist','harpist','record producer','music producer'}
+    seen={};choices=[]
+    for row in rows:
+        kind='urn:entity:artist' if 'urn:entity:artist' in row.types else None
+        if kind is None and 'urn:entity:person' in row.types:
+            raw=row.metadata.get('occupations',row.metadata.get('occupation',[]))
+            raw=[raw] if isinstance(raw,str) else raw
+            musical=isinstance(raw,list) and any(isinstance(v,str) and
+                ' '.join(unicodedata.normalize('NFKC',re.sub(r'[_-]',' ',v)).casefold().split()) in occupations for v in raw)
+            external=row.metadata.get('external',{})
+            service=isinstance(external,dict) and any(isinstance(external.get(k),dict) and bool(external[k].get('id'))
+                for k in ('musicbrainz','lastfm','spotify'))
+            if musical or service:kind='urn:entity:person'
+        if kind is None:continue
+        profile={'entity_id':row.entity_id,'name':row.name,'type':kind}
+        previous=seen.get(row.entity_id)
+        need(previous is None or previous==profile,'Conflicting musical profiles share one search entity ID.')
+        if previous is not None:continue
+        seen[row.entity_id]=profile
+        canonical=' '.join(unicodedata.normalize('NFKC',row.name).split())
+        if not (1 <= len(row.name) <= 300 and row.name==canonical
+                and not any(unicodedata.category(c).startswith('C') for c in row.name)):
+            continue
+        choices.append(seed_identity(profile,'music'))
+    need(choices,'No verified musical identity candidates were returned; no substitution.')
+    return choices
 
 
 def search_identities(request, output, expected_plan_hash, settings, *, minimum_model_interval_seconds=None, _test_adapters=None):
@@ -147,7 +184,7 @@ def search_identities(request, output, expected_plan_hash, settings, *, minimum_
         for slot, params in queries:
             ledger.record('wide_search_admitted',{'slot':slot,'params':params})
             body = client.get('/search',params,cache=False)
-            choices = music_candidates(body) if slot == 'seed' and plan['request']['mode'] == 'music' else movie_candidates(body)
+            choices = _search_music_profiles(body) if slot == 'seed' and plan['request']['mode'] == 'music' else movie_candidates(body)
             found['seed_candidates' if slot == 'seed' else 'favorite_movie_candidates'] = choices
             ledger.record('wide_search_choices_recorded',{'slot':slot,'choices_sha256':fingerprint(choices)})
         ledger.write('wide-candidates.json',found)
@@ -169,7 +206,7 @@ def capture_confirmed(directory, selected_seed_entity_id, identity_receipt, sett
     directory = safe_directory_path(Path(directory))
     reviewed_plan = strict_json((directory/'wide-plan.json').read_bytes())
     need(isinstance(reviewed_plan,dict) and reviewed_plan.get('protocol_version') == PROTOCOL,
-         'Historical wide captures are read-only; prepare a new v10 plan.')
+         'Historical wide captures are read-only; prepare a new v11 plan.')
     need(_test_pacing_clock is None and current_runtime() is not None, 'Actual durable dispatcher required.')
     with execution_lease(directory.parent.parent):
         current = verify_identity_search(directory)

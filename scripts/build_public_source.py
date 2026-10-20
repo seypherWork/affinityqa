@@ -7,7 +7,7 @@ import re
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-TESTS=('test_causal_evidence_integration.py','test_context_contrast.py','test_causal_evidence.py','test_causal_agent.py','test_causal_runner.py','test_causal_evaluator.py',
+TESTS=('test_partial_identity_projection.py','test_search_name_isolation.py','test_wide_cinema_v10_history.py','test_causal_evidence_integration.py','test_context_contrast.py','test_causal_evidence.py','test_causal_agent.py','test_causal_runner.py','test_causal_evaluator.py',
        'test_keyword_calibrator.py','test_keyword_words.py','test_pairwise_rank_calibrator.py',
        'test_broad_movie_context.py','test_taste_tags.py','test_public_source_package.py',
        'test_public_demo.py','test_public_demo_verifier.py','test_groq_agent.py',
@@ -30,7 +30,7 @@ DRIVERS=('affinityqa.py','run_causal_repair.py','continue_causal_validation.py',
          'resume_causal_identity.py','verify_causal_repair.py','build_public_source.py',
          'serve_public_demo.py','verify_public_demo.py','capture_individual_pair.py',
          'verify_individual_capture.py','capture_individual_remote.py','verify_individual_remote.py','continue_public_policy.py','diagnose_identity_search.py')
-EXACT=('docs/QLOO-CONTEXT-CONTRAST.md','tests/causal_evidence_fixture.py','tests/browser/serve_diagnostic_synthetic.py','tests/browser/diagnostic-evidence-journey.cjs','docs/QLOO-DIAGNOSTIC-EVIDENCE.md','.gitattributes','pyproject.toml','requirements-backend.lock.txt','requirements-repeatable.lock.txt','fixtures/synthetic.json',
+EXACT=('docs/SEARCH-NAME-ELIGIBILITY.md','tests/browser/search-name-backend-journey.cjs','tests/browser/serve_wide_name_cases.py','docs/QLOO-CONTEXT-CONTRAST.md','tests/causal_evidence_fixture.py','tests/browser/serve_diagnostic_synthetic.py','tests/browser/diagnostic-evidence-journey.cjs','docs/QLOO-DIAGNOSTIC-EVIDENCE.md','.gitattributes','pyproject.toml','requirements-backend.lock.txt','requirements-repeatable.lock.txt','fixtures/synthetic.json',
        'assets/tokenizers/o200k_base.tiktoken','licenses/tiktoken-MIT.txt',
        'tests/fixtures/policy_v1/public_cases.py','tests/fixtures/policy_v1/public_policy_continuation.py',
        'src/affinityqa/remote_pacing.py','docs/CINEMA-PREFERENCES.md',

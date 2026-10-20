@@ -3,6 +3,7 @@ import copy
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
+import re
 from pathlib import Path
 import sqlite3
 from threading import Condition, RLock, Thread
@@ -15,6 +16,9 @@ from .individual_capture import safe_directory_path, execution_lease, sha
 from .individual_jobs import JOB_ID, IndividualJobManager, need, read, write
 from .individual_verify import inventory
 from .repeatable_capture import request_for, open_movie_request, wide_cinema_request, prepare_protocol, execute_stage, outer_receipt, protocol
+
+JOB_HTTP_SAMPLE = re.compile(r'http-[0-9]{4}\.json')
+JOB_MODEL_PACKET = re.compile(r'(?:causal|discovery|pair|open-movie|wide)-execution-[A-Za-z0-9_.-]+\.json')
 
 ACTIVE = ('QUEUED','WAITING_PROVIDER_CAPACITY','RUNNING','VERIFYING')
 HELPERS = ('repeatable_cases.py','repeatable_jobs.py','repeatable_capture.py',
@@ -813,8 +817,22 @@ class RepeatableJobManager:
                            'independent_model_decisions','decision_scope','open_movie_results','chosen_movie_input',
                            'movie_query','intent_text','wide_cinema_results','seed_identity','known_favorite_movie')
                         value['result']={k:copy.deepcopy(receipt[k]) for k in fields if k in receipt}
-                        value.update(receipt_sha256=job['receipt_sha'],saved_provider_samples=receipt['verified_provider_samples'],
-                                     saved_model_packets=receipt['verified_model_packets'])
+                        if (job['status']=='PARTIAL' and job['phase']=='identity-search'
+                                and request['schema_version'] in (8,9)
+                                and receipt.get('verification_status')=='VERIFIED_PARTIAL'
+                                and 'verified_provider_samples' not in receipt
+                                and 'verified_model_packets' not in receipt):
+                            # Historical identity receipts precede final capture counters.
+                            # _receipt has already verified every immutable artifact hash.
+                            # Count saved artifacts, never HTTP attempts or unsent work.
+                            names=receipt['artifact_sha256']
+                            samples=sum(JOB_HTTP_SAMPLE.fullmatch(name) is not None for name in names)
+                            packets=sum(JOB_MODEL_PACKET.fullmatch(name) is not None for name in names)
+                        else:
+                            samples=receipt['verified_provider_samples']
+                            packets=receipt['verified_model_packets']
+                        value.update(receipt_sha256=job['receipt_sha'],saved_provider_samples=samples,
+                                     saved_model_packets=packets)
                         if 'chosen_identities' in receipt:value['chosen_identities']=copy.deepcopy(receipt['chosen_identities'])
                         if 'chosen_movie_inputs' in receipt:value['chosen_movie_inputs']=copy.deepcopy(receipt['chosen_movie_inputs'])
                         if request['schema_version']==2 and receipt['verification_status']=='VERIFIED_COMPLETE':

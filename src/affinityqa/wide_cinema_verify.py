@@ -45,6 +45,7 @@ SOURCES = ('wide_cinema_discovery.py','wide_cinema_agent.py','wide_cinema_captur
     'wide_cinema_v9_compat.py','wide_cinema_v9_verify.py',
     'wide_cinema_v9_source/wide_cinema_discovery.py','wide_cinema_v9_source/wide_cinema_agent.py',
     'wide_cinema_v9_source/wide_cinema_capture.py','wide_cinema_v9_source/wide_cinema_verify.py')
+SOURCES = (*SOURCES,'wide_cinema_v10_compat.py','wide_cinema_v10_verify.py','wide_cinema_v10_source/wide_cinema_discovery.py','wide_cinema_v10_source/wide_cinema_agent.py','wide_cinema_v10_source/wide_cinema_capture.py','wide_cinema_v10_source/wide_cinema_verify.py')
 DATA = ('requirements-backend.lock.txt','requirements-repeatable.lock.txt','assets/tokenizers/o200k_base.tiktoken')
 
 
@@ -118,7 +119,7 @@ def _plan(directory):
         'retrieval_policy':{'pages':[1,2],'take':50,'maximum_raw_rows':100,'maximum_candidates':100,'minimum_eligible':5,
             'fixed_catalog_fallback':False,'missing_year':'reject-row-with-source-position','conflicting_identity':'stop',
             'deduplication':'first-observed-consistent-UUID','seed_returned':'stop'},
-        'identity_candidate_contract':'qloo-wide-confirmed-seed-and-optional-favorite-v1',
+        'identity_candidate_contract':'qloo-wide-confirmed-seed-and-optional-favorite-v2-canonical-name-filter',
         'priority_policy':'explicit-taste-first-then-seed-interpretation-then-provider-order-v1',
         'model_output_policy':'five-ordered-catalog-indices-source-grounded-v10',
         'faults':[],'execution_pacing':{'strategy':'shared-durable-provider-scheduler','minimum_interval_seconds':0},
@@ -161,8 +162,8 @@ def _choices(body,music):
     result = [];seen = {}
     occupations = {'musician','singer','singer songwriter','songwriter','rapper','composer','pianist','guitarist','harpist','record producer','music producer'}
     norm = lambda v:' '.join(unicodedata.normalize('NFKC',v).casefold().split())
-    for raw in body['results']:
-        row = parse_entities({**body,'results':[raw]},insights=False)[0]
+    rows=[parse_entities({**body,'results':[raw]},insights=False)[0] for raw in body['results']]
+    for row in rows:
         if not music:
             need('urn:entity:movie' in row.types,'movie choices cannot be albums/people')
             value = _movie({'entity_id':row.entity_id,'name':row.name,'type':'urn:entity:movie','release_year':row.metadata.get('release_year')})
@@ -176,9 +177,19 @@ def _choices(body,music):
                 service = isinstance(ext,dict) and any(isinstance(ext.get(v),dict) and bool(ext[v].get('id')) for v in ('musicbrainz','lastfm','spotify'))
                 if musical or service:kind = 'urn:entity:person'
             if kind is None:continue
-            _text(row.name,1,300);value = {'entity_id':row.entity_id,'name':row.name,'type':kind}
+            value = {'entity_id':row.entity_id,'name':row.name,'type':kind}
         previous = seen.get(value['entity_id']);need(previous is None or music and same(previous,value),'conflicting or repeated movie choices')
-        if previous is None:seen[value['entity_id']] = value;result.append(value)
+        if previous is not None:continue
+        seen[value['entity_id']] = value
+        if music:
+            # Identity/category conflicts have already been checked. This is
+            # solely the v11 display-name eligibility rule, not a parser catch.
+            normalized=' '.join(unicodedata.normalize('NFKC',row.name).split())
+            if (row.name != normalized or not 1 <= len(row.name) <= 300
+                    or any(unicodedata.category(c).startswith('C') for c in row.name)):
+                continue
+            _text(row.name,1,300)
+        result.append(value)
     need(result,'at least one real selectable identity')
     return result
 
@@ -238,6 +249,9 @@ def _search(directory,continuing=False):
 
 def verify_identity_search(directory, *, original_output_directory=None):
     directory = checked_path(Path(directory))
+    if read(directory/'wide-plan.json').get('protocol_version') == 'qloo-wide-cinema-discovery-v10':
+        from .wide_cinema_v10_verify import verify_identity_search as verify_v10
+        return verify_v10(directory,original_output_directory=original_output_directory)
     if read(directory/'wide-plan.json').get('protocol_version') == 'qloo-wide-cinema-discovery-v3':
         from .wide_cinema_v3_verify import verify_identity_search as verify_v3
         return verify_v3(directory,original_output_directory=original_output_directory)
@@ -421,6 +435,9 @@ def _input_schema(decision):
 
 
 def _wire(decision,manifest):
+    if decision.get('protocol') == 'qloo-wide-cinema-discovery-v10':
+        from .wide_cinema_v10_verify import _wire as wire_v10
+        return wire_v10(decision,manifest)
     if decision.get('protocol') == 'qloo-wide-cinema-discovery-v3':
         from .wide_cinema_v3_verify import _wire as wire_v3
         return wire_v3(decision,manifest)
@@ -485,6 +502,9 @@ def _reason(value):
 
 
 def verify_packet(packet,manifest,decision):
+    if decision.get('protocol') == 'qloo-wide-cinema-discovery-v10':
+        from .wide_cinema_v10_verify import verify_packet as verify_v10
+        return verify_v10(packet,manifest,decision)
     if decision.get('protocol') == 'qloo-wide-cinema-discovery-v3':
         from .wide_cinema_v3_verify import verify_packet as verify_v3
         return verify_v3(packet,manifest,decision)
@@ -613,6 +633,9 @@ def _result(decision,checked):
 
 def verify_discoveries(directory, *, original_output_directory=None):
     directory = checked_path(Path(directory))
+    if read(directory/'wide-plan.json').get('protocol_version') == 'qloo-wide-cinema-discovery-v10':
+        from .wide_cinema_v10_verify import verify_discoveries as verify_v10
+        return verify_v10(directory,original_output_directory=original_output_directory)
     if read(directory/'wide-plan.json').get('protocol_version') == 'qloo-wide-cinema-discovery-v3':
         from .wide_cinema_v3_verify import verify_discoveries as verify_v3
         return verify_v3(directory,original_output_directory=original_output_directory)

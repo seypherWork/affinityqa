@@ -1,6 +1,10 @@
 # Film discovery from a confirmed starting point
 
-The versioned `qloo-wide-cinema-discovery-v10` protocol retrieves films for a
+v11 changes only search-name eligibility; it retains the v10 model selection and
+transport contract and preserves historical v10 readers and receipts. See
+[search names and partial verification](SEARCH-NAME-ELIGIBILITY.md).
+
+The current `qloo-wide-cinema-discovery-v11` protocol retrieves films for a
 confirmed movie or artist, with an optional known favorite film in music mode.
 The visitor explicitly chooses the starting identity. Two Qloo Insights pages
 of up to fifty films form the actual candidate pool. No fixed output catalog

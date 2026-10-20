@@ -343,7 +343,7 @@ class RepeatableCaseManager:
                     original=self.manager.receipt(job_id)
                     directory=Path(self.manager._job(job_id)['directory'])
                     display=display_for_receipt(directory,original,result['receipt_sha256'])
-                    if display['protocol_version']=='qloo-wide-cinema-discovery-v10':
+                    if display['protocol_version'] in ('qloo-wide-cinema-discovery-v10','qloo-wide-cinema-discovery-v11'):
                         display['legacy_original_archived']=False;display['notice']=CURRENT_NOTICE
                         display['binding_sha256']=fingerprint({k:v for k,v in display.items() if k!='binding_sha256'})
                     result['wide_cinema_display']=display

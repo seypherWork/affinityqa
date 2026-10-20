@@ -78,7 +78,7 @@ class WideRepeatableTests(unittest.TestCase):
     def test_overlay_does_not_change_result_download_owner_or_saved_bytes(self):
         final=self.finish();job_id=final['job_id'];self.assertIsInstance(final['wide_cinema_display'],dict)
         self.assertNotIn('wide_cinema_display',final['result'])
-        display=final['wide_cinema_display'];self.assertEqual(display['protocol_version'],'qloo-wide-cinema-discovery-v10')
+        display=final['wide_cinema_display'];self.assertEqual(display['protocol_version'],'qloo-wide-cinema-discovery-v11')
         self.assertFalse(display['legacy_original_archived'])
         from affinityqa.wide_cinema_grounding import CURRENT_NOTICE
         from affinityqa.evidence import fingerprint

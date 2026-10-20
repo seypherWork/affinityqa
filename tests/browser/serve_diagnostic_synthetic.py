@@ -7,6 +7,7 @@ import socket
 import sys
 import tempfile
 import threading
+import time
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path[:0]=[str(ROOT/'src'),str(ROOT/'tests')]
@@ -76,8 +77,12 @@ def main():
         timer=threading.Timer(args.exit_after_seconds,stop)
         timer.daemon=True
         timer.start()
-    print(json.dumps({'ready_origin':origin,'fixture_provenance':'synthetic-only',
-                     'capture_root':str(capture),'real_provider_calls':0}),flush=True)
+    def announce_ready():
+        while not server.started and not server.should_exit:time.sleep(.01)
+        if server.started:
+            print(json.dumps({'ready_origin':origin,'fixture_provenance':'synthetic-only',
+                             'capture_root':str(capture),'real_provider_calls':0}),flush=True)
+    threading.Thread(target=announce_ready,daemon=True).start()
     try:server.run(sockets=[listener])
     finally:
         if timer:timer.cancel()
