@@ -46,6 +46,7 @@ SOURCES = ('wide_cinema_discovery.py','wide_cinema_agent.py','wide_cinema_captur
     'wide_cinema_v9_source/wide_cinema_discovery.py','wide_cinema_v9_source/wide_cinema_agent.py',
     'wide_cinema_v9_source/wide_cinema_capture.py','wide_cinema_v9_source/wide_cinema_verify.py')
 SOURCES = (*SOURCES,'wide_cinema_v10_compat.py','wide_cinema_v10_verify.py','wide_cinema_v10_source/wide_cinema_discovery.py','wide_cinema_v10_source/wide_cinema_agent.py','wide_cinema_v10_source/wide_cinema_capture.py','wide_cinema_v10_source/wide_cinema_verify.py')
+SOURCES = (*SOURCES,'wide_cinema_v11_compat.py','wide_cinema_v11_verify.py','wide_cinema_v11_source/wide_cinema_discovery.py','wide_cinema_v11_source/wide_cinema_agent.py','wide_cinema_v11_source/wide_cinema_capture.py','wide_cinema_v11_source/wide_cinema_verify.py')
 DATA = ('requirements-backend.lock.txt','requirements-repeatable.lock.txt','assets/tokenizers/o200k_base.tiktoken')
 
 
@@ -71,11 +72,21 @@ def _text(value,minimum,maximum):
     return value
 
 
+def _source_title(value):
+    # Independently validate, but keep every accepted source-title character.
+    need(isinstance(value,str) and 1 <= len(value) <= 300,'bounded original movie title')
+    need(all(unicodedata.category(character)[0] != 'C' and unicodedata.category(character) not in {'Zl','Zp'}
+             for character in value),'source title controls')
+    normalized=unicodedata.normalize('NFKC',value)
+    need(len(normalized) <= 300 and len(normalized.strip()) > 0,'meaningful bounded source title')
+    return value
+
+
 def _movie(value):
     need(isinstance(value,dict) and set(value) == {'entity_id','name','type','release_year'},'closed movie identity')
     need(isinstance(value['entity_id'],str) and canonical_id(value['entity_id']) == value['entity_id'] and value['type'] == 'urn:entity:movie'
          and type(value['release_year']) is int and 1888 <= value['release_year'] <= 2100,'actual movie ID/type/year')
-    _text(value['name'],1,300)
+    _source_title(value['name'])
     return copy.deepcopy(value)
 
 
@@ -118,7 +129,7 @@ def _plan(directory):
         'maximum_attempts_per_request':1,'maximum_model_load_requests':0,'maximum_model_metadata_requests':0,
         'retrieval_policy':{'pages':[1,2],'take':50,'maximum_raw_rows':100,'maximum_candidates':100,'minimum_eligible':5,
             'fixed_catalog_fallback':False,'missing_year':'reject-row-with-source-position','conflicting_identity':'stop',
-            'deduplication':'first-observed-consistent-UUID','seed_returned':'stop'},
+            'deduplication':'first-observed-consistent-UUID','seed_returned':'stop','movie_titles':'bounded-original-source-v1'},
         'identity_candidate_contract':'qloo-wide-confirmed-seed-and-optional-favorite-v2-canonical-name-filter',
         'priority_policy':'explicit-taste-first-then-seed-interpretation-then-provider-order-v1',
         'model_output_policy':'five-ordered-catalog-indices-source-grounded-v10',
@@ -249,6 +260,9 @@ def _search(directory,continuing=False):
 
 def verify_identity_search(directory, *, original_output_directory=None):
     directory = checked_path(Path(directory))
+    if read(directory/'wide-plan.json').get('protocol_version') == 'qloo-wide-cinema-discovery-v11':
+        from .wide_cinema_v11_verify import verify_identity_search as reader_v11
+        return reader_v11(directory,original_output_directory=original_output_directory)
     if read(directory/'wide-plan.json').get('protocol_version') == 'qloo-wide-cinema-discovery-v10':
         from .wide_cinema_v10_verify import verify_identity_search as verify_v10
         return verify_v10(directory,original_output_directory=original_output_directory)
@@ -435,6 +449,9 @@ def _input_schema(decision):
 
 
 def _wire(decision,manifest):
+    if decision.get('protocol') == 'qloo-wide-cinema-discovery-v11':
+        from .wide_cinema_v11_verify import _wire as reader_v11
+        return reader_v11(decision,manifest)
     if decision.get('protocol') == 'qloo-wide-cinema-discovery-v10':
         from .wide_cinema_v10_verify import _wire as wire_v10
         return wire_v10(decision,manifest)
@@ -502,6 +519,9 @@ def _reason(value):
 
 
 def verify_packet(packet,manifest,decision):
+    if decision.get('protocol') == 'qloo-wide-cinema-discovery-v11':
+        from .wide_cinema_v11_verify import verify_packet as reader_v11
+        return reader_v11(packet,manifest,decision)
     if decision.get('protocol') == 'qloo-wide-cinema-discovery-v10':
         from .wide_cinema_v10_verify import verify_packet as verify_v10
         return verify_v10(packet,manifest,decision)
@@ -633,6 +653,9 @@ def _result(decision,checked):
 
 def verify_discoveries(directory, *, original_output_directory=None):
     directory = checked_path(Path(directory))
+    if read(directory/'wide-plan.json').get('protocol_version') == 'qloo-wide-cinema-discovery-v11':
+        from .wide_cinema_v11_verify import verify_discoveries as reader_v11
+        return reader_v11(directory,original_output_directory=original_output_directory)
     if read(directory/'wide-plan.json').get('protocol_version') == 'qloo-wide-cinema-discovery-v10':
         from .wide_cinema_v10_verify import verify_discoveries as verify_v10
         return verify_v10(directory,original_output_directory=original_output_directory)

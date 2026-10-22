@@ -44,6 +44,7 @@ SOURCES = ('wide_cinema_discovery.py','wide_cinema_agent.py','wide_cinema_captur
     'wide_cinema_v9_source/wide_cinema_discovery.py','wide_cinema_v9_source/wide_cinema_agent.py',
     'wide_cinema_v9_source/wide_cinema_capture.py','wide_cinema_v9_source/wide_cinema_verify.py')
 SOURCES = (*SOURCES,'wide_cinema_v10_compat.py','wide_cinema_v10_verify.py','wide_cinema_v10_source/wide_cinema_discovery.py','wide_cinema_v10_source/wide_cinema_agent.py','wide_cinema_v10_source/wide_cinema_capture.py','wide_cinema_v10_source/wide_cinema_verify.py')
+SOURCES = (*SOURCES,'wide_cinema_v11_compat.py','wide_cinema_v11_verify.py','wide_cinema_v11_source/wide_cinema_discovery.py','wide_cinema_v11_source/wide_cinema_agent.py','wide_cinema_v11_source/wide_cinema_capture.py','wide_cinema_v11_source/wide_cinema_verify.py')
 DATA = ('requirements-backend.lock.txt','requirements-repeatable.lock.txt','assets/tokenizers/o200k_base.tiktoken')
 
 
@@ -117,7 +118,7 @@ def prepare_plan(request, output, *, minimum_model_interval_seconds=None):
         'maximum_attempts_per_request':1,'maximum_model_load_requests':0,'maximum_model_metadata_requests':0,
         'retrieval_policy':{'pages':[1,2],'take':50,'maximum_raw_rows':100,'maximum_candidates':100,'minimum_eligible':5,
             'fixed_catalog_fallback':False,'missing_year':'reject-row-with-source-position','conflicting_identity':'stop',
-            'deduplication':'first-observed-consistent-UUID','seed_returned':'stop'},
+            'deduplication':'first-observed-consistent-UUID','seed_returned':'stop','movie_titles':'bounded-original-source-v1'},
         'identity_candidate_contract':'qloo-wide-confirmed-seed-and-optional-favorite-v2-canonical-name-filter',
         'priority_policy':'explicit-taste-first-then-seed-interpretation-then-provider-order-v1',
         'model_output_policy':'five-ordered-catalog-indices-source-grounded-v10',
@@ -206,7 +207,7 @@ def capture_confirmed(directory, selected_seed_entity_id, identity_receipt, sett
     directory = safe_directory_path(Path(directory))
     reviewed_plan = strict_json((directory/'wide-plan.json').read_bytes())
     need(isinstance(reviewed_plan,dict) and reviewed_plan.get('protocol_version') == PROTOCOL,
-         'Historical wide captures are read-only; prepare a new v11 plan.')
+         'Historical wide captures are read-only; prepare a new v12 plan.')
     need(_test_pacing_clock is None and current_runtime() is not None, 'Actual durable dispatcher required.')
     with execution_lease(directory.parent.parent):
         current = verify_identity_search(directory)

@@ -92,12 +92,12 @@ async function main(){
       fixture.assertPreserved();
     }
     if(process.argv.includes('--audit-history-only')||process.argv.includes('--audit-identity-only')){
-      await page.goto(fixture.origin+'/demo');await root().waitFor();await openSession();
+      await page.goto(fixture.origin+'/demo#wide');await root().waitFor();await openSession();
       await auditFixesRegression(process.argv.includes('--audit-history-only')?'history':'identity');
       assert.deepEqual(errors,[]);
       process.stdout.write(JSON.stringify({status:'PASS',focused_audit_regression:process.argv.includes('--audit-history-only')?'history':'identity',viewport:mobile?'mobile':'desktop',provider_api_calls:0,model_calls:0,legacy_preserved:true})+'\n');return;
     }
-    await page.goto(fixture.origin+'/demo');await root().waitFor({state:'visible'});
+    await page.goto(fixture.origin+'/demo#wide');await root().waitFor({state:'visible'});
     await page.locator('.cinema-footer').getByText('Card artwork is original and decorative.',{exact:false}).waitFor();
     assert.doesNotMatch(await page.locator('.cinema-footer').innerText(),/images.*supplied by Qloo/,'Shared footer must agree with the original-art presentation');
     assert.equal(fixture.state.posts.length,0,'Mode discovery does not open a session');

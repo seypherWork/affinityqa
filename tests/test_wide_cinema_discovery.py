@@ -96,7 +96,7 @@ class WideContractTests(unittest.TestCase):
     def test_v10_has_one_indices_array_and_never_normalizes_model_prose(self):
         decision=self.decision();output=output_fixture(decision);checked=validate_output(decision,output)
         self.assertTrue(all(set(row)=={'catalog_index'} for row in checked['choices']))
-        self.assertEqual(decision['protocol'],'qloo-wide-cinema-discovery-v11')
+        self.assertEqual(decision['protocol'],'qloo-wide-cinema-discovery-v12')
         for prose in ('  Ｌａ\t opción\r\n sintética podría encajar como interpretación.  ',' '*1000+'Una explicación sintética.'):
             value=copy.deepcopy(output);value['ordered_catalog_indices'][0]['text']=prose
             with self.assertRaisesRegex(SchemaError,'OUTPUT_CHOICE_SHAPE'):validate_output(decision,value)
@@ -106,7 +106,7 @@ class WideContractTests(unittest.TestCase):
         from affinityqa.wide_cinema_verify import expected_manifest,_wire
         decision=self.decision();manifest=model_manifest('test-double-only');payload=wire(decision,manifest)
         self.assertEqual(manifest,expected_manifest('test-double-only'))
-        self.assertEqual(manifest['prompt_version'],'qloo-wide-cinema-discovery-v11')
+        self.assertEqual(manifest['prompt_version'],'qloo-wide-cinema-discovery-v12')
         self.assertEqual(manifest['response_contract'],'wide-five-ordered-catalog-indices-v10')
         marker={'type':'text'}
         self.assertEqual(manifest['provider_response_format'],marker)

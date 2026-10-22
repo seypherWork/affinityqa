@@ -60,8 +60,9 @@ This is a supported integration repair, not arbitrary source-code repair.
 In the current discovery route, Groq Free / GPT-OSS 20B selects eligible
 indices, and the server reconstructs canonical film identities. The model
 supplies no plot or explanation prose. Cards display that film's saved Qloo
-description, with language/missing-data labels, and observed images with a
-fallback. Faithful metadata display is separate from independent film-fact or
+description, with language/missing-data labels, and original decorative SVG
+illustrations. These are not film posters or depictions of the selected films.
+Faithful metadata display is separate from independent film-fact or
 taste validation. The optional direction is sent to the model, not as an
 undocumented Qloo free-text query.
 

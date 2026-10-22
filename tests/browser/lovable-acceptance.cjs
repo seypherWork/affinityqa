@@ -79,13 +79,23 @@ async function runViewport(browser, width) {
     evidence.push({check: 'no-horizontal-overflow', state: label, ...dimensions});
   };
   try {
-    await page.goto(fixture.origin + '/demo');
+    await page.goto(fixture.origin + '/demo#wide');
     await root().waitFor({state: 'visible'});
     assert.equal(mutationCount(), 0, 'Opening the page cannot create a plan or call providers');
     assert.equal(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches), true);
     const session = root().getByRole('button', {name: 'OPEN OR RESTORE MY SESSION'});
     for (let step = 0; step < 50 && !await session.evaluate(element => element === document.activeElement); step += 1) await page.keyboard.press('Tab');
     assert.equal(await session.evaluate(element => element === document.activeElement), true, 'Session is reachable through sequential keyboard navigation');
+    const actionContrast = await session.evaluate(el=>{
+      const rgb=text=>text.match(/[\d.]+/g).slice(0,3).map(Number);
+      const lum=v=>v.map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4}).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
+      const ratio=(a,b)=>(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+      const s=getComputedStyle(el),bg=lum(rgb(s.backgroundColor));
+      return {text:ratio(lum(rgb(s.color)),bg),focus:ratio(lum(rgb(s.outlineColor)),lum(rgb(getComputedStyle(el.parentElement).backgroundColor))),outline:s.outlineStyle,width:parseFloat(s.outlineWidth)};
+    });
+    assert.ok(actionContrast.text>=4.5,'Primary action text remains legible');
+    assert.ok(actionContrast.focus>=3&&actionContrast.outline!=='none'&&actionContrast.width>=2,'Primary action keyboard focus remains distinct');
+    evidence.push({check:'primary-action-contrast',...actionContrast});
     await page.keyboard.press('Enter');
     await root().getByLabel('FILM TITLE', {exact: true}).waitFor();
     assert.ok(await root().getByRole('button', {name: 'REVIEW MY DISCOVERY PLAN'}).isDisabled(), 'Empty starting point cannot submit');
@@ -93,6 +103,15 @@ async function runViewport(browser, width) {
     assert.ok(await root().getByRole('button', {name: 'REVIEW MY DISCOVERY PLAN'}).isDisabled(), 'Whitespace cannot submit');
     assert.equal(mutationCount(), 0);
     await noOverflow('empty-form');
+    const controlContrast = await root().locator('input:not([type="radio"]):not([type="checkbox"]), textarea, select').evaluateAll(elements => {
+      const rgb=text=>text.match(/[\d.]+/g).slice(0,3).map(Number);
+      const lum=values=>values.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
+      const ratio=(a,b)=>(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+      return elements.filter(el=>el.getBoundingClientRect().width>0).map(el=>{const s=getComputedStyle(el),bg=lum(rgb(s.backgroundColor));return {tag:el.tagName,text:ratio(lum(rgb(s.color)),bg),border:ratio(lum(rgb(s.borderTopColor)),bg)}});
+    });
+    assert.ok(controlContrast.length>=2);
+    for(const sample of controlContrast){assert.ok(sample.text>=4.5,'Control text contrast: '+JSON.stringify(sample));assert.ok(sample.border>=3,'Control border contrast: '+JSON.stringify(sample));}
+    evidence.push({check:'visible-control-contrast',samples:controlContrast});
 
     capabilityPatch = {admissions_blocked: true};
     await refresh(); await discover();
@@ -132,6 +151,14 @@ async function runViewport(browser, width) {
     await root().getByText('This admitted case is waiting for provider capacity.', {exact: false}).waitFor();
     assert.ok(await root().getByRole('button', {name: 'NEW DISCOVERY', exact: true}).isDisabled(), 'A queued case cannot silently start another case');
     await noOverflow('queue'); await capture('queue');
+    const queuedMutations = mutationCount();
+    await saved();
+    await root().getByRole('button', {name: /FILM · John Wick/}).filter({has: page.locator('span', {hasText: 'QUEUED'})}).click();
+    await root().locator('[data-state="QUEUED"]').waitFor();
+    assert.equal(await root().getByRole('heading', {name: 'NO COMPLETE DISCOVERY CLAIM', exact: true}).count(), 0, 'A queued case is still waiting, not falsely terminal');
+    assert.equal(mutationCount(), queuedMutations, 'Reopening the queued case only reads');
+    await discover();
+
     const activeJob = [...fixture.state.jobs.values()].at(-1);
     Object.assign(activeJob, {status: 'AWAITING_IDENTITY_CONFIRMATION', queue_status: null, queue_position: null, not_before: null});
     queueExecute = false;
@@ -157,20 +184,22 @@ async function runViewport(browser, width) {
     assert.equal(postsTo('/execute'), 1); assert.equal(postsTo('/confirm-wide'), 1);
     const cards = root().locator('[data-result-movie-id]');
     assert.equal(await cards.count(), 5);
-    for (let index = 0; index < 5; index += 1) {
-      const image = cards.nth(index).locator('img');
-      await cards.nth(index).scrollIntoViewIfNeeded();
-      await image.waitFor();
-      await page.waitForFunction(element => element.complete && element.naturalWidth > 0, await image.elementHandle());
-    }
-    assert.equal(new Set(imageRequests).size, 5, 'All five fixture poster identities loaded');
+    const originalArtwork = await cards.locator('svg.film-abstract-art').evaluateAll(nodes => nodes.map(node => node.outerHTML));
+    assert.equal(originalArtwork.length, 5, 'The existing five original illustrations are retained');
+    assert.equal(await cards.locator('img').count(), 0, 'No unlicensed external poster is introduced');
+    assert.equal(imageRequests.length, 0, 'The presentation makes no external image request');
+    await discover();
+    await root().getByRole('heading', {name: 'INSPIRED BY John Wick', exact: true}).waitFor();
+    assert.equal(await cards.count(), 5, 'DISCOVER keeps a complete case instead of the prototype Finishing dead end');
+    assert.deepEqual(await cards.locator('svg.film-abstract-art').evaluateAll(nodes => nodes.map(node => node.outerHTML)), originalArtwork);
+    assert.equal(mutationCount(), beforeRecovery, 'Returning to the completed case makes no provider mutation');
     await noOverflow('five-results'); await capture('results');
     const animations = await root().evaluate(element => [...element.querySelectorAll('*')].flatMap(node => {
       const style = getComputedStyle(node);
       return style.animationName !== 'none' && style.animationDuration.split(',').some(value => parseFloat(value) > 0.01) ? [style.animationName] : [];
     }));
     assert.deepEqual(animations, [], 'Reduced motion removes sustained decorative animation');
-    evidence.push({check: 'queue-and-uncertain-post', queued: true, repeated_click_dispatched_once: true, missing_year_blocked: true, lost_confirm_recovered_by_get: true, five_synthetic_posters_loaded: true, reduced_motion: true});
+    evidence.push({check: 'queue-and-uncertain-post', queued: true, repeated_click_dispatched_once: true, missing_year_blocked: true, lost_confirm_recovered_by_get: true, five_original_illustrations_preserved: true, complete_discover_navigation: true, reduced_motion: true});
 
     const expected = Buffer.from(JSON.stringify({job_id: activeJob.job_id, result: activeJob.result}));
     const downloadEvent = page.waitForEvent('download');
@@ -234,6 +263,13 @@ async function runViewport(browser, width) {
     await root().locator('[data-state="PLANNED"]').waitFor();
     assert.ok(await root().getByRole('button', {name: 'FIND MY FILM', exact: true}).isDisabled(), 'Zero remaining execution capacity blocks the provider action');
     assert.equal(postsTo('/execute'), 1, 'Reviewing a zero-capacity plan does not send another execution');
+    capabilityPatch = {remaining_executions: 5, admissions_blocked: true};
+    await root().getByRole('button', {name: 'REFRESH SAVED STATUS', exact: true}).click();
+    await root().getByText('NEW ADMISSIONS PAUSED', {exact: true}).waitFor();
+    assert.ok(await root().getByRole('button', {name: 'FIND MY FILM', exact: true}).isDisabled(), 'Updated paused admissions block an existing plan');
+    assert.equal(mutationCount(), beforeUnavailable + 1, 'Refreshing paused capacity does not execute another case');
+    capabilityPatch = {remaining_executions: 0};
+
     await refresh();
     const restoredCapabilities = page.waitForResponse(response => new URL(response.url()).pathname === '/api/demo/cases/capabilities' && response.request().method() === 'GET');
     await root().getByRole('button', {name: /FILM · John Wick/}).filter({has: page.locator('span', {hasText: 'COMPLETE'})}).click();
@@ -248,11 +284,71 @@ async function runViewport(browser, width) {
     assert.equal(await root().getByRole('link', {name: 'DOWNLOAD DISCOVERY VERIFICATION', exact: true}).count(), 0, 'Wrong or expired session cannot download another ownership view');
     assert.equal(mutationCount(), beforeMissingSession, 'A missing session does not repeat any provider POST');
     await noOverflow('missing-session');
-    evidence.push({check: 'session-and-capacity', completed_case_readable_at_zero_new_capacity: true, zero_capacity_blocks_execution: true, missing_session_blocks_download: true, no_repeated_post: true});
+    evidence.push({check: 'session-and-capacity', completed_case_readable_at_zero_new_capacity: true, zero_capacity_blocks_execution: true, paused_capacity_refresh_blocks_existing_plan: true, queued_reopen_not_terminal: true, missing_session_blocks_download: true, no_repeated_post: true});
     fixture.assertPreserved();
     assert.deepEqual(errors, [], 'No uncaught browser exception');
     return {status: 'PASS', viewport: {width, height: 1000}, preferences: 'SYNTHETIC', provider_api_calls: 0, model_calls: 0, uncaught_page_errors: errors.length, preserved_legacy_case: true, evidence};
   } finally {if (releaseExecute) releaseExecute(); await context.close(); await fixture.close();}
+}
+
+async function checkLanding(browser, width) {
+  const fixture = await createFixture({webRoot});
+  const context = await browser.newContext({viewport: {width, height: 1000}, reducedMotion: 'reduce'});
+  try {
+    const page = await context.newPage();
+    const external = [];
+    await context.route('**/*', route => {
+      if (new URL(route.request().url()).origin !== fixture.origin) {external.push(route.request().url()); return route.abort();}
+      return route.continue();
+    });
+    await page.goto(fixture.origin + '/demo');
+    await page.getByRole('heading', {name: 'Find the wrong context. Verify the repair.', exact: true}).waitFor();
+    const sequence = page.getByRole('group', {name: 'Diagnostic sequence', exact: true});
+    assert.equal(await sequence.locator('strong').count(), 4);
+    await page.getByText('No verified capture installed.', {exact: true}).waitFor();
+    const geometry = await page.evaluate(() => ({width: innerWidth, full: document.documentElement.scrollWidth, color: getComputedStyle(document.querySelector('.public-cinema')).color, scheme: getComputedStyle(document.querySelector('.public-cinema')).colorScheme}));
+    assert.ok(geometry.full <= width + 1, 'Diagnosis has no horizontal overflow');
+    assert.equal(geometry.scheme, 'dark');
+    assert.equal(geometry.color, 'rgb(241, 240, 250)');
+    const guide = page.getByRole('figure', {name:'Illustrative context-binding diagram, not a case result',exact:true});
+    assert.ok(await guide.isVisible(), 'The visual guide is explicitly illustrative, never a verified case');
+    assert.equal(await guide.getByText('ILLUSTRATIVE EXAMPLE',{exact:true}).count(),1);
+    const contrast = await page.evaluate(() => {
+      const rgb = text => {const parts=text.match(/[\d.]+/g).map(Number);return [...parts.slice(0,3),parts.length===4?parts[3]:1]};
+      const luminance = values => values.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
+      const background = element => {const layers=[];for(let node=element;node;node=node.parentElement){const color=rgb(getComputedStyle(node).backgroundColor);layers.push(color);if(color[3]===1)break;}let result=[0,0,0];for(const color of layers.reverse())result=result.map((v,i)=>color[i]*color[3]+v*(1-color[3]));return result};
+      const selectors=['.violet-hero h1','.violet-hero h1 > span','.violet-hero-copy > p','.violet-eyebrow','.context-guide figcaption','.context-guide figcaption > span','.context-guide-node small','.cinema-primary-navigation a[aria-current="page"]'];
+      return selectors.flatMap(selector=>Array.from(document.querySelectorAll(selector)).filter(el=>el.getBoundingClientRect().width>0).map(element=>{const a=luminance(rgb(getComputedStyle(element).color)),b=luminance(background(element));return {selector,ratio:(Math.max(a,b)+.05)/(Math.min(a,b)+.05)}}));
+    });
+    assert.ok(contrast.length>=6);
+    for(const sample of contrast) assert.ok(sample.ratio>=4.5, sample.selector+' retains readable contrast: '+sample.ratio);
+    const nav = page.getByRole('navigation', {name: 'Main navigation', exact: true});
+    for (const name of ['DIAGNOSIS & EVIDENCE', 'FILM DISCOVERY', 'SAVED']) {
+      const link = nav.getByRole('link', {name, exact: true});
+      assert.ok(await link.isVisible());
+      const box = await link.boundingBox();
+      assert.ok(box && box.height >= 44, 'Primary navigation is touch accessible');
+    }
+    const diagnosis = nav.getByRole('link', {name: 'DIAGNOSIS & EVIDENCE', exact: true});
+    await diagnosis.focus();
+    const focus = await diagnosis.evaluate(element => ({outline:getComputedStyle(element).outlineStyle,width:parseFloat(getComputedStyle(element).outlineWidth)}));
+    assert.ok(focus.outline !== 'none' && focus.width >= 2, 'Keyboard focus remains visible');
+    if(process.env.AFFINITYQA_TEST_SCREENSHOT_DIR){
+      const directory=path.resolve(process.env.AFFINITYQA_TEST_SCREENSHOT_DIR);fs.mkdirSync(directory,{recursive:true});
+      fs.writeFileSync(path.join(directory,'jury-diagnosis-'+width+'.png'),await page.screenshot({fullPage:true}),{flag:'wx'});
+    }
+    await nav.getByRole('link', {name: 'FILM DISCOVERY', exact: true}).click();
+    await page.locator('section[aria-labelledby="wide-cinema-title"]').waitFor({state:'visible'});
+    assert.equal(await page.locator('[data-jury="recorded"]').isVisible(),false,'The inactive diagnosis is hidden by the real React mode');
+    assert.equal(await guide.isVisible(),false,'The illustrative hero cannot leak into discovery');
+    await diagnosis.click();
+    assert.equal(await page.locator('[data-jury="wide"]').isVisible(),false,'The inactive discovery is hidden after returning to diagnosis');
+    await page.getByRole('heading', {name: 'Find the wrong context. Verify the repair.', exact: true}).waitFor();
+    assert.deepEqual(external, []);
+    assert.equal(fixture.state.posts.length, 0, 'Navigation does not create provider work or open a session');
+    fixture.assertPreserved();
+    return {width, diagnosis_first:true, navigation_without_mutation:true, no_capture_honestly_unavailable:true, focus_visible:true, illustrative_guide:true, contrast, geometry};
+  } finally {await context.close();await fixture.close();}
 }
 
 async function main() {
@@ -261,9 +357,11 @@ async function main() {
   fs.mkdirSync(downloadsPath, {recursive: true});
   const browser = await chromium.launch({headless: true, downloadsPath, ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? {executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH, args: ['--no-sandbox', '--disable-dev-shm-usage']} : {})});
   try {
+    const landing = [];
+    for(const width of [360,768,1440]) landing.push(await checkLanding(browser,width));
     const results = [];
     for (const width of [360, 1440]) results.push(await runViewport(browser, width));
-    process.stdout.write(JSON.stringify({status: 'PASS', scope: 'local synthetic presentation acceptance', results, public_ci: 'NOT_RUN', live_provider_acceptance: 'NOT_RUN'}) + '\n');
+    process.stdout.write(JSON.stringify({status: 'PASS', scope: 'local synthetic presentation acceptance', landing, results, public_ci: 'NOT_RUN', live_provider_acceptance: 'NOT_RUN'}) + '\n');
   } finally {await browser.close();}
 }
 main().catch(error => {process.stderr.write(error.stack + '\n'); process.exitCode = 1;});

@@ -1,5 +1,7 @@
 # AffinityQA — judge walkthrough
 
+> **Schedule checked 22 October 2026:** The [current official rules](https://qloo.devpost.com/rules) specify judging on 2–5 November 2026. The application's existing access policy extends through 17 November 2026, 04:45 UTC and therefore covers that period. The policy date is not the official judging deadline; earlier dated records retain their original observations.
+
 > **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
 
 Open [the hosted application](https://affinityqa-review.onrender.com/demo#recorded).

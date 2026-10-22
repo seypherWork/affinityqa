@@ -27,6 +27,7 @@ async function main(){
       if(!await root().getByLabel('ARTIST NAME',{exact:true}).isVisible()&&!await root().getByLabel('FILM TITLE',{exact:true}).isVisible())await root().getByRole('button',{name:'NEW DISCOVERY',exact:true}).first().click();
       await root().getByRole('button',{name:'START WITH AN ARTIST',exact:true}).click();
       await root().getByLabel('ARTIST NAME',{exact:true}).fill(name);
+      await root().getByLabel('Your direction (optional)',{exact:true}).fill('Synthetic title preservation acceptance.');
       await root().getByRole('button',{name:'REVIEW MY DISCOVERY PLAN',exact:true}).click();
       await root().getByRole('button',{name:'FIND MY ARTIST',exact:true}).click();
     };
@@ -50,6 +51,16 @@ async function main(){
     const completeDownload=JSON.parse((await download()).toString());
     assert.equal(completeDownload.result.verification_status,'VERIFIED_COMPLETE');
     assert.equal(completeDownload.result.provenance,'SIMULATION_ONLY');
+    const rawTitle='Synthetic  \ufb01lm 1';
+    assert.equal(await root().locator('[data-result-movie-id="00000000-0000-0000-0000-000000000001"] h3').textContent(),rawTitle);
+    const completedView=await(await page.request.get(url+'/api/demo/cases/jobs/'+completeDownload.job_id)).json();
+    assert.equal(completedView.case_protocol,'qloo-wide-cinema-discovery-v12');
+    assert.equal(completedView.wide_cinema_display.protocol_version,'qloo-wide-cinema-discovery-v12');
+    assert.equal(completedView.wide_cinema_display.receipt_sha256,completeDownload.receipt_sha256);
+    assert.equal(completedView.receipt_sha256,completeDownload.receipt_sha256);
+    assert.equal(completeDownload.result.wide_cinema_results.candidate_catalog[0].name,rawTitle);
+    assert.equal(completeDownload.result.wide_cinema_results.reasons[0].evidence.title,rawTitle);
+    assert.equal(await root().getByText(/Ficha sintética de la película [1-5]:/).count(),5,'v12 source descriptions remain visible and source-bound');
     const beforeRestore=posts.length;await page.reload();await openSession();
     await root().getByRole('heading',{name:'INSPIRED BY Synthetic artist',exact:true}).waitFor();
     assert.deepEqual(posts.slice(beforeRestore),['/api/demo/cases/session']);
@@ -72,7 +83,7 @@ async function main(){
     assert.deepEqual(faults,[]);
     assert.doesNotMatch(await root().textContent(),/INSPECT CASE IDENTIFIERS|PLAN SHA-256|urn:entity:|\b[a-f0-9]{64}\b/i);
     if(process.env.AFFINITYQA_TEST_SCREENSHOT)await page.screenshot({path:process.env.AFFINITYQA_TEST_SCREENSHOT,fullPage:true});
-    const receipt={status:'PASS',provenance:'local actual app with synthetic provider replies',mobile,real_provider_calls:0,completed_cases:1,preserved_partial_cases:1,source_bound_films:5,original_illustrations:5,physical_downloads:3,restore_without_redispatch:true,prior_case_preserved:true,unusable_name_excluded:true,explicit_selection_required:true,page_errors:faults};
+    const receipt={status:'PASS',provenance:'local actual app with synthetic provider replies',mobile,real_provider_calls:0,completed_cases:1,preserved_partial_cases:1,source_bound_films:5,original_illustrations:5,physical_downloads:3,restore_without_redispatch:true,prior_case_preserved:true,unusable_name_excluded:true,explicit_selection_required:true,original_title_preserved:true,v12_source_descriptions_visible:true,page_errors:faults};
     if(process.env.AFFINITYQA_TEST_NATIVE_RECEIPT)fs.writeFileSync(process.env.AFFINITYQA_TEST_NATIVE_RECEIPT,JSON.stringify(receipt,null,2),{flag:'wx'});
     console.log(JSON.stringify(receipt));
   }finally{

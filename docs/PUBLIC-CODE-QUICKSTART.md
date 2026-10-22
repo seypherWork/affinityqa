@@ -1,8 +1,8 @@
 # AffinityQA — source setup and review
 
-**Verified hosted review · 20 October 2026 · `1a6229e`.**
+**Historical hosted review · 20 October 2026 · `1a6229e`.**
 The [judge walkthrough](DEMO-GUIDE.md) and [README dated review](../README.md#verified-hosted-review--20-october-2026)
-describe the latest recorded and real-service checks. A later local source
+describe those dated recorded and real-service checks. Current review evidence is linked from the README. A later local source
 candidate is not automatically this deployed revision. The dated notes below
 keep their original scope; they are not the current service status.
 

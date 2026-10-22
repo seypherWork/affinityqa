@@ -1,0 +1,213 @@
+/* Gemini's visual composition, rebuilt in the existing local stylesheet stack.
+ * Presentation only: native React routes, hidden/disclosure rules, results,
+ * state labels and FilmAbstractArtwork remain owned by their real components. */
+.public-cinema {
+  --paper: #080b18;
+  --white: #0f1325;
+  --line: #2c304b;
+  --muted: #b6b8cf;
+  background:
+    radial-gradient(ellipse 800px 500px at 85% -50px, #38216b59, transparent 80%),
+    radial-gradient(ellipse 600px 450px at 15% 700px, #17345a40, transparent 80%),
+    #080b18;
+}
+.public-cinema .cinema-topbar {
+  min-height: 80px;
+  padding-inline: max(1.5rem, calc((100% - 1216px) / 2));
+  background: #0b0e1e;
+  border-bottom-color: #2c304b;
+}
+.public-cinema .cinema-brand { gap: .65rem; flex-wrap: wrap; }
+.public-cinema .cinema-brand > span { font-size: 1.4rem; letter-spacing: -.045em; }
+.public-cinema .cinema-brand > span > span { color: #b9a7ff; }
+.public-cinema .gemini-brand-tag {
+  padding: .3rem .5rem;
+  margin-left: .5rem;
+  border: 1px solid #3d385e;
+  border-radius: .3rem;
+  color: #c3bedb;
+  font: 500 .625rem/1.5 ui-monospace, monospace;
+  letter-spacing: .07em;
+}
+.public-cinema .cinema-primary-navigation > a { font-size: .6875rem; padding: .75rem .9rem; }
+.public-cinema .cinema-primary-navigation > a[aria-current="page"] { border-radius: .5rem; }
+.public-cinema .cinema-main { max-width: 1280px; padding-top: 3rem; }
+.public-cinema .cinema-footer { max-width: 1280px; color: var(--muted); }
+.public-cinema [data-jury="recorded"] .violet-hero {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  margin-bottom: 1.75rem;
+  padding: .5rem 0 2.5rem;
+  border-bottom: 1px solid var(--line);
+}
+.public-cinema [data-jury="recorded"] .violet-hero h1 {
+  font-size: clamp(2.1rem, 3.4vw, 3rem);
+  line-height: 1.12;
+  letter-spacing: -.035em;
+  text-transform: none;
+  margin-block: 1rem 1.25rem;
+}
+.public-cinema .violet-hero h1 > span { display: block; color: #b9a7ff; }
+.public-cinema [data-jury="recorded"] .violet-hero-copy > p {
+  font-size: .9375rem;
+  line-height: 1.8;
+  max-width: 41rem;
+}
+.public-cinema .violet-hero-actions { margin-top: 1.5rem; }
+.public-cinema .violet-hero-actions > a { border-radius: .5rem; padding: .8rem 1.2rem; }
+.public-cinema .violet-hero-actions > a[data-secondary] { border-color: #3d385e; background: #111527; }
+
+/* The before/after diagram remains an explicitly labelled illustration.
+ * Compact rectangular nodes follow Gemini's composition without inventing
+ * case results, proof, provider data or an agent-release approval. */
+.public-cinema .context-guide {
+  padding: 1.25rem;
+  border: 1px solid #3d385e;
+  border-radius: 1rem;
+  background: radial-gradient(ellipse at 85% 0, #38216b29, transparent 75%), #0f1325;
+  box-shadow: 0 16px 40px -24px #0009;
+}
+.public-cinema .context-guide > figcaption { gap: .5rem; font-size: .6875rem; letter-spacing: .065em; }
+.public-cinema .context-guide > figcaption > span { font-size: .5625rem; padding: .2rem .4rem; }
+.public-cinema .context-guide-route {
+  padding: .875rem .875rem 1rem;
+  border: 1px solid #34334c;
+  border-radius: .8rem;
+  background: #0b0e1e;
+}
+.public-cinema .context-guide-route[data-route="after"] { border-color: #29483f; }
+.public-cinema .context-guide-route > span {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #ff9aac;
+  font-size: .5625rem;
+}
+.public-cinema .context-guide-route[data-route="after"] > span { background: transparent; }
+.public-cinema .context-guide-nodes { gap: 1.25rem; margin-top: .75rem; }
+.public-cinema .context-guide .context-guide-node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 58px;
+  padding: .5rem .25rem;
+  border: 1px solid #292e46;
+  border-radius: .45rem;
+  background: #111527;
+}
+.public-cinema .context-guide .context-guide-node > i {
+  display: flex;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 20px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #b9a7ff;
+  box-shadow: none;
+}
+.public-cinema .context-guide-node > i > svg { width: 16px; height: 20px; }
+.public-cinema .context-guide-node > div { min-width: 0; }
+.public-cinema .context-guide-node small {
+  display: block;
+  color: #b6b8cf;
+  font-size: .625rem;
+  line-height: 1.7;
+  letter-spacing: .035em;
+}
+.public-cinema .context-guide-node strong {
+  display: block;
+  color: #f1f0fa;
+  font-size: .625rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.public-cinema .context-guide .context-guide-node[data-mismatch="true"] { border-color: #805268; background: #271a2b; }
+.public-cinema .context-guide .context-guide-node[data-mismatch="true"] :is(small,strong) { color: #ffb9c6; }
+.public-cinema .context-guide .context-guide-node[data-repaired="true"] { border-color: #39715e; background: #142b28; }
+.public-cinema .context-guide .context-guide-node[data-repaired="true"] :is(small,strong) { color: #99efc9; }
+.public-cinema .context-guide .context-guide-node:not(:last-child)::after {
+  content: "→";
+  top: 50%;
+  left: calc(100% + .3rem);
+  width: .7rem;
+  transform: translateY(-50%);
+  border: 0;
+  color: #ff9aac;
+  font-size: .8125rem;
+}
+.public-cinema .context-guide-route[data-route="after"] .context-guide-node:not(:last-child)::after { color: #79dfb2; }
+
+.public-cinema .jury-sequence { gap: .75rem; margin: 1.5rem 0; }
+.public-cinema .jury-sequence > div { min-height: 64px; padding: .85rem 1rem; border-color: #2c304b; background: #0f1325; }
+.public-cinema .jury-sequence > div > span { width: 26px; height: 26px; }
+.public-cinema [aria-label="Separate acceptance gates"] { gap: 1rem; margin-block: 1.25rem 2rem; }
+.public-cinema [aria-label="Separate acceptance gates"] > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .75rem;
+  padding: 1rem;
+  border: 1px solid #2c304b;
+  border-radius: .85rem;
+  background: #0f1325;
+}
+.public-cinema [aria-label="Separate acceptance gates"] > div > span { font-size: .6875rem; line-height: 1.6; }
+.public-cinema [aria-label="Separate acceptance gates"] strong {
+  padding: .35rem .5rem;
+  border: 1px solid currentColor;
+  border-radius: .3rem;
+  font-size: .625rem;
+  line-height: 1.6;
+}
+.public-cinema #recorded-incident-selection,
+.public-cinema [aria-label="Recorded repair execution"],
+.public-cinema [aria-label="Recorded recovery controls"] {
+  border-color: #2c304b;
+  background: #0f1325;
+  border-radius: 1rem;
+}
+.public-cinema [data-jury] details { border-color: #2c304b; border-radius: .85rem; background: #0f1325; }
+.public-cinema [data-jury] details details { background: #0b0e1e; }
+.public-cinema [data-jury] button,
+.public-cinema [data-jury] a[download] { border-radius: .5rem; }
+.public-cinema [data-jury] :is(input,select,textarea) { border-radius: .5rem; }
+.public-cinema :is([data-jury="wide"],[data-jury="open"]) > section > header { padding-bottom: 1.75rem; }
+.public-cinema :is([data-jury="wide"],[data-jury="open"]) > section > header h1 { font-size: clamp(2rem,3.5vw,3rem); }
+.public-cinema li[data-result-movie-id] {
+  border: 1px solid #2c304b;
+  border-radius: .8rem;
+  background: #0f1325;
+  overflow: hidden;
+  box-shadow: 0 16px 40px -24px #0009;
+}
+.public-cinema li[data-result-movie-id] > div:last-child { padding: 1rem; }
+.public-cinema li[data-result-movie-id] h3 { font-size: 1rem; line-height: 1.4; letter-spacing: -.015em; }
+.public-cinema li[data-result-movie-id] p { font-size: .8125rem; line-height: 1.75; }
+
+@media(max-width:1050px) {
+  .public-cinema .gemini-brand-tag { display: none; }
+  .public-cinema [data-jury="recorded"] .violet-hero { grid-template-columns: 1fr; gap: 1.75rem; }
+  .public-cinema .context-guide { max-width: 680px; }
+}
+@media(max-width:600px) {
+  .public-cinema .cinema-topbar { padding-inline: 1rem; }
+  .public-cinema .cinema-primary-navigation > a { padding: .75rem .6rem; font-size: .625rem; }
+  .public-cinema .cinema-main { padding-top: 1.5rem; }
+  .public-cinema [data-jury="recorded"] .violet-hero { padding-bottom: 1.75rem; }
+  .public-cinema [data-jury="recorded"] .violet-hero h1 { font-size: clamp(2rem,7.8vw,2.5rem); }
+  .public-cinema .context-guide { padding: .875rem; }
+  .public-cinema .context-guide-route { padding: .75rem .5rem; }
+  .public-cinema .context-guide-nodes { gap: 1rem; }
+  .public-cinema .context-guide .context-guide-node { flex-direction: column; min-height: 72px; padding-inline: .15rem; }
+  .public-cinema .context-guide-node small { font-size: .625rem; }
+  .public-cinema .jury-sequence { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .625rem; }
+  .public-cinema .jury-sequence > div { min-height: 58px; padding: .75rem; }
+}
+@media(forced-colors:active) {
+  .public-cinema .context-guide .context-guide-node { border-color: CanvasText; }
+  .public-cinema .context-guide .context-guide-node:not(:last-child)::after { color: CanvasText; }
+}

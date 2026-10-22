@@ -1,0 +1,369 @@
+/* Approved AffinityQA visual direction. Presentation only; the earlier
+ * structural styles and all native visibility/disclosure rules stay in charge.
+ * No selectors modify movie artwork, SVG contents, result data or evidence. */
+body:has(.public-cinema) { background: #080b18; color-scheme: dark; }
+
+.public-cinema {
+  --paper: #090c19;
+  --white: #111527;
+  --ink: #f1f0fa;
+  --muted: #b6b8cf;
+  --line: #2c304b;
+  --plum: #b9a7ff;
+  --lavender: #25203f;
+  --coral: #ff9aac;
+  --steel: #79dfb2;
+  --positive: #79dfb2;
+  --warning: #f1c479;
+  --warning-surface: #282115;
+  --error-surface: #301c2b;
+  --rail: #090c19;
+  --jury-input: #677299;
+  --jury-raised: #1c223b;
+  --jury-primary-hover: #245bc5;
+  --jury-success-surface: #142b28;
+  --jury-success-line: #39715e;
+  --jury-warning-line: #82643b;
+  --jury-error-line: #8d465d;
+  --jury-shadow: 0 16px 48px -28px #000, inset 0 1px 0 #ffffff05;
+  --violet-button: #2d6de3;
+  --violet-focus: #92bfff;
+  background: radial-gradient(ellipse 700px 420px at 92% 100px, #38216b40, transparent 80%),
+    radial-gradient(ellipse 700px 500px at -10% 650px, #17345a26, transparent 80%), var(--paper);
+  color: var(--ink);
+  color-scheme: dark;
+  isolation: isolate;
+}
+
+.public-cinema .cinema-topbar {
+  position: relative;
+  z-index: 2;
+  min-height: 88px;
+  padding-inline: max(1.5rem, calc((100% - 1280px) / 2));
+  background: #0b0e1e;
+  border-bottom-color: #2f3050;
+}
+.public-cinema .cinema-brand { gap: .75rem; }
+.public-cinema .cinema-brand > span { font-size: 1.45rem; letter-spacing: -.04em; }
+.public-cinema .cinema-brand > span > span { color: var(--ink); }
+.public-cinema .cinema-logo { width: 36px; height: 36px; color: #9a8dff; }
+.public-cinema .cinema-primary-navigation { gap: .4rem; }
+.public-cinema .cinema-primary-navigation > a {
+  padding: .75rem 1rem;
+  border-radius: .5rem;
+  color: #c2bfdc;
+  font-size: .75rem;
+}
+.public-cinema .cinema-primary-navigation > a[aria-current="page"] {
+  color: #87c4ff;
+  background: #16233b;
+  box-shadow: inset 0 -2px 0 #5aa6ff;
+}
+.public-cinema .cinema-primary-navigation > a:hover { background: #1b2038; }
+.public-cinema .cinema-legacy-navigation { border-left-color: #36334e; }
+.public-cinema .cinema-main { max-width: 1344px; padding-top: 2.5rem; }
+.public-cinema .cinema-footer { max-width: 1344px; border-color: var(--line); }
+
+.public-cinema :is(button, a, input, select, textarea, summary):focus-visible,
+.public-cinema [data-jury] :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--violet-focus);
+  outline-offset: 4px;
+}
+.public-cinema .skip-link { background: #234fab; color: #fff; }
+.public-cinema :is(input, select, textarea):hover:not(:disabled),
+.public-cinema [data-jury] :is(input, select, textarea):hover:not(:disabled) { border-color: #8f8bbc; }
+.public-cinema [data-jury] input:not([type="radio"]):not([type="checkbox"]),
+.public-cinema [data-jury] select,
+.public-cinema [data-jury] textarea { background: #0d1122; }
+.public-cinema [data-jury] button:disabled { opacity: .55; }
+.public-cinema [data-jury] a[download] { border-color: #5b5e88; background: #141b32; }
+.public-cinema [data-jury] a[download]:hover { border-color: #a797eb; background: #24233e; }
+.public-cinema .jury-mode-tag[data-mode="discovery"],
+.public-cinema .cinema-mode-nav > button[aria-pressed="true"],
+.public-cinema [data-jury] :is(button[aria-pressed="true"],button[aria-selected="true"]),
+.public-cinema [data-jury] label[data-exact-artist="true"],
+.public-cinema .pill.plum,
+.public-cinema [data-jury] [role="status"][data-state="AWAITING_IDENTITY_CONFIRMATION"] {
+  border-color: #6e609e;
+}
+.public-cinema [data-jury] label[data-selected="true"],
+.public-cinema [data-jury] label[data-exact-artist="true"][data-selected="true"] {
+  border-color: #b9a7ff;
+  background: #29233f;
+}
+
+/* Existing primary action selectors, with a distinct accessible button fill.
+ * Accent text stays lavender; white button text never uses the surface token. */
+.public-cinema [data-jury] [data-jury-action="primary"],
+.public-cinema .jury-primary,
+.public-cinema .button.primary,
+.public-cinema [data-jury] form button:not([type]),
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) > section > div:has(> h2):has(> button) > button,
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) section[aria-labelledby$="job-title"] > button:not(:last-child),
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) section[aria-labelledby$="job-title"] > div:has(> div > h3) > button,
+.public-cinema [data-jury="individual"] > section > div:has(> h2):has(> button) > button,
+.public-cinema [data-jury="individual"] section[aria-labelledby="job-title"] > button:not([type]),
+.public-cinema [data-jury="individual"] section[aria-labelledby="job-title"] > div:has(> div > h3) > button,
+.public-cinema [aria-label="Recorded repair execution"] > div:first-child > button {
+  border-color: #5d9bff;
+  background: var(--violet-button);
+  color: #fff;
+  box-shadow: 0 6px 24px -12px #3f8cffb0;
+}
+.public-cinema [data-jury] [data-jury-action="primary"]:hover:enabled,
+.public-cinema .jury-primary:hover:enabled,
+.public-cinema .button.primary:hover:not(:disabled),
+.public-cinema [data-jury] form button:not([type]):hover:enabled,
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) > section > div:has(> h2):has(> button) > button:hover:enabled,
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) section[aria-labelledby$="job-title"] > button:not(:last-child):hover:enabled,
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) section[aria-labelledby$="job-title"] > div:has(> div > h3) > button:hover:enabled,
+.public-cinema [data-jury="individual"] > section > div:has(> h2):has(> button) > button:hover:enabled,
+.public-cinema [data-jury="individual"] section[aria-labelledby="job-title"] > button:not([type]):hover:enabled,
+.public-cinema [data-jury="individual"] section[aria-labelledby="job-title"] > div:has(> div > h3) > button:hover:enabled,
+.public-cinema [aria-label="Recorded repair execution"] > div:first-child > button:hover:enabled {
+  border-color: #9dc3ff;
+  background: var(--jury-primary-hover);
+  color: #fff;
+}
+
+.public-cinema [data-jury="recorded"] > section {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.public-cinema [data-jury="recorded"] .violet-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.03fr);
+  align-items: center;
+  gap: 2rem;
+  min-width: 0;
+  margin: 0 0 2rem;
+  padding: 1rem 0;
+  border: 0;
+}
+.public-cinema .violet-hero-copy { min-width: 0; }
+.public-cinema [data-jury="recorded"] .violet-hero .violet-eyebrow {
+  color: #b9a7ff;
+  font-size: .6875rem;
+  font-weight: 650;
+  letter-spacing: .16em;
+  line-height: 1.8;
+}
+.public-cinema [data-jury="recorded"] .violet-hero h1 {
+  margin: 1.1rem 0 1.2rem;
+  font-size: clamp(2rem, 3.5vw, 3.3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+.public-cinema .violet-hero h1 > span { color: #c3b0ff; }
+.public-cinema [data-jury="recorded"] .violet-hero-copy > p {
+  max-width: 33rem;
+  margin: 0;
+  color: #c0bfd4;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.public-cinema .violet-hero-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+.public-cinema .violet-hero-actions > a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: .75rem;
+  min-height: 48px;
+  padding: .8rem 1rem;
+  border: 1px solid #5d9bff;
+  border-radius: .65rem;
+  background: var(--violet-button);
+  color: #fff;
+  font-size: .6875rem;
+  font-weight: 650;
+  line-height: 1.6;
+  letter-spacing: .06em;
+  text-decoration: none;
+  text-align: center;
+}
+.public-cinema .violet-hero-actions > a:hover { background: var(--jury-primary-hover); }
+.public-cinema .violet-hero-actions > a[data-secondary] {
+  border-color: #655a99;
+  background: #15182b;
+  color: #cdc0ff;
+}
+.public-cinema .violet-hero-actions > a[data-secondary]:hover { background: #25213e; }
+
+/* This self-contained guide is illustrative, not a generated case result. */
+.public-cinema .context-guide {
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  padding: 1.4rem;
+  border: 1px solid #7760bc;
+  border-radius: 1.1rem;
+  background: radial-gradient(ellipse at 85% 0, #39245b66, transparent 70%), #0e1326;
+  box-shadow: 0 0 70px -24px #965cf575, inset 0 1px 0 #d9c6ff15;
+}
+.public-cinema .context-guide > figcaption {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+  color: var(--ink);
+  font-size: .8125rem;
+  font-weight: 600;
+  letter-spacing: .09em;
+}
+.public-cinema .context-guide > figcaption > span {
+  padding: .3rem .5rem;
+  border: 1px solid #514874;
+  border-radius: .4rem;
+  color: #c4bbeb;
+  font-size: .5625rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: .07em;
+}
+.public-cinema .context-guide-route {
+  min-width: 0;
+  padding: .875rem 1rem 1rem;
+  border: 1px solid #353851;
+  border-radius: .85rem;
+  background: #10162a;
+}
+.public-cinema .context-guide-route + .context-guide-route { margin-top: .75rem; }
+.public-cinema .context-guide-route > span {
+  display: inline-block;
+  padding: .15rem .6rem;
+  border: 1px solid #82643b;
+  border-radius: .35rem;
+  color: #f1c479;
+  background: #282115;
+  font-size: .5625rem;
+  font-weight: 650;
+  letter-spacing: .1em;
+}
+.public-cinema .context-guide-route[data-route="after"] > span {
+  color: #79dfb2;
+  border-color: #39715e;
+  background: #142b28;
+}
+.public-cinema .context-guide-nodes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: .75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.public-cinema .context-guide-node { position: relative; min-width: 0; text-align: center; }
+.public-cinema .context-guide-node:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 25px;
+  left: calc(50% + 27px);
+  width: calc(100% - 38px);
+  border-top: 1px solid #6a82ef;
+}
+.public-cinema .context-guide-route[data-route="before"] .context-guide-node:nth-child(2)::after { border-top: 1px dashed #d4ac64; }
+.public-cinema .context-guide-route[data-route="after"] .context-guide-node:nth-child(2)::after { border-top-color: #65ba98; }
+.public-cinema .context-guide-node > i {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto .6rem;
+  border: 1px solid #6985fa;
+  border-radius: 50%;
+  background: #111b37;
+  color: #99c8ff;
+  box-shadow: inset 0 0 14px #3d71e91a;
+}
+.public-cinema .context-guide-node:nth-child(2) > i { border-color: #b196ff; color: #bea4ff; background: #201936; }
+.public-cinema .context-guide-node > small {
+  display: block;
+  color: #98c8ff;
+  font-size: .625rem;
+  font-weight: 550;
+  line-height: 1.55;
+  letter-spacing: .03em;
+}
+.public-cinema .context-guide-node:nth-child(2) > small { color: #c5b6ff; }
+
+.public-cinema .jury-sequence { gap: .875rem; margin: 1.5rem 0; }
+.public-cinema .jury-sequence > div {
+  min-height: 84px;
+  padding: 1rem;
+  border: 1px solid #3a3459;
+  border-radius: .75rem;
+  background: #111427;
+  gap: .875rem;
+}
+.public-cinema .jury-sequence > div > span {
+  border-color: #7566b0;
+  border-radius: .5rem;
+  background: #201c36;
+  color: #bfa9ff;
+}
+.public-cinema .jury-sequence strong { color: #e1ddee; font-size: .6875rem; letter-spacing: .1em; }
+.public-cinema [data-jury="recorded"] #recorded-incident-selection { scroll-margin-top: 1.5rem; }
+.public-cinema [data-jury="recorded"] #recorded-incident-selection:focus { outline: 2px solid var(--violet-focus); outline-offset: 4px; }
+.public-cinema [data-jury="recorded"] > section > :is(div, section, aside):not(.jury-sequence) { border-radius: .85rem; }
+
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) > section > header {
+  position: relative;
+  max-width: 900px;
+  padding-block: .5rem 1rem;
+}
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) > section > header h1 {
+  margin-block: 1rem;
+  color: #f1f0fa;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -.04em;
+}
+.public-cinema :is([data-jury="wide"], [data-jury="open"]) > section > header > p { color: #c0bfd4; }
+.public-cinema [aria-label="Film discovery steps"] li[data-current="true"] { border-color: #a89aff; }
+.public-cinema li[data-result-movie-id] { border-color: #494362; background: #111629; box-shadow: 0 16px 42px -28px #000; }
+.public-cinema li[data-result-movie-id] > [data-movie-id] { border-bottom-color: #494362; }
+.public-cinema [data-movie-id] > span { background: #111629f0; color: #c9c3e4; }
+.public-cinema [data-jury] details { background: #111527; border-color: #3a3b57; }
+.public-cinema [data-jury] details details { background: #0d1122; }
+
+@media (max-width: 1020px) {
+  .public-cinema [data-jury="recorded"] .violet-hero { grid-template-columns: 1fr; gap: 1.5rem; }
+  .public-cinema .context-guide { width: 100%; max-width: 680px; }
+  .public-cinema [data-jury="recorded"] .violet-hero h1 { max-width: 800px; font-size: clamp(2rem, 5vw, 3.3rem); }
+}
+@media (max-width: 600px) {
+  .public-cinema .cinema-topbar { padding-inline: 1rem; }
+  .public-cinema .cinema-primary-navigation > a { padding: .7rem .6rem; font-size: .625rem; }
+  .public-cinema .cinema-main { padding-top: 1.5rem; }
+  .public-cinema [data-jury="recorded"] .violet-hero { padding-top: 0; }
+  .public-cinema [data-jury="recorded"] .violet-hero h1 { font-size: clamp(2rem, 7.8vw, 2.75rem); }
+  .public-cinema [data-jury="recorded"] .violet-hero-copy > p { font-size: .9375rem; }
+  .public-cinema .context-guide { padding: 1rem .75rem; border-radius: .85rem; }
+  .public-cinema .context-guide > figcaption { font-size: .75rem; }
+  .public-cinema .context-guide-route { padding: .75rem .5rem; }
+  .public-cinema .context-guide-nodes { gap: .5rem; }
+  .public-cinema .context-guide-node > small { font-size: .5625rem; }
+  .public-cinema .context-guide-node:not(:last-child)::after { width: calc(100% - 46px); }
+  .public-cinema .jury-sequence { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; }
+  .public-cinema .jury-sequence > div { padding: .75rem; gap: .6rem; min-height: 68px; }
+  .public-cinema .violet-hero-actions > a { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-cinema *, .public-cinema *::before, .public-cinema *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  .public-cinema .context-guide, .public-cinema .context-guide-route, .public-cinema .context-guide-node > i,
+  .public-cinema .jury-sequence > div { border: 1px solid CanvasText; }
+  .public-cinema .context-guide-node:not(:last-child)::after { border-top-color: CanvasText; }
+}

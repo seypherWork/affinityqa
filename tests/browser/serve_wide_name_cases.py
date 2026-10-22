@@ -49,7 +49,9 @@ def main():
         bad=copy.deepcopy(row);bad.update(entity_id=str(UUID(int=30000)),name='Synthetic  collaboration')
         body['results'].append(bad)
         if params['query']=='Only malformed':row['name']='Synthetic  malformed'
-    transport=WideTransport(search_mutation=mutation);opener=WideOpener()
+    def title_mutation(body,page):
+        if page==1:body['results']['entities'][0]['name']='Synthetic  \ufb01lm 1'
+    transport=WideTransport(search_mutation=mutation,mutation=title_mutation);opener=WideOpener()
     with ExitStack() as stack:
         try:
             network_guards(stack)

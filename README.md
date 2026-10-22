@@ -1,3 +1,102 @@
+# AffinityQA
+
+**Find the wrong context. Verify the repair.**
+
+A Qloo-powered workbench for diagnosing personalization faults. Trace the
+requested taste through Qloo context, the agent and its cache; apply one
+supported correction and verify recovery. A companion discovery flow accepts
+a film or artist and recommends five films from up to 100 Qloo candidates.
+
+[Open the live app](https://affinityqa-review.onrender.com/demo#recorded) ·
+[Judge walkthrough](docs/DEMO-GUIDE.md) ·
+[Windows/Linux checks](https://github.com/seypherWork/affinityqa/actions/workflows/public-source-tests.yml) ·
+[MIT license](LICENSE)
+
+![Actual diagnostic interface, local recorded replay, 22 October 2026](docs/images/jury-diagnosis-20261022.png)
+
+## The jury's shortest route
+
+1. **DIAGNOSIS & EVIDENCE:** replay a recorded incident. Follow Detect → Diagnose →
+   Repair → Verify, inspect the input/context mismatch and the recovery checks.
+   This uses saved decisions and makes no new provider calls.
+2. **FILM DISCOVERY:** enter a film or artist, review the plan and explicitly
+   confirm its identity (including a film's year). Discover five films, inspect
+   the source descriptions and original artwork, then download the verification.
+3. **SAVED:** reopen the same visitor session and restore its cases without
+   generating recommendations again.
+
+The hosted application needs no installation, Docker, personal API key or
+running creator PC. Shared Qloo/Groq Free capacity remains finite; follow
+waiting/failure messages and do not repeat an uncertain send.
+[Access and evidence boundaries](docs/DEMO-GUIDE.md).
+
+## What Qloo contributes
+
+| Supported incident | Diagnosis | Correction |
+| --- | --- | --- |
+| A cache key omits the profile | `CACHE_OMITS_PROFILE` | Include the profile in the cache key. |
+| The agent receives an old profile | `STALE_PROFILE` | Restore the current requested profile. |
+| Tool context belongs to someone else | `WRONG_TOOL_PROFILE` | Bind Qloo context to the requested profile. |
+
+The verifier checks the saved tool response, consumed context, model input,
+decision, healthy-reference recovery and legitimate cache reuse. A recorded
+controlled comparison changes only the consumed Qloo context; it does not
+establish improved human taste or compare Qloo with no Qloo. Supported repairs
+address these integration faults, not arbitrary software.
+
+## Discovery with traceable inputs
+
+![Actual local Daft Punk trial using real Qloo and Groq, 22 October 2026](docs/images/jury-discovery-20261022.png)
+
+Qloo resolves identities and retrieves a case-specific film pool. Groq Free /
+GPT-OSS 20B selects eligible indices; the server reconstructs canonical films.
+The model does not invent plots or explanation prose. Descriptions are tied to
+the saved source, or use an explicit missing-description fallback. All card
+artwork is original decorative illustration, not a film poster.
+
+The screenshot shows an actual local Daft Punk / *Tron: Legacy (2010)* trial
+with expressly synthetic operator preferences. Recommendation completion is
+separate from its failed automated download check; that trial is not claimed
+as a completed download/restoration test. The retained case and original test
+outcome were preserved. [Current technical review](docs/TECHNICAL-REVIEW-20261022.md).
+
+Inputs may be films or artists; outputs are five **films**. Artist/song
+recommendations, playback and exhaustive worldwide catalog coverage are not
+implemented.
+
+## Run the source checks
+
+Use the installed Python version appropriate to your platform and the existing
+dependency locks. These are synthetic engineering tests and need no API keys:
+
+```text
+python -m pip install -r requirements-backend.lock.txt
+python -m pip install --require-hashes -r requirements-repeatable.lock.txt
+python -m unittest discover -s tests -v
+cd web
+npx --yes pnpm@11.25.0 install --frozen-lockfile --ignore-scripts
+npx --yes pnpm@11.25.0 typecheck
+npx --yes pnpm@11.25.0 build
+npx --yes pnpm@11.25.0 test:diagnostic-evidence
+```
+
+[Exact Windows/Linux setup and preview commands](docs/PUBLIC-CODE-QUICKSTART.md).
+Private captures, credentials, model weights and owner case stores are excluded
+from the public package. Original code is MIT licensed; third-party data and
+models retain their own terms. [Asset provenance](docs/ASSET-PROVENANCE.md).
+
+## Evaluation boundaries
+
+The owner reports three real informal testers: himself (Eminem) and two friends
+(Fast & Furious and Scream), with positive qualitative feedback. These are not
+structured independent preference ratings. Broader cultural quality remains
+**NOT_VALIDATED**; the retained historical remote causal campaign is
+**INCONCLUSIVE**. Its evaluated-agent **BLOCKED** gate is separate from the
+diagnostic application's availability.
+
+<details>
+<summary>Dated technical records and previous README snapshots</summary>
+
 ![AffinityQA — Follow the profile. Prove the recovery.](docs/images/hero.svg)
 
 > **Human testing update — 20 October 2026:** Three real people (the creator and two friends) are reported to have tested the application, with positive qualitative feedback. See [current human testing evidence](docs/DEMO-GUIDE.md#informal-human-testing). Earlier technical records below did not collect structured human preference labels; they are not a current count of everyone who used the app.
@@ -395,3 +494,5 @@ This source candidate replaces external card images with the project's existing
 original vector illustrations. Historical case records and downloads retain
 their original bytes. It does not retroactively change the dated image-loading
 observations above or establish that this candidate is deployed.
+
+</details>

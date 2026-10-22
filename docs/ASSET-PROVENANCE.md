@@ -69,3 +69,10 @@ Earlier dated CDN tests remain historical observations, not current behavior.
 Promotional materials can use original workflow illustrations without depending
 on permission to reproduce posters; screenshots still require checking for
 provider-derived text and personal information before publication.
+
+## Interface screenshots — 22 October 2026
+
+- `jury-diagnosis-20261022.png`: actual local interface executing the existing original recorded capture; saved decisions, zero new provider calls. The context diagram is labelled illustrative.
+- `jury-discovery-20261022.png`: actual local Daft Punk / Tron: Legacy (2010) trial using real Qloo/Groq and expressly synthetic operator preferences. Original abstract film-card SVGs render in the screenshot; no external posters. Recommendation completion is not a claim that this trial's automated download/restoration passed.
+
+These screenshots are presentation records of this project's own interface, not redistributed raw provider captures, human preference-study results or licensed film-poster artwork. Earlier assets and their dated provenance remain intact.
